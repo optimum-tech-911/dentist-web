@@ -14,6 +14,7 @@ const Index = () => {
     signOut
   } = useAuth();
   const [showFullMission, setShowFullMission] = useState(false);
+  const [showMobileNav, setShowMobileNav] = useState(false);
   const services = [{
     title: "Prévention",
     description: "Conseils et actions de prévention bucco-dentaire pour tous les âges",
@@ -38,10 +39,10 @@ const Index = () => {
     full: "L'UFSBD œuvre depuis plus de 50 ans pour la promotion de la santé bucco-dentaire. Notre section de l'Hérault s'engage quotidiennement dans la prévention, la formation et l'information du public sur l'importance de la santé bucco-dentaire. Nous menons des actions concrètes auprès des écoles, entreprises et institutions pour sensibiliser à l'hygiène bucco-dentaire et promouvoir les bonnes pratiques."
   };
   return <div className="min-h-screen bg-background">
-      {/* Header - Logo Only */}
+      {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm border-b shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3 md:py-4">
-          <div className="flex justify-center items-center">
+          <div className="flex justify-between items-center">
             <div className="flex items-center">
               <a href="https://www.ufsbd.fr" target="_blank" rel="noopener noreferrer">
                 <img 
@@ -51,7 +52,92 @@ const Index = () => {
                 />
               </a>
             </div>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-4">
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/blog">Actualités</Link>
+              </Button>
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/organigramme">Organisation</Link>
+              </Button>
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/contact">Contact</Link>
+              </Button>
+            {user ? (
+              <div className="hidden md:flex items-center space-x-4">
+                {(userRole === 'admin' || userRole === 'author') && (
+                  <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                    <Link to="/submit">Écrire un article</Link>
+                  </Button>
+                )}
+                {userRole === 'admin' && (
+                  <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                    <Link to="/admin">Admin</Link>
+                  </Button>
+                )}
+                <span className="text-sm text-muted-foreground">Bonjour {user.email}</span>
+                <Button variant="outline" onClick={signOut} className="hover:bg-primary hover:text-white transition-colors">
+                  Déconnexion
+                </Button>
+              </div>
+            ) : (
+              <Button asChild className="btn-primary hidden md:inline-flex">
+                <Link to="/auth">Connexion</Link>
+              </Button>
+            )}
+            </nav>
+            
+            {/* Mobile Navigation */}
+            <div className="md:hidden">
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileNav(!showMobileNav)}>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Button>
+            </div>
           </div>
+          
+          {/* Mobile Menu */}
+          {showMobileNav && (
+            <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+              <div className="flex flex-col space-y-3 pt-4">
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/blog" onClick={() => setShowMobileNav(false)}>Actualités</Link>
+                </Button>
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/organigramme" onClick={() => setShowMobileNav(false)}>Organisation</Link>
+                </Button>
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/contact" onClick={() => setShowMobileNav(false)}>Contact</Link>
+                </Button>
+                {user ? (
+                  <>
+                    {(userRole === 'admin' || userRole === 'author') && (
+                      <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                        <Link to="/submit" onClick={() => setShowMobileNav(false)}>Écrire un article</Link>
+                      </Button>
+                    )}
+                    {userRole === 'admin' && (
+                      <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                        <Link to="/admin" onClick={() => setShowMobileNav(false)}>Admin</Link>
+                      </Button>
+                    )}
+                    <div className="px-3 py-2 text-sm text-muted-foreground border-t">
+                      Bonjour {user.email}
+                    </div>
+                    <Button variant="outline" onClick={() => { signOut(); setShowMobileNav(false); }} className="mx-3">
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <Button asChild className="btn-primary mx-3">
+                    <Link to="/auth" onClick={() => setShowMobileNav(false)}>Connexion</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
