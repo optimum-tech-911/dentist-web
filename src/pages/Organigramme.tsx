@@ -159,15 +159,15 @@ export default function Organigramme() {
       </header>
 
       <div className="container mx-auto px-4 py-16">
-        {/* Président */}
-        {president && (
+          {/* Président */}
+          {president && (
           <div className="mb-20">
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Présidence</h2>
             <div className="flex justify-center">
               <div className="max-w-md">
                 <OrganigrammeCard member={president} onUpdated={fetchOrgData} editable={canEdit} />
               </div>
-            </div>
+              </div>
           </div>
         )}
 
@@ -179,8 +179,8 @@ export default function Organigramme() {
               {bureauMembers.map((member) => (
                 <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={canEdit} />
               ))}
-            </div>
-          </div>
+                </div>
+              </div>
         )}
 
         {/* Autres Membres */}
@@ -202,9 +202,9 @@ export default function Organigramme() {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {orgData.map((member) => (
                 <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={canEdit} />
-              ))}
-            </div>
+            ))}
           </div>
+        </div>
         )}
 
         {/* Contact */}

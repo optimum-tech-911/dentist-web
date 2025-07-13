@@ -42,7 +42,7 @@ const App = () => (
             <Route 
               path="/submit" 
               element={
-                <ProtectedRoute requiredRole="author">
+                <ProtectedRoute requiredRole={["author", "admin", "doctor"]}>
                   <BlogSubmit />
                 </ProtectedRoute>
               } 

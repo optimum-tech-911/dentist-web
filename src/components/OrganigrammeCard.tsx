@@ -172,4 +172,4 @@ export function OrganigrammeCard({ member, onUpdated, editable }: OrganigrammeCa
       </CardContent>
     </Card>
   );
-} 
+}

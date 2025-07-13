@@ -66,7 +66,7 @@ const NotFound = () => {
             </div>
 
             {/* Main Action Button */}
-            <div className="text-center">
+      <div className="text-center">
               <Button 
                 asChild 
                 size="lg"

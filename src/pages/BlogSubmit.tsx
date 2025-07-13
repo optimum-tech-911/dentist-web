@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
+import { PenTool } from 'lucide-react';
 
 export default function BlogSubmit() {
   const { user, userRole } = useAuth();
@@ -20,10 +21,7 @@ export default function BlogSubmit() {
     image: ''
   });
 
-  // Redirect if not author or admin
-  if (userRole && !['author', 'admin'].includes(userRole)) {
-    return <Navigate to="/" replace />;
-  }
+  // Role check is now handled by ProtectedRoute component
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,8 +45,8 @@ export default function BlogSubmit() {
       if (error) throw error;
 
       toast({
-        title: "Post submitted!",
-        description: "Your post has been submitted for review."
+        title: "Article soumis !",
+        description: "Votre article a été envoyé pour validation. Il apparaîtra dans la section blog après approbation."
       });
 
       // Reset form
@@ -62,8 +60,8 @@ export default function BlogSubmit() {
     } catch (error) {
       console.error('Error submitting post:', error);
       toast({
-        title: "Error submitting post",
-        description: "Please try again later",
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'envoi de votre article.",
         variant: "destructive"
       });
     } finally {
@@ -80,73 +78,94 @@ export default function BlogSubmit() {
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardHeader>
-            <CardTitle>Submit Blog Post</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-              </div>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold mb-4 drop-shadow-lg flex items-center">
+                <PenTool className="mr-4 h-10 w-10" />
+                Écrire un Article
+              </h1>
+              <p className="text-xl text-blue-100 drop-shadow-md">
+                Partagez vos connaissances sur la santé bucco-dentaire
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData({...formData, category: value})}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <Card className="shadow-xl">
+            <CardHeader>
+              <CardTitle className="text-2xl gradient-text">Rédiger votre article</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Titre de l'article *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                    placeholder="Donnez un titre accrocheur à votre article..."
+                    required
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="image">Image URL (optional)</Label>
-                <Input
-                  id="image"
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => setFormData({...formData, image: e.target.value})}
-                  placeholder="https://example.com/image.jpg"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="category">Catégorie *</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({...formData, category: value})}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionnez une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({...formData, content: e.target.value})}
-                  rows={10}
-                  required
-                  placeholder="Write your blog post content here... You can use Markdown formatting."
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor="image">URL de l'image (optionnel)</Label>
+                  <Input
+                    id="image"
+                    type="url"
+                    value={formData.image}
+                    onChange={(e) => setFormData({...formData, image: e.target.value})}
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Submitting...' : 'Submit for Review'}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="content">Contenu de l'article *</Label>
+                  <Textarea
+                    id="content"
+                    value={formData.content}
+                    onChange={(e) => setFormData({...formData, content: e.target.value})}
+                    rows={12}
+                    required
+                    placeholder="Rédigez le contenu de votre article ici... Vous pouvez utiliser le formatage Markdown."
+                    className="min-h-[300px]"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
+                  {loading ? 'Envoi en cours...' : 'Soumettre pour révision'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

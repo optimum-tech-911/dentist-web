@@ -283,10 +283,10 @@ export default function OrganigrammeAdmin() {
           <div className="space-y-2">
             <Label htmlFor="role">Rôle</Label>
             <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
-              <SelectTrigger>
+                <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un rôle" />
-              </SelectTrigger>
-              <SelectContent>
+                </SelectTrigger>
+                <SelectContent>
                 {availableRoles.map((role) => (
                   <SelectItem key={role.value} value={role.value}>
                     <div>
@@ -295,20 +295,20 @@ export default function OrganigrammeAdmin() {
                     </div>
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+                </SelectContent>
+              </Select>
+            </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="Description du poste ou des responsabilités"
               rows={3}
-            />
-          </div>
+                />
+              </div>
 
           <div className="space-y-2">
             <Label>Image de profil</Label>
@@ -317,8 +317,8 @@ export default function OrganigrammeAdmin() {
               onImageSelect={(imageId) => handleImageSelect(member.id, imageId)}
               title="Sélectionner une image de profil"
               description="Choisissez une image depuis la galerie pour ce membre"
-            />
-          </div>
+                />
+              </div>
 
           <div className="flex space-x-2">
             <Button onClick={handleSubmit} className="flex-1">
@@ -377,7 +377,7 @@ export default function OrganigrammeAdmin() {
             
             <div className="space-y-2">
               <Label htmlFor="newRole">Rôle</Label>
-              <Select 
+              <Select
                 value={newMember.role} 
                 onValueChange={(value) => setNewMember(prev => ({ 
                   ...prev, 
@@ -471,8 +471,8 @@ export default function OrganigrammeAdmin() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
+                      <Button 
+                        variant="outline" 
                         size="sm"
                         onClick={() => handleEdit(member)}
                       >
@@ -480,8 +480,8 @@ export default function OrganigrammeAdmin() {
                         Modifier
                       </Button>
                       {!['president', 'secretaire', 'tresorier'].includes(member.role) && (
-                        <Button
-                          variant="outline"
+                        <Button 
+                          variant="outline" 
                           size="sm"
                           onClick={() => handleDelete(member.id)}
                         >
@@ -495,7 +495,7 @@ export default function OrganigrammeAdmin() {
                 {member.description && (
                   <CardContent>
                     <p className="text-muted-foreground">{member.description}</p>
-                  </CardContent>
+                </CardContent>
                 )}
               </Card>
             )}

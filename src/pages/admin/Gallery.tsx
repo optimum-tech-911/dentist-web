@@ -155,7 +155,7 @@ export default function Gallery() {
       </div>
     );
   }
-
+  
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -180,10 +180,10 @@ export default function Gallery() {
             {isUploading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Upload className="h-4 w-4" />
+          <Upload className="h-4 w-4" />
             )}
             <span>{isUploading ? 'Téléchargement...' : 'Télécharger des images'}</span>
-          </Button>
+        </Button>
         </div>
       </div>
 
