@@ -4,12 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
-import { PenTool } from 'lucide-react';
+import { PenTool, Image } from 'lucide-react';
+import { RichTextEditor } from '@/components/RichTextEditor';
+import { GallerySelector } from '@/components/GallerySelector';
+import { GalleryService, type GalleryImage } from '@/lib/gallery';
 
 export default function BlogSubmit() {
   const { user, userRole } = useAuth();
@@ -18,7 +20,7 @@ export default function BlogSubmit() {
     title: '',
     category: '',
     content: '',
-    image: ''
+    headerImage: ''
   });
 
   // Role check is now handled by ProtectedRoute component
@@ -30,13 +32,13 @@ export default function BlogSubmit() {
     setLoading(true);
 
     try {
-      const { error } = await supabase
+              const { error } = await supabase
         .from('posts')
         .insert({
           title: formData.title,
           content: formData.content,
           category: formData.category,
-          image: formData.image || null,
+          image: formData.headerImage || null,
           author_email: user.email!,
           author_id: user.id,
           status: 'pending'
@@ -54,7 +56,7 @@ export default function BlogSubmit() {
         title: '',
         category: '',
         content: '',
-        image: ''
+        headerImage: ''
       });
 
     } catch (error) {
@@ -76,6 +78,14 @@ export default function BlogSubmit() {
     'Formation',
     'Actualités'
   ];
+
+  // Handle header image selection
+  const handleHeaderImageSelect = (image: GalleryImage) => {
+    setFormData(prev => ({
+      ...prev,
+      headerImage: image.url
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
@@ -135,29 +145,51 @@ export default function BlogSubmit() {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="image">URL de l'image (optionnel)</Label>
-                  <Input
-                    id="image"
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({...formData, image: e.target.value})}
-                    placeholder="https://example.com/image.jpg"
+                              {/* Header Image Selection */}
+              <div className="space-y-2">
+                <Label>Image de couverture (optionnel)</Label>
+                <div className="flex items-center gap-4">
+                  {formData.headerImage && (
+                    <div className="relative">
+                      <img
+                        src={formData.headerImage}
+                        alt="Image de couverture"
+                        className="w-32 h-20 object-cover rounded-md border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                        onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  )}
+                  <GallerySelector
+                    onImageSelect={handleHeaderImageSelect}
+                    trigger={
+                      <Button type="button" variant="outline" className="flex items-center gap-2">
+                        <Image className="h-4 w-4" />
+                        {formData.headerImage ? 'Changer l\'image' : 'Sélectionner une image'}
+                      </Button>
+                    }
+                    title="Sélectionner une image de couverture"
+                    description="Choisissez une image depuis la galerie pour l'utiliser comme image de couverture de votre article"
                   />
                 </div>
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="content">Contenu de l'article *</Label>
-                  <Textarea
-                    id="content"
-                    value={formData.content}
-                    onChange={(e) => setFormData({...formData, content: e.target.value})}
-                    rows={12}
-                    required
-                    placeholder="Rédigez le contenu de votre article ici... Vous pouvez utiliser le formatage Markdown."
-                    className="min-h-[300px]"
-                  />
-                </div>
+              {/* Rich Text Editor for Content */}
+              <div className="space-y-2">
+                <Label htmlFor="content">Contenu de l'article *</Label>
+                <RichTextEditor
+                  value={formData.content}
+                  onChange={(value) => setFormData({...formData, content: value})}
+                  placeholder="Rédigez le contenu de votre article ici... Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos."
+                />
+              </div>
 
                 <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={loading}>
                   {loading ? 'Envoi en cours...' : 'Soumettre pour révision'}

@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users } from 'lucide-react';
+import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users, Image } from 'lucide-react';
+import { RichTextEditor } from '@/components/RichTextEditor';
+import { GallerySelector } from '@/components/GallerySelector';
+import { GalleryService, type GalleryImage } from '@/lib/gallery';
 
 export default function WriteBlog() {
   const { user, userRole } = useAuth();
@@ -21,7 +23,7 @@ export default function WriteBlog() {
     title: '',
     content: '',
     category: '',
-    image: ''
+    headerImage: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +36,14 @@ export default function WriteBlog() {
     { value: 'formation', label: '🎓 Formation', description: 'Éducation et apprentissage' },
     { value: 'conseils', label: '💡 Conseils', description: 'Recommandations pratiques' }
   ];
+
+  // Handle header image selection
+  const handleHeaderImageSelect = (image: GalleryImage) => {
+    setFormData(prev => ({
+      ...prev,
+      headerImage: image.url
+    }));
+  };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -73,7 +83,7 @@ export default function WriteBlog() {
           category: formData.category,
           author_email: user.email,
           author_id: user.id,
-          image: formData.image || null,
+          image: formData.headerImage || null,
           status: 'pending'
         });
 
@@ -89,7 +99,7 @@ export default function WriteBlog() {
         title: '',
         content: '',
         category: '',
-        image: ''
+        headerImage: ''
       });
 
       setShowSubmitDialog(false);
@@ -217,34 +227,55 @@ export default function WriteBlog() {
                 </Select>
               </div>
 
-              {/* Image URL */}
+              {/* Header Image Selection */}
               <div className="space-y-2">
-                <Label htmlFor="image">URL de l'image (optionnel)</Label>
-                <Input
-                  id="image"
-                  type="url"
-                  value={formData.image}
-                  onChange={(e) => handleInputChange('image', e.target.value)}
-                  placeholder="https://exemple.com/image.jpg"
-                />
+                <Label>Image de couverture (optionnel)</Label>
+                <div className="flex items-center gap-4">
+                  {formData.headerImage && (
+                    <div className="relative">
+                      <img
+                        src={formData.headerImage}
+                        alt="Image de couverture"
+                        className="w-32 h-20 object-cover rounded-md border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute -top-2 -right-2 h-6 w-6 p-0"
+                        onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  )}
+                  <GallerySelector
+                    onImageSelect={handleHeaderImageSelect}
+                    trigger={
+                      <Button type="button" variant="outline" className="flex items-center gap-2">
+                        <Image className="h-4 w-4" />
+                        {formData.headerImage ? 'Changer l\'image' : 'Sélectionner une image'}
+                      </Button>
+                    }
+                    title="Sélectionner une image de couverture"
+                    description="Choisissez une image depuis la galerie pour l'utiliser comme image de couverture de votre article"
+                  />
+                </div>
                 <p className="text-xs text-muted-foreground">
                   Ajoutez une image d'illustration pour votre article
                 </p>
               </div>
 
-              {/* Content */}
+              {/* Rich Text Editor for Content */}
               <div className="space-y-2">
                 <Label htmlFor="content">Contenu de l'article *</Label>
-                <Textarea
-                  id="content"
+                <RichTextEditor
                   value={formData.content}
-                  onChange={(e) => handleInputChange('content', e.target.value)}
-                  placeholder="Rédigez votre article ici... Vous pouvez utiliser le format Markdown pour la mise en forme."
-                  className="min-h-[300px] resize-y"
-                  required
+                  onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
+                  placeholder="Rédigez votre article ici... Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos."
                 />
                 <p className="text-xs text-muted-foreground">
-                  Utilisez Markdown pour la mise en forme (gras: **texte**, italique: *texte*, liens: [texte](url))
+                  Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos YouTube
                 </p>
               </div>
 
@@ -296,7 +327,9 @@ export default function WriteBlog() {
             <CardContent>
               <ul className="space-y-2 text-sm text-gray-700">
                 <li>• <strong>Titre clair :</strong> Utilisez un titre qui décrit précisément le contenu</li>
+                <li>• <strong>Image de couverture :</strong> Sélectionnez une image attrayante depuis la galerie</li>
                 <li>• <strong>Structure :</strong> Organisez votre contenu avec des paragraphes et sous-titres</li>
+                <li>• <strong>Médias :</strong> Insérez des images et vidéos YouTube pour enrichir votre contenu</li>
                 <li>• <strong>Sources :</strong> Citez vos sources si vous mentionnez des études ou statistiques</li>
                 <li>• <strong>Accessibilité :</strong> Écrivez dans un langage accessible à tous</li>
                 <li>• <strong>Relecture :</strong> Vérifiez l'orthographe et la grammaire avant de soumettre</li>

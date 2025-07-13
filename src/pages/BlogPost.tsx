@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -103,7 +103,7 @@ export default function BlogPost() {
           )}
 
           <div className="prose prose-lg max-w-none">
-            <ReactMarkdown>{post.content}</ReactMarkdown>
+            <MarkdownRenderer content={post.content} />
           </div>
         </article>
       </div>
