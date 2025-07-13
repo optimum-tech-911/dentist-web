@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Users, PenTool } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
 
 interface DashboardStats {
   totalPosts: number;
@@ -94,12 +94,20 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold">Tableau de bord</h1>
           <p className="text-muted-foreground">Bienvenue sur le tableau de bord administrateur UFSBD</p>
         </div>
-        <Button asChild className="bg-blue-600 hover:bg-blue-700">
-          <Link to="/submit" className="flex items-center gap-2">
-            <PenTool className="h-4 w-4" />
-            Écrire un Article
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link to="/" className="flex items-center gap-2">
+              <Home className="h-4 w-4" />
+              Page d'accueil
+            </Link>
+          </Button>
+          <Button asChild className="bg-blue-600 hover:bg-blue-700">
+            <Link to="/submit" className="flex items-center gap-2">
+              <PenTool className="h-4 w-4" />
+              Écrire un Article
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
