@@ -89,8 +89,8 @@ export function OrganigrammeCard({ member, onUpdated, editable }: OrganigrammeCa
   return (
     <Card className={`h-full transition-all duration-300 hover:shadow-xl hover:scale-105 border-0 ${getRoleColor(member.role)} text-white overflow-hidden`}>
       <CardHeader className="text-center pb-4 relative">
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-        <div className="relative z-10 w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border-2 border-white/30">
+        <div className="absolute inset-0 bg-white/10"></div>
+        <div className="relative z-10 w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border-2 border-white/30">
           {currentImageUrl ? (
             <img
               src={currentImageUrl}
