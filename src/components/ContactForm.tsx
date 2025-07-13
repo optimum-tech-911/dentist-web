@@ -24,6 +24,13 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
     message: ''
   });
 
+  const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: e.target.value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -70,7 +77,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
         <Input
           id="name"
           value={formData.name}
-          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          onChange={handleInputChange('name')}
           required
         />
       </div>
@@ -81,7 +88,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="email"
           type="email"
           value={formData.email}
-          onChange={(e) => setFormData({...formData, email: e.target.value})}
+          onChange={handleInputChange('email')}
           required
         />
       </div>
@@ -92,7 +99,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="phone"
           type="tel"
           value={formData.phone}
-          onChange={(e) => setFormData({...formData, phone: e.target.value})}
+          onChange={handleInputChange('phone')}
         />
       </div>
 
@@ -102,7 +109,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="message"
           rows={4}
           value={formData.message}
-          onChange={(e) => setFormData({...formData, message: e.target.value})}
+          onChange={handleInputChange('message')}
           required
         />
       </div>

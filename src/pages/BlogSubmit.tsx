@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
-import { PenTool, Image } from 'lucide-react';
+import { PenTool, Image, ArrowLeft } from 'lucide-react';
 import { RichTextEditor } from '@/components/RichTextEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
@@ -102,6 +103,12 @@ export default function BlogSubmit() {
                 Partagez vos connaissances sur la santé bucco-dentaire
               </p>
             </div>
+            <Button variant="outline" asChild className="text-blue-600 hover:bg-blue-50">
+              <Link to="/" className="flex items-center gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Retour
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
