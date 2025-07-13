@@ -35,25 +35,23 @@ export class OrganigramService {
 
       if (error) throw error;
 
-      // Get signed URLs for images
-      const membersWithImages = await Promise.all(
-        data.map(async (member) => {
-          if (member.image && member.image.file_path) {
-            const { data: urlData } = await supabase.storage
-              .from('gallery')
-              .createSignedUrl(member.image.file_path, 3600);
+      // Get public URLs for images
+      const membersWithImages = data.map((member) => {
+        if (member.image && member.image.file_path) {
+          const { data: urlData } = supabase.storage
+            .from('gallery')
+            .getPublicUrl(member.image.file_path);
 
-            return {
-              ...member,
-              image: {
-                url: urlData?.signedUrl || '',
-                name: member.image.name
-              }
-            };
-          }
-          return member;
-        })
-      );
+          return {
+            ...member,
+            image: {
+              url: urlData.publicUrl,
+              name: member.image.name
+            }
+          };
+        }
+        return member;
+      });
 
       return membersWithImages;
 
@@ -81,16 +79,16 @@ export class OrganigramService {
 
       if (!data) return null;
 
-      // Get signed URL for image
+      // Get public URL for image
       if (data.image && data.image.file_path) {
-        const { data: urlData } = await supabase.storage
+        const { data: urlData } = supabase.storage
           .from('gallery')
-          .createSignedUrl(data.image.file_path, 3600);
+          .getPublicUrl(data.image.file_path);
 
         return {
           ...data,
           image: {
-            url: urlData?.signedUrl || '',
+            url: urlData.publicUrl,
             name: data.image.name
           }
         };
