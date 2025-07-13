@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Users, UserCheck, Award, Building2, Heart, BookOpen, Shield, Crown, UserCog } from 'lucide-react';
 import { OrganigramService, type OrganigramMember } from '@/lib/organigram';
 import { OrganigrammeCard } from '@/components/OrganigrammeCard';
@@ -9,7 +11,8 @@ import { useAuth } from '@/hooks/useAuth';
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
   const [loading, setLoading] = useState(true);
-  const { userRole } = useAuth();
+  const [showMobileNav, setShowMobileNav] = useState(false);
+  const { user, userRole, signOut } = useAuth();
   const canEdit = userRole === 'admin' || userRole === 'doctor';
 
   useEffect(() => {
@@ -145,9 +148,130 @@ export default function Organigramme() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
-      {/* Header */}
+      {/* Navigation Bar */}
+      <header className="bg-white/95 backdrop-blur-sm border-b shadow-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-3 md:py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <Link to="/">
+                <img 
+                  src="/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png" 
+                  alt="UFSBD Logo" 
+                  className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
+                />
+              </Link>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center space-x-4">
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/">Accueil</Link>
+              </Button>
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/blog">Actualités</Link>
+              </Button>
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors bg-blue-100 text-blue-700">
+                <Link to="/organigramme">Organisation</Link>
+              </Button>
+              <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                <Link to="/contact">Contact</Link>
+              </Button>
+              {user ? (
+                <div className="hidden md:flex items-center space-x-4">
+                  {(userRole === 'admin' || userRole === 'author') && (
+                    <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                      <Link to="/submit">Écrire un article</Link>
+                    </Button>
+                  )}
+                  {userRole === 'admin' && (
+                    <Button variant="ghost" asChild className="hover:text-primary transition-colors">
+                      <Link to="/admin">Admin</Link>
+                    </Button>
+                  )}
+                  <span className="text-sm text-muted-foreground">Bonjour {user.email}</span>
+                  <Button variant="outline" onClick={signOut} className="hover:bg-primary hover:text-white transition-colors">
+                    Déconnexion
+                  </Button>
+                </div>
+              ) : (
+                <Button asChild className="btn-primary hidden md:inline-flex">
+                  <Link to="/auth">Connexion</Link>
+                </Button>
+              )}
+            </nav>
+            
+            {/* Mobile Navigation */}
+            <div className="md:hidden">
+              <Button variant="ghost" size="icon" onClick={() => setShowMobileNav(!showMobileNav)}>
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Mobile Menu */}
+          {showMobileNav && (
+            <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+              <div className="flex flex-col space-y-3 pt-4">
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/" onClick={() => setShowMobileNav(false)}>Accueil</Link>
+                </Button>
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/blog" onClick={() => setShowMobileNav(false)}>Actualités</Link>
+                </Button>
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors bg-blue-100 text-blue-700">
+                  <Link to="/organigramme" onClick={() => setShowMobileNav(false)}>Organisation</Link>
+                </Button>
+                <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                  <Link to="/contact" onClick={() => setShowMobileNav(false)}>Contact</Link>
+                </Button>
+                {user ? (
+                  <>
+                    {(userRole === 'admin' || userRole === 'author') && (
+                      <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                        <Link to="/submit" onClick={() => setShowMobileNav(false)}>Écrire un article</Link>
+                      </Button>
+                    )}
+                    {userRole === 'admin' && (
+                      <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
+                        <Link to="/admin" onClick={() => setShowMobileNav(false)}>Admin</Link>
+                      </Button>
+                    )}
+                    <div className="px-3 py-2 text-sm text-muted-foreground border-t">
+                      Bonjour {user.email}
+                    </div>
+                    <Button variant="outline" onClick={() => { signOut(); setShowMobileNav(false); }} className="mx-3">
+                      Déconnexion
+                    </Button>
+                  </>
+                ) : (
+                  <Button asChild className="btn-primary mx-3">
+                    <Link to="/auth" onClick={() => setShowMobileNav(false)}>Connexion</Link>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* Page Header */}
       <header className="bg-gradient-to-r from-blue-600 to-cyan-500 text-white py-16">
         <div className="container mx-auto px-4 text-center">
+          {/* Breadcrumb */}
+          <nav className="flex justify-center mb-6">
+            <ol className="flex items-center space-x-2 text-blue-100">
+              <li>
+                <Link to="/" className="hover:text-white transition-colors">
+                  Accueil
+                </Link>
+              </li>
+              <li className="text-blue-200">/</li>
+              <li className="text-white font-medium">Organigramme</li>
+            </ol>
+          </nav>
+          
           <h1 className="text-5xl font-bold mb-4 drop-shadow-lg">Organigramme UFSBD</h1>
           <p className="text-xl text-blue-100 drop-shadow-md">
             Section Hérault - Structure organisationnelle
