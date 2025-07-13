@@ -4,10 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Users, UserCheck, Award, Building2, Heart, BookOpen, Shield, Crown, UserCog } from 'lucide-react';
 import { OrganigramService, type OrganigramMember } from '@/lib/organigram';
 import { OrganigrammeCard } from '@/components/OrganigrammeCard';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const { userRole } = useAuth();
+  const canEdit = userRole === 'admin' || userRole === 'doctor';
 
   useEffect(() => {
     fetchOrgData();
@@ -162,7 +165,7 @@ export default function Organigramme() {
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Présidence</h2>
             <div className="flex justify-center">
               <div className="max-w-md">
-                <OrganigrammeCard member={president} onUpdated={fetchOrgData} editable={true} />
+                <OrganigrammeCard member={president} onUpdated={fetchOrgData} editable={canEdit} />
               </div>
             </div>
           </div>
@@ -174,7 +177,7 @@ export default function Organigramme() {
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Bureau Exécutif</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
               {bureauMembers.map((member) => (
-                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={true} />
+                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={canEdit} />
               ))}
             </div>
           </div>
@@ -186,7 +189,7 @@ export default function Organigramme() {
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Équipe de Direction</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {otherMembers.map((member) => (
-                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={true} />
+                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={canEdit} />
               ))}
             </div>
           </div>
@@ -198,7 +201,7 @@ export default function Organigramme() {
             <h2 className="text-3xl font-bold text-center mb-12 gradient-text">Vue d'Ensemble</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {orgData.map((member) => (
-                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={true} />
+                <OrganigrammeCard key={member.id} member={member} onUpdated={fetchOrgData} editable={canEdit} />
               ))}
             </div>
           </div>
