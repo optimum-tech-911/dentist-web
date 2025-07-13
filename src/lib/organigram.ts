@@ -36,22 +36,27 @@ export class OrganigramService {
       if (error) throw error;
 
       // Get public URLs for images
-      const membersWithImages = data.map((member) => {
+      const membersWithImages = await Promise.all(data.map(async (member) => {
         if (member.image && member.image.file_path) {
-          const { data: urlData } = supabase.storage
-            .from('gallery')
-            .getPublicUrl(member.image.file_path);
+          try {
+            const { data: urlData } = supabase.storage
+              .from('gallery')
+              .getPublicUrl(member.image.file_path);
 
-          return {
-            ...member,
-            image: {
-              url: urlData.publicUrl,
-              name: member.image.name
-            }
-          };
+            return {
+              ...member,
+              image: {
+                url: urlData.publicUrl,
+                name: member.image.name
+              }
+            };
+          } catch (error) {
+            console.error('Error getting public URL for image:', error);
+            return member;
+          }
         }
         return member;
-      });
+      }));
 
       return membersWithImages;
 

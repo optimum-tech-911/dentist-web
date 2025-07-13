@@ -97,8 +97,12 @@ export function OrganigrammeCard({ member, onUpdated, editable }: OrganigrammeCa
               alt={member.name}
               className="w-full h-full object-cover"
               onError={(e) => {
+                console.error('Failed to load image:', currentImageUrl);
                 e.currentTarget.style.display = 'none';
                 e.currentTarget.nextElementSibling?.classList.remove('hidden');
+              }}
+              onLoad={() => {
+                console.log('Image loaded successfully:', currentImageUrl);
               }}
             />
           ) : null}
