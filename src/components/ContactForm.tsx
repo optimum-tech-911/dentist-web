@@ -24,11 +24,20 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
     message: ''
   });
 
-  const handleInputChange = (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: e.target.value
-    }));
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, name: e.target.value }));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, email: e.target.value }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, phone: e.target.value }));
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setFormData(prev => ({ ...prev, message: e.target.value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,14 +79,14 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
     }
   };
 
-  const FormContent = () => (
+  const renderForm = () => (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nom *</Label>
         <Input
           id="name"
           value={formData.name}
-          onChange={handleInputChange('name')}
+          onChange={handleNameChange}
           required
         />
       </div>
@@ -88,7 +97,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="email"
           type="email"
           value={formData.email}
-          onChange={handleInputChange('email')}
+          onChange={handleEmailChange}
           required
         />
       </div>
@@ -99,7 +108,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="phone"
           type="tel"
           value={formData.phone}
-          onChange={handleInputChange('phone')}
+          onChange={handlePhoneChange}
         />
       </div>
 
@@ -109,7 +118,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           id="message"
           rows={4}
           value={formData.message}
-          onChange={handleInputChange('message')}
+          onChange={handleMessageChange}
           required
         />
       </div>
@@ -127,11 +136,11 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
           {trigger}
         </DialogTrigger>
         <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <FormContent />
-        </DialogContent>
+                  <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+        {renderForm()}
+      </DialogContent>
       </Dialog>
     );
   }
@@ -142,7 +151,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
         <CardTitle>{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <FormContent />
+        {renderForm()}
       </CardContent>
     </Card>
   );
