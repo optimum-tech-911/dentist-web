@@ -2,7 +2,7 @@ import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home, ArrowLeft, Search, FileText, Users, Heart, Tooth, Shield } from "lucide-react";
+import { Home, ArrowLeft, Search, FileText, Users, Heart, Shield } from "lucide-react";
 
 const NotFound = () => {
   const location = useLocation();
@@ -34,7 +34,7 @@ const NotFound = () => {
             {/* Dental health icons */}
             <div className="flex justify-center gap-4 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
-                <Tooth className="h-6 w-6 text-white" />
+                <Users className="h-6 w-6 text-white" />
               </div>
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                 <Heart className="h-6 w-6 text-white" />
