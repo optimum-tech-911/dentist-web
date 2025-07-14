@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from '@/hooks/use-toast';
 import { Navigate } from 'react-router-dom';
 import { PenTool, Image, ArrowLeft } from 'lucide-react';
-import { RichTextEditor } from '@/components/RichTextEditor';
+import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 
@@ -191,7 +191,7 @@ export default function BlogSubmit() {
               {/* Rich Text Editor for Content */}
               <div className="space-y-2">
                 <Label htmlFor="content">Contenu de l'article *</Label>
-                <RichTextEditor
+                <TipTapEditor
                   value={formData.content}
                   onChange={(value) => setFormData({...formData, content: value})}
                   placeholder="Rédigez le contenu de votre article ici... Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos."

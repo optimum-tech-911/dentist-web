@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users, Image } from 'lucide-react';
-import { RichTextEditor } from '@/components/RichTextEditor';
+import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 
@@ -274,17 +274,11 @@ export default function WriteBlog() {
               {/* Rich Text Editor for Content */}
               <div className="space-y-2">
                 <Label htmlFor="content">Contenu de l'article *</Label>
-                <RichTextEditor
+                <TipTapEditor
                   value={formData.content}
                   onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
                   placeholder="Rédigez votre article ici... Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos."
-                  onVideoEmbedChange={setAddedVideoEmbed}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos YouTube.<br />
-                  <strong>Pour insérer une vidéo de la galerie :</strong><br />
-                  <code>![Titre de la vidéo](https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/sign/gallery/2b588d0d-b1d6-430d-adea-f7cd264547ff/1752501851177-iahd5p2f6b.mp4?token=...)</code>
-                </p>
               </div>
 
               {/* Submit Button */}
