@@ -12,49 +12,6 @@ interface DashboardStats {
   totalUsers: number;
 }
 
-export async function uploadGalleryVideo(file: File, userId: string) {
-  // 1. Generate a unique file path
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `${userId}/${fileName}`;
-
-  // 2. Upload to Supabase Storage (gallery bucket)
-  const { error: uploadError } = await supabase.storage
-    .from('gallery')
-    .upload(filePath, file);
-
-  if (uploadError) throw uploadError;
-
-  // 3. Get a signed URL (optional, for display)
-  const { data: urlData } = await supabase.storage
-    .from('gallery')
-    .createSignedUrl(filePath, 3600);
-
-  // 4. Insert metadata into gallery_video table
-  const { data: dbData, error: dbError } = await supabase
-    .from('gallery_video')
-    .insert({
-      name: file.name,
-      file_path: filePath,
-      file_size: file.size,
-      file_type: file.type,
-      uploaded_by: userId
-    })
-    .select()
-    .single();
-
-  if (dbError) {
-    // Clean up uploaded file if DB insert fails
-    await supabase.storage.from('gallery').remove([filePath]);
-    throw dbError;
-  }
-
-  return {
-    ...dbData,
-    url: urlData?.signedUrl || ''
-  };
-}
-
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalPosts: 0,
