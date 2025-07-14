@@ -182,7 +182,7 @@ export default function Gallery() {
             ) : (
           <Upload className="h-4 w-4" />
             )}
-            <span>{isUploading ? 'Téléchargement...' : 'Télécharger des images'}</span>
+            <span>{isUploading ? 'Téléchargement...' : 'Télécharger des fichiers'}</span>
         </Button>
         </div>
       </div>
