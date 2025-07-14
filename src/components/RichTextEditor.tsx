@@ -11,18 +11,19 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  onVideoEmbedChange?: (embedCode: string | null) => void;
 }
 
 export function RichTextEditor({ 
   value, 
   onChange, 
   placeholder = "Rédigez votre contenu ici...",
-  className = ""
+  className = "",
+  onVideoEmbedChange
 }: RichTextEditorProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
-  const [addedVideoEmbed, setAddedVideoEmbed] = useState<string | null>(null);
   const [videoAdded, setVideoAdded] = useState(false);
 
   // Track cursor position
@@ -89,8 +90,10 @@ export function RichTextEditor({
 
   // Handle YouTube video selection
   const handleVideoSelect = (embedCode: string, videoUrl: string) => {
-    setAddedVideoEmbed(embedCode);
     setVideoAdded(true);
+    if (onVideoEmbedChange) {
+      onVideoEmbedChange(embedCode);
+    }
     // Do NOT insert embed code into textarea
   };
 

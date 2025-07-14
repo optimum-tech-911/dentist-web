@@ -25,6 +25,7 @@ export default function WriteBlog() {
     category: '',
     headerImage: ''
   });
+  const [addedVideoEmbed, setAddedVideoEmbed] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -75,11 +76,15 @@ export default function WriteBlog() {
     setIsSubmitting(true);
 
     try {
+      let finalContent = formData.content;
+      if (addedVideoEmbed) {
+        finalContent += '\n\n' + addedVideoEmbed;
+      }
       const { error } = await supabase
         .from('posts')
         .insert({
           title: formData.title,
-          content: formData.content,
+          content: finalContent,
           category: formData.category,
           author_email: user.email,
           author_id: user.id,
@@ -273,6 +278,7 @@ export default function WriteBlog() {
                   value={formData.content}
                   onChange={(value) => setFormData(prev => ({ ...prev, content: value }))}
                   placeholder="Rédigez votre article ici... Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos."
+                  onVideoEmbedChange={setAddedVideoEmbed}
                 />
                 <p className="text-xs text-muted-foreground">
                   Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos YouTube
