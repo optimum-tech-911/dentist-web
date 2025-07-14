@@ -50,7 +50,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   // Keep editor in sync with value prop
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '', false);
+      editor.commands.setContent(value || '', { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
@@ -65,7 +65,16 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   const setYoutube = useCallback(() => {
     const url = prompt('Collez l’URL YouTube ici :');
     if (url && editor) {
-      editor.chain().focus().setYoutubeVideo({ src: url }).run();
+      // Extract video ID from various YouTube URL formats
+      const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const videoId = match ? match[1] : null;
+      if (videoId) {
+        const iframeHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="w-full aspect-video rounded-lg my-4"></iframe>`;
+        editor.commands.focus();
+        editor.commands.insertContent(iframeHtml);
+      } else {
+        alert('URL YouTube invalide');
+      }
     }
   }, [editor]);
 
