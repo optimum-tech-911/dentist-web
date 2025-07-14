@@ -7,6 +7,8 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
+import { Video } from './tiptapVideoExtension';
+import { YoutubeNode } from './tiptapYoutubeExtension';
 import { Button } from '@/components/ui/button';
 import { GallerySelector } from './GallerySelector';
 import { Play, Image as ImageIcon, Bold as BoldIcon, Italic as ItalicIcon, List, ListOrdered, Quote, Underline as UnderlineIcon, Youtube as YoutubeIcon } from 'lucide-react';
@@ -27,13 +29,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
       Underline,
       Link,
       Image,
-      Youtube.configure({
-        width: 640,
-        height: 360,
-        HTMLAttributes: {
-          class: 'w-full aspect-video rounded-lg my-4',
-        },
-      }),
+      YoutubeNode, // Add the custom YouTube extension
+      Video, // Custom video extension
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -69,11 +66,15 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
       const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
       const videoId = match ? match[1] : null;
       if (videoId) {
-        const iframeHtml = '<p></p>' +
-          `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="w-full aspect-video rounded-lg my-4"></iframe>` +
-          '<p></p>';
-        editor.commands.focus();
-        editor.commands.insertContent(iframeHtml);
+        editor.chain().focus().insertContent({
+          type: 'youtubeNode',
+          attrs: {
+            src: `https://www.youtube.com/embed/${videoId}`,
+            frameborder: 0,
+            allowfullscreen: true,
+            class: 'w-full aspect-video rounded-lg my-4'
+          }
+        }).run();
       } else {
         alert('URL YouTube invalide');
       }
@@ -84,11 +85,10 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
     if (!media) return;
     if (media.file_type && media.file_type.startsWith('video/')) {
       if (editor) {
-        editor.commands.focus();
-        // Insert a paragraph before and after to force block rendering
-        editor.commands.insertContent('<p></p>' +
-          `<video src="${media.url}" controls preload="metadata" class="w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black"></video>` +
-          '<p></p>');
+        editor.chain().focus().insertContent({
+          type: 'video',
+          attrs: { src: media.url }
+        }).run();
       }
     } else {
       setImage(media.url);
