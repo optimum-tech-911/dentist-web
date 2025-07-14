@@ -8,7 +8,7 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 
 interface GallerySelectorProps {
-  onImageSelect: (image: GalleryImage) => void;
+  onImageSelect: (image: GalleryImage) => void; // Will handle both images and videos
   trigger?: React.ReactNode;
   title?: string;
   description?: string;
@@ -84,6 +84,7 @@ export function GallerySelector({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">{description}</p>
+          <p className="text-xs text-blue-600 mt-2">Seuls les fichiers jusqu'à 50MB sont acceptés (images ou vidéos).</p>
         </DialogHeader>
         
         <div className="flex-1 flex flex-col gap-4">
@@ -116,30 +117,38 @@ export function GallerySelector({
               </div>
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredImages.map((image) => (
+                {filteredImages.map((media) => (
                   <Card 
-                    key={image.id} 
+                    key={media.id} 
                     className="cursor-pointer hover:shadow-md transition-shadow group"
-                    onClick={() => handleImageSelect(image)}
+                    onClick={() => handleImageSelect(media)}
                   >
                     <CardContent className="p-2">
-                      <div className="relative aspect-square overflow-hidden rounded-md">
-                        <img
-                          src={image.url}
-                          alt={image.name}
-                          className="w-full h-full object-cover"
-                          loading="lazy"
-                        />
+                      <div className="relative aspect-square overflow-hidden rounded-md bg-black">
+                        {media.file_type.startsWith('image/') ? (
+                          <img
+                            src={media.url}
+                            alt={media.name}
+                            className="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        ) : media.file_type.startsWith('video/') ? (
+                          <video
+                            src={media.url}
+                            className="w-full h-full object-cover"
+                            controls
+                          />
+                        ) : null}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                           <Check className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                       </div>
                       <div className="mt-2">
-                        <p className="text-xs font-medium truncate" title={image.name}>
-                          {image.name}
+                        <p className="text-xs font-medium truncate" title={media.name}>
+                          {media.name}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {GalleryService.formatFileSize(image.file_size)}
+                          {GalleryService.formatFileSize(media.file_size)}
                         </p>
                       </div>
                     </CardContent>
