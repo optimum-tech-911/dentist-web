@@ -20,7 +20,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
     // 2. Convert Markdown video to <video> (must come before image)
     html = html.replace(
-      /!\[([^\]]*)\]\(([^)]+\.(mp4|webm|ogg))\)/g,
+      /!\[([^\]]*)\]\(([^)]+\.(mp4|webm|ogg)(\?[^)]*)?)\)/gi,
       '<video src="$2" controls class="w-full rounded-lg my-4">$1</video>'
     );
 
