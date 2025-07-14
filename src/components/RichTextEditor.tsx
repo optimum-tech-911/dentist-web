@@ -83,9 +83,9 @@ export function RichTextEditor({
   };
 
   // Handle image or video selection from gallery
-  const handleImageSelect = (media: GalleryImage | { markdown: string }) => {
-    if ('markdown' in media) {
-      insertAtCursor(media.markdown);
+  const handleImageSelect = (media: GalleryImage | string) => {
+    if (typeof media === 'string') {
+      insertAtCursor(media);
     } else {
       const imageMarkdown = `![${media.name}](${media.url})`;
       insertAtCursor(imageMarkdown);

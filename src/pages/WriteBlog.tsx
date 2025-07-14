@@ -281,7 +281,9 @@ export default function WriteBlog() {
                   onVideoEmbedChange={setAddedVideoEmbed}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos YouTube
+                  Utilisez la barre d'outils pour formater le texte et insérer des images ou vidéos YouTube.<br />
+                  <strong>Pour insérer une vidéo de la galerie :</strong><br />
+                  <code>![Titre de la vidéo](https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/sign/gallery/2b588d0d-b1d6-430d-adea-f7cd264547ff/1752501851177-iahd5p2f6b.mp4?token=...)</code>
                 </p>
               </div>
 
