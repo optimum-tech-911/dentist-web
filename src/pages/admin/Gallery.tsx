@@ -168,7 +168,7 @@ export default function Gallery() {
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*"
+            accept="image/*,video/mp4,video/webm,video/ogg"
             onChange={handleFileUpload}
             className="hidden"
           />
@@ -195,58 +195,34 @@ export default function Gallery() {
           {images.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>Aucune image téléchargée. Cliquez sur "Télécharger des images" pour commencer.</p>
+              <p>Aucune image ou vidéo téléchargée. Cliquez sur "Télécharger des fichiers" pour commencer.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {images.map((image) => (
-                <Card key={image.id} className="overflow-hidden group">
-                  <div className="aspect-square bg-muted relative">
-                    <img
-                      src={image.url}
-                      alt={image.name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((img) => (
+                <div key={img.id} className="relative group border rounded-lg overflow-hidden">
+                  {img.file_type.startsWith('image/') ? (
+                    <img src={img.url} alt={img.name} className="w-full h-32 object-cover" />
+                  ) : img.file_type.startsWith('video/') ? (
+                    <video src={img.url} controls className="w-full h-32 object-cover bg-black" />
+                  ) : null}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
                       <Button 
                         size="sm" 
                         variant="secondary"
-                        onClick={() => setSelectedImage(image)}
+                        onClick={() => setSelectedImage(img)}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>
                       <Button 
                         size="sm" 
                         variant="destructive"
-                        onClick={() => handleDeleteImage(image.id, image.file_path)}
+                        onClick={() => handleDeleteImage(img.id, img.file_path)}
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                  </div>
-                  <CardContent className="p-3">
-                    <p className="text-sm font-medium truncate" title={image.name}>
-                      {image.name}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatFileSize(image.file_size)}
-                    </p>
-                    <div className="flex space-x-1 mt-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => copyImageUrl(image.url)}
-                        className="flex-1"
-                      >
-                        <Check className="h-3 w-3 mr-1" />
-                        Copier URL
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
               ))}
             </div>
           )}

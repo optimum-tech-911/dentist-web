@@ -168,16 +168,19 @@ export class GalleryService {
    * Validate file before upload
    */
   static validateFile(file: File): { isValid: boolean; error?: string } {
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      return { isValid: false, error: `${file.name} n'est pas une image valide.` };
+    // Allow images and videos
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
+      return { isValid: false, error: `${file.name} n'est pas un fichier image ou vidéo valide.` };
     }
-
-    // Check file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return { isValid: false, error: `${file.name} est trop volumineux (max 5MB).` };
+    // Check file size (max 20MB for video, 5MB for image)
+    if (allowedImageTypes.includes(file.type) && file.size > 5 * 1024 * 1024) {
+      return { isValid: false, error: `${file.name} est trop volumineux (max 5MB pour les images).` };
     }
-
+    if (allowedVideoTypes.includes(file.type) && file.size > 20 * 1024 * 1024) {
+      return { isValid: false, error: `${file.name} est trop volumineux (max 20MB pour les vidéos).` };
+    }
     return { isValid: true };
   }
 
