@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Trash2, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -118,9 +119,7 @@ export default function ApprovedPosts() {
                     />
                   )}
                   <div className="prose max-w-none">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {post.content.substring(0, 200)}...
-                    </p>
+                    <MarkdownRenderer content={post.content} />
                   </div>
                   <div className="flex gap-2">
                     <Button

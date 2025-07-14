@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface DashboardStats {
   totalPosts: number;

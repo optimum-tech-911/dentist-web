@@ -214,7 +214,7 @@ export default function Blog() {
                     <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="prose max-w-none line-clamp-3 overflow-hidden" style={{ maxHeight: 100 }}>
+                    <div className="prose max-w-none">
                       <MarkdownRenderer content={post.content} />
                     </div>
                   </CardContent>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -141,9 +142,7 @@ export default function PendingPosts() {
                     />
                   )}
                   <div className="prose max-w-none">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {post.content.substring(0, 200)}...
-                    </p>
+                    <MarkdownRenderer content={post.content} />
                   </div>
                   <div className="flex gap-2">
                     <Button
