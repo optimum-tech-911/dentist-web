@@ -69,7 +69,9 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
       const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
       const videoId = match ? match[1] : null;
       if (videoId) {
-        const iframeHtml = `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="w-full aspect-video rounded-lg my-4"></iframe>`;
+        const iframeHtml = '<p></p>' +
+          `<iframe src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen class="w-full aspect-video rounded-lg my-4"></iframe>` +
+          '<p></p>';
         editor.commands.focus();
         editor.commands.insertContent(iframeHtml);
       } else {
@@ -81,11 +83,12 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   const setGalleryMedia = useCallback((media: any) => {
     if (!media) return;
     if (media.file_type && media.file_type.startsWith('video/')) {
-      // Insert video as HTML
       if (editor) {
-        const videoHtml = `<video src="${media.url}" controls preload="metadata" class="w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black"></video>`;
         editor.commands.focus();
-        editor.commands.insertContent(videoHtml);
+        // Insert a paragraph before and after to force block rendering
+        editor.commands.insertContent('<p></p>' +
+          `<video src="${media.url}" controls preload="metadata" class="w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black"></video>` +
+          '<p></p>');
       }
     } else {
       setImage(media.url);
