@@ -80,7 +80,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
 
   const setGalleryMedia = useCallback((media: any) => {
     if (!media) return;
-    if (media.url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
+    if (media.file_type && media.file_type.startsWith('video/')) {
       // Insert video as HTML
       if (editor) {
         const videoHtml = `<video src="${media.url}" controls preload="metadata" class="w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black"></video>`;
