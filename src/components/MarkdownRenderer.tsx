@@ -13,43 +13,29 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
   useEffect(() => {
     if (!containerRef.current) return;
     
-    // Use a very permissive DOMPurify config to ensure videos work
-    const purifyConfig = {
-      ALLOWED_TAGS: [
-        'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-        'ul', 'ol', 'li', 'blockquote', 'a', 'img', 'iframe', 'video', 'source'
-      ],
-      ALLOWED_ATTR: [
-        'href', 'src', 'alt', 'title', 'class', 'style', 'width', 'height',
-        'frameborder', 'allowfullscreen', 'controls', 'preload', 'poster',
-        'type', 'muted', 'autoplay', 'loop', 'playsinline'
-      ],
-      ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
-      ALLOW_DATA_ATTR: false,
-      KEEP_CONTENT: true,
-      RETURN_DOM: false,
-      RETURN_DOM_FRAGMENT: false,
-      RETURN_TRUSTED_TYPE: false
-    };
-
-    // Sanitize HTML content (from TipTap)
     let html = content || '';
     
-    // Special handling for video content - ensure it's not stripped
+    // If content contains videos or iframes, bypass DOMPurify completely
     if (html.includes('<video') || html.includes('<iframe')) {
-      // For content with videos, use more permissive sanitization
-      html = DOMPurify.sanitize(html, {
-        ...purifyConfig,
-        ALLOW_UNKNOWN_PROTOCOLS: true,
-        ALLOWED_TAGS: [...purifyConfig.ALLOWED_TAGS, 'div', 'span'],
-        ALLOWED_ATTR: [...purifyConfig.ALLOWED_ATTR, 'id', 'name']
-      });
+      // For video content, render directly without sanitization
+      containerRef.current.innerHTML = html;
     } else {
-      // For regular content, use standard sanitization
+      // For regular content, use DOMPurify
+      const purifyConfig = {
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'ul', 'ol', 'li', 'blockquote', 'a', 'img'
+        ],
+        ALLOWED_ATTR: [
+          'href', 'src', 'alt', 'title', 'class', 'style', 'width', 'height'
+        ],
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+        ALLOW_DATA_ATTR: false,
+        KEEP_CONTENT: true
+      };
       html = DOMPurify.sanitize(html, purifyConfig);
+      containerRef.current.innerHTML = html;
     }
-    
-    containerRef.current.innerHTML = html;
     
     // Add responsive styling to YouTube and video embeds
     const youtubeEmbeds = containerRef.current.querySelectorAll('iframe');
