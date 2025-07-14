@@ -244,14 +244,22 @@ export default function Gallery() {
               </Button>
             </div>
             <div className="p-4">
-              <img
-                src={selectedImage.url}
-                alt={selectedImage.name}
-                className="max-w-full max-h-[60vh] object-contain mx-auto"
-                onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
-                }}
-              />
+              {selectedImage.file_type.startsWith('image/') ? (
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.name}
+                  className="max-w-full max-h-[60vh] object-contain mx-auto"
+                  onError={(e) => {
+                    e.currentTarget.src = '/placeholder.svg';
+                  }}
+                />
+              ) : selectedImage.file_type.startsWith('video/') ? (
+                <video
+                  src={selectedImage.url}
+                  controls
+                  className="max-w-full max-h-[60vh] object-contain mx-auto bg-black"
+                />
+              ) : null}
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <p><strong>Taille:</strong> {formatFileSize(selectedImage.file_size)}</p>
                 <p><strong>Type:</strong> {selectedImage.file_type}</p>
