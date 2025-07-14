@@ -22,6 +22,8 @@ export function RichTextEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectionStart, setSelectionStart] = useState(0);
   const [selectionEnd, setSelectionEnd] = useState(0);
+  const [addedVideoEmbed, setAddedVideoEmbed] = useState<string | null>(null);
+  const [videoAdded, setVideoAdded] = useState(false);
 
   // Track cursor position
   const handleTextareaSelect = () => {
@@ -87,7 +89,9 @@ export function RichTextEditor({
 
   // Handle YouTube video selection
   const handleVideoSelect = (embedCode: string, videoUrl: string) => {
-    insertAtCursor(embedCode);
+    setAddedVideoEmbed(embedCode);
+    setVideoAdded(true);
+    // Do NOT insert embed code into textarea
   };
 
   const toolbarButtons = [
@@ -159,13 +163,13 @@ export function RichTextEditor({
             title="Insérer une image"
             description="Choisissez une image depuis la galerie pour l'insérer dans votre article"
           />
-          
           <YouTubeEmbed
             onVideoSelect={handleVideoSelect}
             trigger={
-              <Button variant="ghost" size="sm" className="h-8 gap-1">
+              <Button variant="ghost" size="sm" className={`h-8 gap-1 ${videoAdded ? 'bg-green-100 text-green-700' : ''}`}> 
                 <Play className="h-4 w-4" />
                 <span className="hidden sm:inline">Vidéo</span>
+                {videoAdded && <span className="ml-1 text-green-600">✔️</span>}
               </Button>
             }
           />
@@ -181,6 +185,14 @@ export function RichTextEditor({
         placeholder={placeholder}
         className="min-h-[400px] font-mono text-sm"
       />
+
+      {/* Show video added message */}
+      {videoAdded && (
+        <div className="text-green-700 flex items-center gap-2 mt-2">
+          <Play className="h-4 w-4" />
+          <span>Vidéo ajoutée</span>
+        </div>
+      )}
 
       {/* Help text */}
       <div className="text-xs text-muted-foreground">

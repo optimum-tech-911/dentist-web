@@ -25,6 +25,8 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
       // Links
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">$1</a>')
       
+      // Video (must come before image)
+      .replace(/!\[([^\]]*)\]\(([^)]+\.(mp4|webm|ogg))\)/g, '<video src="$2" controls class="w-full rounded-lg my-4">$1</video>')
       // Images
       .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="max-w-full h-auto rounded-lg my-4" />')
       
