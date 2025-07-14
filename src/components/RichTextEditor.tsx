@@ -82,10 +82,14 @@ export function RichTextEditor({
     insertAtCursor(formattedText);
   };
 
-  // Handle image selection from gallery
-  const handleImageSelect = (image: GalleryImage) => {
-    const imageMarkdown = `![${image.name}](${image.url})`;
-    insertAtCursor(imageMarkdown);
+  // Handle image or video selection from gallery
+  const handleImageSelect = (media: GalleryImage | { markdown: string }) => {
+    if ('markdown' in media) {
+      insertAtCursor(media.markdown);
+    } else {
+      const imageMarkdown = `![${media.name}](${media.url})`;
+      insertAtCursor(imageMarkdown);
+    }
   };
 
   // Handle YouTube video selection

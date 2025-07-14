@@ -13,6 +13,11 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
     // Convert Markdown to HTML
     let html = content
+      // Auto-embed plain YouTube URLs
+      .replace(/https?:\/\/(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})[^\s]*/g,
+        (match, videoId) =>
+          `<div class="youtube-embed my-6"><iframe width="100%" height="400" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allowfullscreen></iframe></div>`
+      )
       // Headers
       .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2">$1</h3>')
       .replace(/^## (.*$)/gim, '<h2 class="text-xl font-semibold mt-6 mb-3">$1</h2>')

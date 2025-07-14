@@ -62,8 +62,16 @@ export function GallerySelector({
     }
   };
 
-  const handleImageSelect = (image: GalleryImage) => {
-    onImageSelect(image);
+  const handleImageSelect = (media: GalleryImage) => {
+    if (media.file_type.startsWith('video/')) {
+      // Insert as Markdown for video
+      onImageSelect({
+        markdown: `![${media.name}](${media.url})`,
+        ...media
+      });
+    } else {
+      onImageSelect(media);
+    }
     setIsOpen(false);
     setSearchTerm('');
   };
