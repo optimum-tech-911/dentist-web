@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardStats {
   totalPosts: number;
@@ -21,9 +22,12 @@ export default function AdminDashboard() {
     totalUsers: 0
   });
   const [loading, setLoading] = useState(true);
+  const [contactSubmissions, setContactSubmissions] = useState<any[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchContactSubmissions();
   }, []);
 
   const fetchStats = async () => {
@@ -50,6 +54,25 @@ export default function AdminDashboard() {
       console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchContactSubmissions = async () => {
+    setLoadingContacts(true);
+    try {
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .gte('created_at', since.toISOString())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setContactSubmissions(data || []);
+    } catch (error) {
+      console.error('Error fetching contact submissions:', error);
+    } finally {
+      setLoadingContacts(false);
     }
   };
 
@@ -128,6 +151,35 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Recent Contact Submissions */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Messages de contact récents (30 jours)</h2>
+        {loadingContacts ? (
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : contactSubmissions.length === 0 ? (
+          <div className="text-muted-foreground">Aucun message reçu ces 30 derniers jours.</div>
+        ) : (
+          <div className="space-y-4">
+            {contactSubmissions.map((submission) => (
+              <Card key={submission.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">{submission.name}</CardTitle>
+                    <Badge variant="secondary">{new Date(submission.created_at).toLocaleDateString()}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{submission.email} {submission.phone && <>| {submission.phone}</>}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="whitespace-pre-line text-muted-foreground">{submission.message}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
