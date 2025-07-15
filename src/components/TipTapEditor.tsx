@@ -7,6 +7,8 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
+import { Video } from './tiptapVideoExtension';
+import { YoutubeNode } from './tiptapYoutubeExtension';
 import { Button } from '@/components/ui/button';
 import { GallerySelector } from './GallerySelector';
 import { Play, Image as ImageIcon, Bold as BoldIcon, Italic as ItalicIcon, List, ListOrdered, Quote, Underline as UnderlineIcon, Youtube as YoutubeIcon } from 'lucide-react';
@@ -27,13 +29,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
       Underline,
       Link,
       Image,
-      Youtube.configure({
-        width: 640,
-        height: 360,
-        HTMLAttributes: {
-          class: 'w-full aspect-video rounded-lg my-4',
-        },
-      }),
+      YoutubeNode, // Add the custom YouTube extension
+      Video, // Custom video extension
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -50,7 +47,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   // Keep editor in sync with value prop
   useEffect(() => {
     if (editor && value !== editor.getHTML()) {
-      editor.commands.setContent(value || '', false);
+      editor.commands.setContent(value || '', { emitUpdate: false });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
@@ -65,18 +62,33 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   const setYoutube = useCallback(() => {
     const url = prompt('Collez l’URL YouTube ici :');
     if (url && editor) {
-      editor.chain().focus().setYoutubeVideo({ src: url }).run();
+      // Extract video ID from various YouTube URL formats
+      const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+      const videoId = match ? match[1] : null;
+      if (videoId) {
+        editor.chain().focus().insertContent({
+          type: 'youtubeNode',
+          attrs: {
+            src: `https://www.youtube.com/embed/${videoId}`,
+            frameborder: 0,
+            allowfullscreen: true,
+            class: 'w-full aspect-video rounded-lg my-4'
+          }
+        }).run();
+      } else {
+        alert('URL YouTube invalide');
+      }
     }
   }, [editor]);
 
   const setGalleryMedia = useCallback((media: any) => {
     if (!media) return;
-    if (media.url.match(/\.(mp4|webm|ogg)(\?.*)?$/i)) {
-      // Insert video as HTML
+    if (media.file_type && media.file_type.startsWith('video/')) {
       if (editor) {
-        const videoHtml = `<video src="${media.url}" controls preload="metadata" class="w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black"></video>`;
-        editor.commands.focus();
-        editor.commands.insertContent(videoHtml);
+        editor.chain().focus().insertContent({
+          type: 'video',
+          attrs: { src: media.url }
+        }).run();
       }
     } else {
       setImage(media.url);

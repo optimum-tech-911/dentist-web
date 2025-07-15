@@ -4,55 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { Badge } from '@/components/ui/badge';
 
 interface DashboardStats {
   totalPosts: number;
   pendingPosts: number;
   approvedPosts: number;
   totalUsers: number;
-}
-
-export async function uploadGalleryVideo(file: File, userId: string) {
-  // 1. Generate a unique file path
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `${userId}/${fileName}`;
-
-  // 2. Upload to Supabase Storage (gallery bucket)
-  const { error: uploadError } = await supabase.storage
-    .from('gallery')
-    .upload(filePath, file);
-
-  if (uploadError) throw uploadError;
-
-  // 3. Get a signed URL (optional, for display)
-  const { data: urlData } = await supabase.storage
-    .from('gallery')
-    .createSignedUrl(filePath, 3600);
-
-  // 4. Insert metadata into gallery_video table
-  const { data: dbData, error: dbError } = await supabase
-    .from('gallery_video')
-    .insert({
-      name: file.name,
-      file_path: filePath,
-      file_size: file.size,
-      file_type: file.type,
-      uploaded_by: userId
-    })
-    .select()
-    .single();
-
-  if (dbError) {
-    // Clean up uploaded file if DB insert fails
-    await supabase.storage.from('gallery').remove([filePath]);
-    throw dbError;
-  }
-
-  return {
-    ...dbData,
-    url: urlData?.signedUrl || ''
-  };
 }
 
 export default function AdminDashboard() {
@@ -63,9 +22,12 @@ export default function AdminDashboard() {
     totalUsers: 0
   });
   const [loading, setLoading] = useState(true);
+  const [contactSubmissions, setContactSubmissions] = useState<any[]>([]);
+  const [loadingContacts, setLoadingContacts] = useState(true);
 
   useEffect(() => {
     fetchStats();
+    fetchContactSubmissions();
   }, []);
 
   const fetchStats = async () => {
@@ -92,6 +54,25 @@ export default function AdminDashboard() {
       console.error('Error fetching stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchContactSubmissions = async () => {
+    setLoadingContacts(true);
+    try {
+      const since = new Date();
+      since.setDate(since.getDate() - 30);
+      const { data, error } = await supabase
+        .from('contact_submissions')
+        .select('*')
+        .gte('created_at', since.toISOString())
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setContactSubmissions(data || []);
+    } catch (error) {
+      console.error('Error fetching contact submissions:', error);
+    } finally {
+      setLoadingContacts(false);
     }
   };
 
@@ -170,6 +151,35 @@ export default function AdminDashboard() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Recent Contact Submissions */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold mb-4">Messages de contact récents (30 jours)</h2>
+        {loadingContacts ? (
+          <div className="flex items-center justify-center p-4">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          </div>
+        ) : contactSubmissions.length === 0 ? (
+          <div className="text-muted-foreground">Aucun message reçu ces 30 derniers jours.</div>
+        ) : (
+          <div className="space-y-4">
+            {contactSubmissions.map((submission) => (
+              <Card key={submission.id}>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-lg">{submission.name}</CardTitle>
+                    <Badge variant="secondary">{new Date(submission.created_at).toLocaleDateString()}</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">{submission.email} {submission.phone && <>| {submission.phone}</>}</p>
+                </CardHeader>
+                <CardContent>
+                  <div className="whitespace-pre-line text-muted-foreground">{submission.message}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

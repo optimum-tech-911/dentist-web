@@ -69,6 +69,29 @@ export default function Users() {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
+    try {
+      const { error } = await supabase
+        .from('users')
+        .delete()
+        .eq('id', userId);
+      if (error) throw error;
+      setUsers(users.filter(user => user.id !== userId));
+      toast({
+        title: 'User deleted',
+        description: 'The user has been deleted successfully.'
+      });
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete the user',
+        variant: 'destructive'
+      });
+    }
+  };
+
   const getRoleBadgeVariant = (role: string) => {
     switch (role) {
       case 'admin':
@@ -129,6 +152,13 @@ export default function Users() {
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => deleteUser(user.id)}
+                >
+                  Supprimer
+                </Button>
               </div>
             </CardContent>
           </Card>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -213,9 +214,9 @@ export default function Blog() {
                     <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CardDescription className="line-clamp-3">
-                      {post.content.substring(0, 150)}...
-                    </CardDescription>
+                    <div className="prose max-w-none">
+                      <MarkdownRenderer content={post.content} />
+                    </div>
                   </CardContent>
                 </Card>
               </Link>

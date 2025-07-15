@@ -63,12 +63,7 @@ export function GallerySelector({
   };
 
   const handleImageSelect = (media: GalleryImage) => {
-    if (media.file_type.startsWith('video/')) {
-      // Insert as Markdown for video
-      onImageSelect(`![${media.name}](${media.url})`);
-    } else {
-      onImageSelect(media);
-    }
+    onImageSelect(media);
     setIsOpen(false);
     setSearchTerm('');
   };

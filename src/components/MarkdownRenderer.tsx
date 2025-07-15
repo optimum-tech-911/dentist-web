@@ -12,22 +12,58 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
 
   useEffect(() => {
     if (!containerRef.current) return;
-    // Sanitize HTML content (from TipTap)
+
     let html = content || '';
-    if (window.DOMPurify) {
-      html = window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
-    } else if (DOMPurify) {
-      html = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
-    }
     containerRef.current.innerHTML = html;
-    // Add responsive styling to YouTube and video embeds
-    const youtubeEmbeds = containerRef.current.querySelectorAll('iframe');
-    youtubeEmbeds.forEach((iframe) => {
-      iframe.classList.add('w-full', 'aspect-video', 'rounded-lg');
+
+    // Wrap all bare text nodes in <p> tags for robust rendering
+    const container = containerRef.current;
+    Array.from(container.childNodes).forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '') {
+        const p = document.createElement('p');
+        p.textContent = node.textContent;
+        container.replaceChild(p, node);
+      }
     });
-    const videos = containerRef.current.querySelectorAll('video');
+
+    // Add beautiful, modern styling to YouTube and video embeds
+    const youtubeEmbeds = container.querySelectorAll('iframe');
+    youtubeEmbeds.forEach((iframe) => {
+      iframe.classList.add(
+        'w-full',
+        'aspect-video',
+        'rounded-2xl',
+        'shadow-xl',
+        'my-8',
+        'mx-auto',
+        'border-4',
+        'border-blue-200',
+        'bg-black',
+        'transition-all',
+        'hover:scale-105',
+        'duration-300'
+      );
+      iframe.setAttribute('style', 'display: block; max-width: 900px;');
+    });
+
+    const videos = container.querySelectorAll('video');
     videos.forEach((video) => {
-      video.classList.add('w-full', 'max-w-3xl', 'aspect-video', 'rounded-xl', 'shadow-lg', 'my-6', 'mx-auto', 'bg-black');
+      video.classList.add(
+        'w-full',
+        'max-w-3xl',
+        'aspect-video',
+        'rounded-2xl',
+        'shadow-2xl',
+        'my-8',
+        'mx-auto',
+        'bg-black',
+        'border-4',
+        'border-blue-200',
+        'transition-all',
+        'hover:scale-105',
+        'duration-300'
+      );
+      video.setAttribute('style', 'display: block;');
     });
   }, [content]);
 
