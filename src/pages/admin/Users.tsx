@@ -77,7 +77,7 @@ export default function Users() {
         .delete()
         .eq('id', userId);
       if (error) throw error;
-      setUsers(users.filter(user => user.id !== userId));
+      await fetchUsers(); // Ensure UI is always in sync with backend
       toast({
         title: 'User deleted',
         description: 'The user has been deleted successfully.'
