@@ -72,11 +72,22 @@ export default function Users() {
   const deleteUser = async (userId: string) => {
     if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     try {
-      const { error } = await supabase
+      const { error, count } = await supabase
         .from('users')
         .delete()
-        .eq('id', userId);
-      if (error) throw error;
+        .eq('id', userId)
+        .select('*', { count: 'exact' });
+      
+      if (error) {
+        console.error('Supabase deletion error:', error);
+        throw error;
+      }
+      
+      // Check if the deletion actually occurred
+      if (count === 0) {
+        throw new Error('No user was deleted. This might be due to permissions or the user not existing.');
+      }
+      
       setUsers(users.filter(user => user.id !== userId));
       toast({
         title: 'User deleted',
@@ -86,7 +97,7 @@ export default function Users() {
       console.error('Error deleting user:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete the user',
+        description: `Failed to delete the user: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: 'destructive'
       });
     }
