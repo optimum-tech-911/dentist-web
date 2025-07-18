@@ -133,6 +133,15 @@ export default function ApprovedPosts() {
                       </Link>
                     </Button>
                     <Button
+                      asChild
+                      variant="secondary"
+                      className="flex items-center gap-2"
+                    >
+                      <Link to={`/edit/${post.id}`}>
+                        Edit
+                      </Link>
+                    </Button>
+                    <Button
                       variant="destructive"
                       onClick={() => deletePost(post.id)}
                       className="flex items-center gap-2"

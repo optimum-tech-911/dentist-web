@@ -22,6 +22,7 @@ import Users from "./pages/admin/Users";
 import Gallery from "./pages/admin/Gallery";
 import OrganigrammeAdmin from "./pages/admin/OrganigrammeAdmin";
 import NotFound from "./pages/NotFound";
+import EditBlog from "./pages/EditBlog";
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:id" element={<BlogPost />} />
+            <Route path="/edit/:id" element={<EditBlog />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/organigramme" element={<Organigramme />} />
             <Route path="/write-blog" element={<WriteBlog />} />
