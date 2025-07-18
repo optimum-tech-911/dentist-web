@@ -6,6 +6,7 @@ export type OrganigramMember = Database['public']['Tables']['organigram_members'
     url: string;
     name: string;
   };
+  parent_id?: string | null;
 };
 
 export type OrganigramRole = 
@@ -35,33 +36,44 @@ export class OrganigramService {
 
       if (error) throw error;
 
-      // Get public URLs for images
-      const membersWithImages = await Promise.all(data.map(async (member) => {
-        if (member.image && member.image.file_path) {
+      // Get public URLs for images and ensure correct image and parent_id structure
+      const membersWithImages: OrganigramMember[] = await Promise.all(data.map(async (member: any) => {
+        let imageObj = undefined;
+        if (
+          member.image &&
+          typeof member.image === 'object' &&
+          'file_path' in member.image &&
+          'name' in member.image &&
+          member.image.file_path &&
+          member.image.name
+        ) {
           try {
             const { data: urlData } = supabase.storage
               .from('gallery')
               .getPublicUrl(member.image.file_path);
-
-            return {
-              ...member,
-              image: {
+            if (urlData && urlData.publicUrl) {
+              imageObj = {
                 url: urlData.publicUrl,
                 name: member.image.name
-              }
-            };
+              };
+            }
           } catch (error) {
-            console.error('Error getting public URL for image:', error);
-            return member;
+            imageObj = undefined;
           }
         }
-        return member;
+        // Remove the raw image property
+        const cleanMember = { ...member };
+        delete cleanMember.image;
+        return {
+          ...cleanMember,
+          image: imageObj,
+          parent_id: member.parent_id ?? null,
+        };
       }));
 
       return membersWithImages;
 
     } catch (error) {
-      console.error('Error fetching organigram members:', error);
       throw error;
     }
   }

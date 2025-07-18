@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactForm } from '@/components/ContactForm';
-import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool } from 'lucide-react';
+import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool, Instagram } from 'lucide-react';
 import doctorHeroImage from '@/assets/doctor-hero.jpg';
 import { Helmet } from 'react-helmet';
 
@@ -328,6 +328,12 @@ const Index = () => {
                 </div>
               </div>
               <div className="border-t border-blue-800 pt-8 text-center">
+                <div className="flex items-center gap-2 mt-2">
+                  <a href="https://www.instagram.com/ufsbd34?igsh=N3d5NHViZnlmbnB0" target="_blank" rel="noopener noreferrer" title="Instagram">
+                    <Instagram className="h-6 w-6 text-pink-500 hover:text-pink-700 transition-colors" />
+                  </a>
+                  <span className="text-blue-200">@ufsbd34</span>
+                </div>
                 <p className="text-blue-300">
                   © 2024 UFSBD Section Hérault. Tous droits réservés.
                 </p>

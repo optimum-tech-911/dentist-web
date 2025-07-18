@@ -7,6 +7,7 @@ import { Users, UserCheck, Award, Building2, Heart, BookOpen, Shield, Crown, Use
 import { OrganigramService, type OrganigramMember } from '@/lib/organigram';
 import { OrganigrammeCard } from '@/components/OrganigrammeCard';
 import { useAuth } from '@/hooks/useAuth';
+import { Tree } from '@minoru/react-dnd-treeview';
 
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
@@ -145,6 +146,20 @@ export default function Organigramme() {
   const otherMembers = orgData.filter(member => 
     ['vicePresidents', 'chargesMission', 'verificateur'].includes(member.role)
   );
+
+  const treeData = orgData.map(member => ({
+    id: member.id,
+    parent: member.parent_id ?? 0,
+    text: member.name,
+    ...member
+  }));
+
+  const handleDrop = canEdit
+    ? async (newTree, { dragSourceId, dropTargetId }) => {
+        await OrganigramService.updateMember(dragSourceId, { parent_id: dropTargetId === 0 ? null : dropTargetId });
+        fetchOrgData();
+      }
+    : undefined;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50/30 to-white">
