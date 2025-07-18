@@ -15,6 +15,17 @@ interface DashboardStats {
   totalUsers: number;
 }
 
+export function useSupabaseKeepAlive() {
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      // Ping a lightweight endpoint or table
+      await supabase.from('users').select('id').limit(1);
+    }, 10 * 60 * 1000); // every 10 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalPosts: 0,
