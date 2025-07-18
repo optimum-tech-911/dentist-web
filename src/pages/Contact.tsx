@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ContactForm } from '@/components/ContactForm';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
+import { Instagram } from 'lucide-react';
 
 export default function Contact() {
   const [showMobileNav, setShowMobileNav] = useState(false);
@@ -153,6 +154,12 @@ export default function Contact() {
             <div className="space-y-2 text-muted-foreground">
               <p>📧 Email: ufsbd34@ufsbd.fr</p>
               <p>📍 Adresse: Union Française pour la Santé Bucco-Dentaire - Section 34</p>
+            </div>
+            <div className="flex items-center gap-2 mt-4">
+              <a href="https://www.instagram.com/ufsbd34?igsh=N3d5NHViZnlmbnB0" target="_blank" rel="noopener noreferrer" title="Instagram">
+                <Instagram className="h-6 w-6 text-pink-500 hover:text-pink-700 transition-colors" />
+              </a>
+              <span className="text-muted-foreground">@ufsbd34</span>
             </div>
           </div>
         </div>
