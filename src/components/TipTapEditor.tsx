@@ -9,6 +9,10 @@ import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import { Video } from './tiptapVideoExtension';
 import { YoutubeNode } from './tiptapYoutubeExtension';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableCell } from '@tiptap/extension-table-cell';
+import { TableHeader } from '@tiptap/extension-table-header';
 import { Button } from '@/components/ui/button';
 import { GallerySelector } from './GallerySelector';
 import { Play, Image as ImageIcon, Bold as BoldIcon, Italic as ItalicIcon, List, ListOrdered, Quote, Underline as UnderlineIcon, Youtube as YoutubeIcon } from 'lucide-react';
@@ -31,6 +35,16 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
       Image,
       YoutubeNode, // Add the custom YouTube extension
       Video, // Custom video extension
+      Table.configure({
+        resizable: true,
+        lastColumnResizable: true,
+        HTMLAttributes: {
+          class: 'tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden',
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -114,6 +128,10 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
           description="Choisissez une image ou une vidéo depuis la galerie pour l'insérer dans votre article"
         />
         <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={setYoutube} title="Insérer une vidéo YouTube"><YoutubeIcon className="h-4 w-4" /><span className="hidden sm:inline">YouTube</span></Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Insérer un tableau"><span className="hidden sm:inline">Tableau</span></Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addColumnAfter().run()} title="Ajouter une colonne"><span className="hidden sm:inline">+Col</span></Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addRowAfter().run()} title="Ajouter une ligne"><span className="hidden sm:inline">+Ligne</span></Button>
+        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().deleteTable().run()} title="Supprimer le tableau"><span className="hidden sm:inline">Suppr. Tableau</span></Button>
       </div>
       {/* Editor */}
       <EditorContent editor={editor} />
