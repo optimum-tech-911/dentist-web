@@ -38,7 +38,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
         resizable: true,
         lastColumnResizable: true,
         HTMLAttributes: {
-          class: 'tiptap-table w-full border-collapse rounded-lg overflow-hidden shadow-lg my-6',
+          class: 'tiptap-table w-full border-collapse rounded-lg overflow-hidden shadow-lg my-8',
         },
       }),
       TableRow.configure({
@@ -63,7 +63,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
     },
     editorProps: {
       attributes: {
-        class: 'min-h-[400px] p-4 outline-none prose prose-blue max-w-none bg-white rounded-lg border font-sans text-base',
+        class: 'min-h-[500px] p-6 outline-none prose prose-lg max-w-none bg-white rounded-xl border-2 border-slate-200 font-sans text-base leading-relaxed article-editor',
         placeholder,
       },
     },
