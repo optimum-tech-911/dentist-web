@@ -130,6 +130,7 @@ export default function AdminDashboard() {
         <meta name="description" content="Admin dashboard for managing articles, users, and contact messages for UFSBD." />
       </Helmet>
       <div className="space-y-6">
+        <img src="/ufsbd-logo.png.jpg" alt="UFSBD Logo" className="h-20 mb-2 mx-auto" />
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Tableau de bord</h1>
