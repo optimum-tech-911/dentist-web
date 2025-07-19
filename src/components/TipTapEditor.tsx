@@ -38,12 +38,24 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
         resizable: true,
         lastColumnResizable: true,
         HTMLAttributes: {
-          class: 'tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden my-4',
+          class: 'tiptap-table w-full border-collapse rounded-lg overflow-hidden shadow-lg my-6',
         },
       }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      TableRow.configure({
+        HTMLAttributes: {
+          class: 'hover:bg-slate-100 transition-colors duration-200',
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 px-6 py-4 text-left font-semibold text-slate-700 uppercase tracking-wide text-sm',
+        },
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'border border-slate-200 px-6 py-4 text-slate-700',
+        },
+      }),
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -115,26 +127,31 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   const handleInsertTable = useCallback((tableData: { rows: number; cols: number; headers: string[]; data: string[][] }) => {
     if (!editor) return;
 
-    // Create table HTML
-    let tableHTML = '<table class="tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden my-4">';
+    // Create table HTML with enhanced styling
+    let tableHTML = '<div class="table-container my-6">';
+    tableHTML += '<table class="tiptap-table w-full border-collapse rounded-lg overflow-hidden shadow-lg">';
     
-    // Add header row
-    tableHTML += '<thead><tr>';
-    tableData.headers.forEach(header => {
-      tableHTML += `<th class="border border-gray-300 px-4 py-2 bg-gray-50 font-medium text-left">${header}</th>`;
+    // Add header row with enhanced styling
+    tableHTML += '<thead>';
+    tableHTML += '<tr class="bg-gradient-to-r from-slate-50 to-slate-100">';
+    tableData.headers.forEach((header, index) => {
+      tableHTML += `<th class="border border-slate-200 px-6 py-4 text-left font-semibold text-slate-700 uppercase tracking-wide text-sm">${header}</th>`;
     });
-    tableHTML += '</tr></thead>';
+    tableHTML += '</tr>';
+    tableHTML += '</thead>';
     
-    // Add data rows
+    // Add data rows with alternating colors and proper borders
     tableHTML += '<tbody>';
-    tableData.data.forEach(row => {
-      tableHTML += '<tr>';
-      row.forEach(cell => {
-        tableHTML += `<td class="border border-gray-300 px-4 py-2">${cell}</td>`;
+    tableData.data.forEach((row, rowIndex) => {
+      const rowClass = rowIndex % 2 === 0 ? 'bg-white' : 'bg-slate-50';
+      tableHTML += `<tr class="${rowClass} hover:bg-slate-100 transition-colors duration-200">`;
+      row.forEach((cell, colIndex) => {
+        tableHTML += `<td class="border border-slate-200 px-6 py-4 text-slate-700">${cell}</td>`;
       });
       tableHTML += '</tr>';
     });
     tableHTML += '</tbody></table>';
+    tableHTML += '</div>';
 
     // Insert the table
     editor.chain().focus().insertContent(tableHTML).run();

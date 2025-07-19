@@ -191,45 +191,140 @@
   background: white;
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 .tiptap-table th {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  font-weight: 600;
+  font-weight: 700;
   text-align: left;
   padding: 16px 20px;
-  border-bottom: 2px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   color: #1e293b;
-  font-size: 14px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
+  position: relative;
+}
+
+.tiptap-table th:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 20%;
+  height: 60%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #cbd5e1, transparent);
 }
 
 .tiptap-table td {
   padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   vertical-align: top;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #334155;
+  position: relative;
+}
+
+.tiptap-table td:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent, #e2e8f0, transparent);
+}
+
+.tiptap-table tr {
+  transition: all 0.2s ease;
+  position: relative;
 }
 
 .tiptap-table tr:hover {
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  transition: all 0.2s ease;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .tiptap-table tr:last-child td {
-  border-bottom: none;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tiptap-table tr:nth-child(even) {
-  background-color: #fafafa;
+  background-color: #fafbfc;
 }
 
 .tiptap-table tr:nth-child(even):hover {
   background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+/* Table container for better spacing */
+.table-container {
+  margin: 2rem 0;
+  padding: 0;
+  position: relative;
+}
+
+.table-container::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 16px;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+/* Enhanced table styling for different contexts */
+.tiptap-table.table-business {
+  border-left: 4px solid #3b82f6;
+}
+
+.tiptap-table.table-medical {
+  border-left: 4px solid #10b981;
+}
+
+.tiptap-table.table-financial {
+  border-left: 4px solid #f59e0b;
+}
+
+.tiptap-table.table-educational {
+  border-left: 4px solid #8b5cf6;
+}
+
+.tiptap-table.table-comparison {
+  border-left: 4px solid #3b82f6;
+}
+
+.tiptap-table.table-schedule {
+  border-left: 4px solid #10b981;
+}
+
+.tiptap-table.table-stats {
+  border-left: 4px solid #f59e0b;
+}
+
+.tiptap-table.table-contacts {
+  border-left: 4px solid #8b5cf6;
+}
+
+.tiptap-table.table-pricing {
+  border-left: 4px solid #059669;
+}
+
+.tiptap-table.table-hours {
+  border-left: 4px solid #0891b2;
+}
+
+.tiptap-table.table-reviews {
+  border-left: 4px solid #d97706;
 }
 
 /* Table Builder Styles */
@@ -259,6 +354,7 @@
   .tiptap-table {
     font-size: 13px;
     border-radius: 8px;
+    margin: 1rem 0;
   }
   
   .tiptap-table th,
@@ -269,6 +365,10 @@
   .tiptap-table th {
     font-size: 12px;
     padding: 10px 12px;
+  }
+  
+  .table-container {
+    margin: 1rem 0;
   }
 }
 
@@ -338,35 +438,6 @@
   font-weight: 500;
 }
 
-/* Custom table styles for different types */
-.table-comparison {
-  border-left: 4px solid #3b82f6;
-}
-
-.table-schedule {
-  border-left: 4px solid #10b981;
-}
-
-.table-stats {
-  border-left: 4px solid #f59e0b;
-}
-
-.table-contacts {
-  border-left: 4px solid #8b5cf6;
-}
-
-.table-pricing {
-  border-left: 4px solid #059669;
-}
-
-.table-hours {
-  border-left: 4px solid #0891b2;
-}
-
-.table-reviews {
-  border-left: 4px solid #d97706;
-}
-
 /* Enhanced table builder dialog */
 .table-builder-dialog {
   backdrop-filter: blur(8px);
@@ -432,16 +503,16 @@
 @keyframes tableInsert {
   0% {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) scale(0.95);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 
 .tiptap-table {
-  animation: tableInsert 0.3s ease-out;
+  animation: tableInsert 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Hover effects for table rows */
@@ -490,6 +561,10 @@
   .template-card:hover {
     transform: none;
   }
+  
+  .table-container::before {
+    display: none;
+  }
 }
 
 /* Print styles */
@@ -503,4 +578,36 @@
     background: #f0f0f0 !important;
     color: #000 !important;
   }
+  
+  .table-container::before {
+    display: none;
+  }
+}
+
+/* Focus styles for better accessibility */
+.tiptap-table:focus-within {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Enhanced typography for table content */
+.tiptap-table td {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.tiptap-table th {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 700;
+}
+
+/* Table caption styling */
+.tiptap-table caption {
+  caption-side: bottom;
+  padding: 8px 16px;
+  font-size: 12px;
+  color: #6b7280;
+  font-style: italic;
+  text-align: center;
+  background: #f9fafb;
+  border-top: 1px solid #e5e7eb;
 } 
