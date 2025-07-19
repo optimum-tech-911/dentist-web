@@ -182,3 +182,134 @@
     font-size: 1.125rem;
   }
 } 
+
+/* Rich Text Editor Styles */
+.tiptap-table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.tiptap-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 2px solid #e2e8f0;
+  color: #374151;
+}
+
+.tiptap-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+}
+
+.tiptap-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.tiptap-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Table Builder Styles */
+.table-builder-preview {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table-builder-preview th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+}
+
+.table-builder-preview td {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  .tiptap-table {
+    font-size: 14px;
+  }
+  
+  .tiptap-table th,
+  .tiptap-table td {
+    padding: 8px 12px;
+  }
+}
+
+/* Table controls */
+.table-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+
+/* Template cards */
+.template-card {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.template-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Editable table inputs */
+.table-input {
+  border: none;
+  background: transparent;
+  width: 100%;
+  padding: 4px 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.table-input:focus {
+  background-color: #f0f9ff;
+  border-radius: 4px;
+}
+
+.table-input.header {
+  font-weight: 600;
+  color: #374151;
+}
+
+/* Table size indicators */
+.table-size {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Custom table styles for different types */
+.table-comparison {
+  border-left: 4px solid #3b82f6;
+}
+
+.table-schedule {
+  border-left: 4px solid #10b981;
+}
+
+.table-stats {
+  border-left: 4px solid #f59e0b;
+}
+
+.table-contacts {
+  border-left: 4px solid #8b5cf6;
+} 

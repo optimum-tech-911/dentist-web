@@ -12,6 +12,7 @@ import { YoutubeNode } from './tiptapYoutubeExtension';
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
 import { Button } from '@/components/ui/button';
 import { GallerySelector } from './GallerySelector';
+import { TableBuilder } from './TableBuilder';
 import { Play, Image as ImageIcon, Bold as BoldIcon, Italic as ItalicIcon, List, ListOrdered, Quote, Underline as UnderlineIcon, Youtube as YoutubeIcon, Table as TableIcon, PlusSquare, MinusSquare, Trash2, Merge, Split } from 'lucide-react';
 import { useState } from 'react';
 
@@ -23,9 +24,6 @@ interface TipTapEditorProps {
 }
 
 export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, placeholder = "Rédigez votre contenu ici...", className = "" }) => {
-  const [showTableDialog, setShowTableDialog] = useState(false);
-  const [tableRows, setTableRows] = useState(3);
-  const [tableCols, setTableCols] = useState(3);
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -40,7 +38,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
         resizable: true,
         lastColumnResizable: true,
         HTMLAttributes: {
-          class: 'tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden',
+          class: 'tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden my-4',
         },
       }),
       TableRow,
@@ -75,7 +73,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   }, [editor]);
 
   const setYoutube = useCallback(() => {
-    const url = prompt('Collez l’URL YouTube ici :');
+    const url = prompt('Collez l\'URL YouTube ici :');
     if (url && editor) {
       // Extract video ID from various YouTube URL formats
       const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
@@ -113,35 +111,39 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   // Helper to check if inside a table
   const isInTable = editor?.isActive('table');
 
-  // Table Insert Dialog
-  const TableInsertDialog = () => (
-    showTableDialog ? (
-      <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30">
-        <div className="bg-white rounded-lg shadow-lg p-6 w-80 space-y-4">
-          <h2 className="text-lg font-bold mb-2">Insérer un tableau</h2>
-          <div className="flex items-center gap-2">
-            <label>Colonnes:</label>
-            <input type="number" min={1} max={10} value={tableCols} onChange={e => setTableCols(Number(e.target.value))} className="border rounded px-2 w-16" />
-            <label>Lignes:</label>
-            <input type="number" min={1} max={20} value={tableRows} onChange={e => setTableRows(Number(e.target.value))} className="border rounded px-2 w-16" />
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowTableDialog(false)}>Annuler</Button>
-            <Button onClick={() => {
-              editor?.chain().focus().insertTable({ rows: tableRows, cols: tableCols, withHeaderRow: true }).run();
-              setShowTableDialog(false);
-            }}>Insérer</Button>
-          </div>
-        </div>
-      </div>
-    ) : null
-  );
+  // Handle table insertion from TableBuilder
+  const handleInsertTable = useCallback((tableData: { rows: number; cols: number; headers: string[]; data: string[][] }) => {
+    if (!editor) return;
 
-  if (!editor) return <div className="p-4 text-center text-gray-400">Chargement de l’éditeur…</div>;
+    // Create table HTML
+    let tableHTML = '<table class="tiptap-table w-full border border-gray-300 rounded-lg overflow-hidden my-4">';
+    
+    // Add header row
+    tableHTML += '<thead><tr>';
+    tableData.headers.forEach(header => {
+      tableHTML += `<th class="border border-gray-300 px-4 py-2 bg-gray-50 font-medium text-left">${header}</th>`;
+    });
+    tableHTML += '</tr></thead>';
+    
+    // Add data rows
+    tableHTML += '<tbody>';
+    tableData.data.forEach(row => {
+      tableHTML += '<tr>';
+      row.forEach(cell => {
+        tableHTML += `<td class="border border-gray-300 px-4 py-2">${cell}</td>`;
+      });
+      tableHTML += '</tr>';
+    });
+    tableHTML += '</tbody></table>';
+
+    // Insert the table
+    editor.chain().focus().insertContent(tableHTML).run();
+  }, [editor]);
+
+  if (!editor) return <div className="p-4 text-center text-gray-400">Chargement de l'éditeur…</div>;
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <TableInsertDialog />
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-2 p-3 bg-muted/50 rounded-lg border mb-2">
         <Button type="button" variant={editor.isActive('bold') ? 'default' : 'ghost'} size="sm" onClick={() => editor.chain().focus().toggleBold().run()} title="Gras (Ctrl+B)" className="h-8 w-8 p-0"><BoldIcon className="h-4 w-4" /></Button>
@@ -157,20 +159,32 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
           description="Choisissez une image ou une vidéo depuis la galerie pour l'insérer dans votre article"
         />
         <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={setYoutube} title="Insérer une vidéo YouTube"><YoutubeIcon className="h-4 w-4" /><span className="hidden sm:inline">YouTube</span></Button>
-        <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => setShowTableDialog(true)} title="Insérer un tableau">
-          <TableIcon className="h-4 w-4" />
-        </Button>
-        {isInTable && <>
-          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addColumnAfter().run()} title="Ajouter une colonne à droite">
-            <PlusSquare className="h-4 w-4" />
-          </Button>
-          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addRowAfter().run()} title="Ajouter une ligne en dessous">
-            <PlusSquare className="h-4 w-4 rotate-90" />
-          </Button>
-          <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().deleteTable().run()} title="Supprimer le tableau">
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </>}
+        
+        {/* Enhanced Table Builder */}
+        <TableBuilder
+          onInsertTable={handleInsertTable}
+          trigger={
+            <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" title="Créer un tableau personnalisé">
+              <TableIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Tableau</span>
+            </Button>
+          }
+        />
+        
+        {/* Table editing controls (only show when inside a table) */}
+        {isInTable && (
+          <>
+            <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addColumnAfter().run()} title="Ajouter une colonne à droite">
+              <PlusSquare className="h-4 w-4" />
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().addRowAfter().run()} title="Ajouter une ligne en dessous">
+              <PlusSquare className="h-4 w-4 rotate-90" />
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="h-8 gap-1" onClick={() => editor.chain().focus().deleteTable().run()} title="Supprimer le tableau">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        )}
       </div>
       {/* Editor */}
       <EditorContent editor={editor} />
