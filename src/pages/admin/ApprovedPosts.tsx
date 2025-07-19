@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Eye } from 'lucide-react';
+import { Trash2, Eye, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
@@ -138,6 +138,7 @@ export default function ApprovedPosts() {
                       className="flex items-center gap-2"
                     >
                       <Link to={`/edit/${post.id}`}>
+                        <Edit className="h-4 w-4" />
                         Edit
                       </Link>
                     </Button>

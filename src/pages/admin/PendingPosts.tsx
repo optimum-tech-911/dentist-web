@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
@@ -21,6 +22,7 @@ interface Post {
 export default function PendingPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPendingPosts();
@@ -96,6 +98,10 @@ export default function PendingPosts() {
     }
   };
 
+  const handleEditPost = (postId: string) => {
+    navigate(`/edit/${postId}`);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -144,7 +150,7 @@ export default function PendingPosts() {
                   <div className="prose max-w-none">
                     <MarkdownRenderer content={post.content} />
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     <Button
                       onClick={() => updatePostStatus(post.id, 'approved')}
                       className="flex items-center gap-2"
@@ -159,6 +165,14 @@ export default function PendingPosts() {
                     >
                       <XCircle className="h-4 w-4" />
                       Reject
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleEditPost(post.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
                     </Button>
                     <Button
                       variant="destructive"
