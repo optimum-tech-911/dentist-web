@@ -12,10 +12,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
-<<<<<<< HEAD
     "@minoru/react-dnd-treeview": "^3.5.3",
-=======
->>>>>>> 943786f (Initial commit: add all project files)
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
     "@radix-ui/react-aspect-ratio": "^1.1.0",
@@ -45,15 +42,11 @@
     "@radix-ui/react-tooltip": "^1.1.4",
     "@supabase/supabase-js": "^2.50.4",
     "@tanstack/react-query": "^5.56.2",
-<<<<<<< HEAD
     "@tiptap/core": "^3.0.7",
-=======
->>>>>>> 943786f (Initial commit: add all project files)
     "@tiptap/extension-bold": "^3.0.1",
     "@tiptap/extension-image": "^3.0.1",
     "@tiptap/extension-italic": "^3.0.1",
     "@tiptap/extension-link": "^3.0.1",
-<<<<<<< HEAD
     "@tiptap/extension-table": "^3.0.7",
     "@tiptap/extension-table-cell": "^3.0.7",
     "@tiptap/extension-table-header": "^3.0.7",
@@ -63,12 +56,6 @@
     "@tiptap/react": "^3.0.7",
     "@tiptap/starter-kit": "^3.0.7",
     "caniuse-lite": "^1.0.30001727",
-=======
-    "@tiptap/extension-underline": "^3.0.1",
-    "@tiptap/extension-youtube": "^3.0.1",
-    "@tiptap/react": "^3.0.1",
-    "@tiptap/starter-kit": "^3.0.1",
->>>>>>> 943786f (Initial commit: add all project files)
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -81,10 +68,7 @@
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
-<<<<<<< HEAD
     "react-helmet": "^6.1.0",
-=======
->>>>>>> 943786f (Initial commit: add all project files)
     "react-hook-form": "^7.53.0",
     "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.1.3",
