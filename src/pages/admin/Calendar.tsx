@@ -70,14 +70,14 @@ export default function Calendar() {
 
   const fetchEvents = async () => {
     try {
-      const startOfCurrentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-      const endOfCurrentMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+      const startOfCurrentMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 0, 0, 0), "yyyy-MM-dd'T'HH:mm");
+      const endOfCurrentMonth = format(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59), "yyyy-MM-dd'T'HH:mm");
       
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .gte('start_date', startOfCurrentMonth.toISOString())
-        .lte('start_date', endOfCurrentMonth.toISOString())
+        .gte('start_date', startOfCurrentMonth)
+        .lte('start_date', endOfCurrentMonth)
         .order('start_date', { ascending: true });
 
       if (error) throw error;
@@ -101,7 +101,9 @@ export default function Calendar() {
     try {
       const eventData = {
         ...formData,
-        created_by: user.id
+        created_by: user.id,
+        start_date: formData.start_date,
+        end_date: formData.end_date
       };
 
       if (editingEvent) {
