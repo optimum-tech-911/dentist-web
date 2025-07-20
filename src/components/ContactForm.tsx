@@ -52,6 +52,7 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
 
       if (error) throw error;
 
+<<<<<<< HEAD
       // Fetch all doctor and admin emails
       const { data: users, error: userError } = await supabase
         .from('users')
@@ -71,6 +72,17 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
       toast({
         title: 'Message envoyé!',
         description: 'Votre message a été envoyé. Nous vous répondrons rapidement.'
+=======
+      // Create mailto link for immediate email
+      const mailtoLink = `mailto:ufsbd34@ufsbd.fr?subject=Contact depuis le site web&body=Nom: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ATéléphone: ${formData.phone}%0D%0AMessage: ${formData.message}`;
+      
+      // Open default email client
+      window.location.href = mailtoLink;
+
+      toast({
+        title: "Message envoyé!",
+        description: "Votre message a été envoyé. Nous vous répondrons rapidement."
+>>>>>>> 943786f (Initial commit: add all project files)
       });
 
       // Reset form
@@ -80,9 +92,15 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
     } catch (error) {
       console.error('Error submitting contact form:', error);
       toast({
+<<<<<<< HEAD
         title: 'Erreur',
         description: 'Une erreur est survenue. Veuillez réessayer.',
         variant: 'destructive'
+=======
+        title: "Erreur",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+        variant: "destructive"
+>>>>>>> 943786f (Initial commit: add all project files)
       });
     } finally {
       setLoading(false);

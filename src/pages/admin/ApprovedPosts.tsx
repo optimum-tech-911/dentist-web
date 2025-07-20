@@ -3,10 +3,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Eye, Edit } from 'lucide-react';
+import { Trash2, Eye } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -119,7 +118,9 @@ export default function ApprovedPosts() {
                     />
                   )}
                   <div className="prose max-w-none">
-                    <MarkdownRenderer content={post.content} />
+                    <p className="text-sm text-muted-foreground line-clamp-3">
+                      {post.content.substring(0, 200)}...
+                    </p>
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -130,16 +131,6 @@ export default function ApprovedPosts() {
                       <Link to={`/blog/${post.id}`}>
                         <Eye className="h-4 w-4" />
                         View Post
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="secondary"
-                      className="flex items-center gap-2"
-                    >
-                      <Link to={`/edit/${post.id}`}>
-                        <Edit className="h-4 w-4" />
-                        Edit
                       </Link>
                     </Button>
                     <Button
