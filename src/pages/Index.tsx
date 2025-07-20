@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactForm } from '@/components/ContactForm';
-import { Heart, Shield, Users, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool } from 'lucide-react';
 import doctorHeroImage from '@/assets/doctor-hero.jpg';
 
 const Index = () => {
