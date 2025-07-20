@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Users, PenTool, Home, Calendar } from 'lucide-react';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Badge } from '@/components/ui/badge';
 import { Helmet } from 'react-helmet';
@@ -13,6 +13,8 @@ interface DashboardStats {
   pendingPosts: number;
   approvedPosts: number;
   totalUsers: number;
+  totalEvents: number;
+  upcomingEvents: number;
 }
 
 export function useSupabaseKeepAlive() {
@@ -31,7 +33,9 @@ export default function AdminDashboard() {
     totalPosts: 0,
     pendingPosts: 0,
     approvedPosts: 0,
-    totalUsers: 0
+    totalUsers: 0,
+    totalEvents: 0,
+    upcomingEvents: 0
   });
   const [loading, setLoading] = useState(true);
   const [contactSubmissions, setContactSubmissions] = useState<any[]>([]);
@@ -45,9 +49,10 @@ export default function AdminDashboard() {
   const fetchStats = async () => {
     try {
       // Get posts stats
-      const [postsResult, usersResult] = await Promise.all([
+      const [postsResult, usersResult, eventsResult] = await Promise.all([
         supabase.from('posts').select('status'),
-        supabase.from('users').select('id', { count: 'exact' })
+        supabase.from('users').select('id', { count: 'exact' }),
+        supabase.from('events').select('start_date')
       ]);
 
       if (postsResult.data) {
@@ -55,11 +60,20 @@ export default function AdminDashboard() {
         const pendingPosts = postsResult.data.filter(p => p.status === 'pending').length;
         const approvedPosts = postsResult.data.filter(p => p.status === 'approved').length;
         
+        // Calculate events stats
+        const totalEvents = eventsResult.data?.length || 0;
+        const now = new Date();
+        const upcomingEvents = eventsResult.data?.filter(event => 
+          new Date(event.start_date) > now
+        ).length || 0;
+        
         setStats({
           totalPosts,
           pendingPosts,
           approvedPosts,
-          totalUsers: usersResult.count || 0
+          totalUsers: usersResult.count || 0,
+          totalEvents,
+          upcomingEvents
         });
       }
     } catch (error) {
@@ -120,6 +134,18 @@ export default function AdminDashboard() {
       value: stats.totalUsers,
       icon: Users,
       description: 'Utilisateurs enregistrés'
+    },
+    {
+      title: 'Total Événements',
+      value: stats.totalEvents,
+      icon: Calendar,
+      description: 'Tous les événements'
+    },
+    {
+      title: 'Événements à venir',
+      value: stats.upcomingEvents,
+      icon: Clock,
+      description: 'Prochains événements'
     }
   ];
 
@@ -152,7 +178,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           {statCards.map((card) => (
             <Card key={card.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
