@@ -1,4 +1,4 @@
-import { format, parseISO, isSameDay, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isToday as isTodayDate } from 'date-fns';
+import { format, parseISO, isSameDay, isSameMonth, startOfMonth, endOfMonth, eachDayOfInterval, addDays, isToday as isTodayDate, startOfWeek, endOfWeek } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export interface CalendarEvent {
@@ -102,9 +102,20 @@ export const formatDayName = (date: Date) => {
 };
 
 export const getCalendarDays = (date: Date) => {
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(date);
+  
+  // Get the start of the week for the first day of the month
+  // weekStartsOn: 0 = Sunday, 1 = Monday
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  
+  // Get the end of the week for the last day of the month
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  
+  // Return all days in the calendar grid (usually 42 days = 6 weeks)
   return eachDayOfInterval({
-    start: startOfMonth(date),
-    end: endOfMonth(date)
+    start: calendarStart,
+    end: calendarEnd
   });
 };
 
