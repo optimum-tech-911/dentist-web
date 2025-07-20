@@ -102,9 +102,22 @@ export const formatDayName = (date: Date) => {
 };
 
 export const getCalendarDays = (date: Date) => {
+  // Start of the month
+  const start = startOfMonth(date);
+  // End of the month
+  const end = endOfMonth(date);
+
+  // Find the Monday before or on the first day of the month
+  const startDay = start.getDay() === 0 ? 6 : start.getDay() - 1; // 0 (Sunday) -> 6, 1 (Monday) -> 0, etc.
+  const calendarStart = addDays(start, -startDay);
+
+  // Find the Sunday after or on the last day of the month
+  const endDay = end.getDay() === 0 ? 6 : end.getDay() - 1;
+  const calendarEnd = addDays(end, 6 - endDay);
+
   return eachDayOfInterval({
-    start: startOfMonth(date),
-    end: endOfMonth(date)
+    start: calendarStart,
+    end: calendarEnd
   });
 };
 
@@ -117,7 +130,7 @@ export const isCurrentMonth = (date: Date, currentDate: Date) => {
 };
 
 export const getWeekDays = () => {
-  return ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+  return ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 };
 
 export const getEventDuration = (event: CalendarEvent) => {
