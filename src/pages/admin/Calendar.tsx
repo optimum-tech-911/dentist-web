@@ -16,7 +16,8 @@ import {
   formatMonthYear, 
   getCalendarDays, 
   isToday, 
-  isCurrentMonth 
+  isCurrentMonth,
+  getWeekDays
 } from '@/lib/calendar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -408,7 +409,7 @@ export default function Calendar() {
           <CardContent className="p-0">
             <div className="grid grid-cols-7 gap-px bg-border">
               {/* Calendar Header */}
-              {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map(day => (
+              {getWeekDays().map(day => (
                 <div key={day} className="bg-muted/50 p-3 text-center text-sm font-semibold text-muted-foreground">
                   {day}
                 </div>
