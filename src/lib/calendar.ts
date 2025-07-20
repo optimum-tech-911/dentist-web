@@ -67,18 +67,16 @@ export const getStatusIcon = (status: string) => {
 };
 
 export const getEventsForDay = (events: CalendarEvent[], date: Date) => {
-  return events.filter(event => isSameDay(parseISO(event.start_date), date));
+  return events.filter(event => isSameDay(new Date(event.start_date.replace(' ', 'T')), date));
 };
 
 export const formatEventTime = (event: CalendarEvent) => {
   if (event.all_day) {
     return 'Toute la journée';
   }
-  
-  const startTime = format(parseISO(event.start_date), 'HH:mm');
-  const endTime = format(parseISO(event.end_date), 'HH:mm');
-  const startDate = format(parseISO(event.start_date), 'dd/MM/yyyy');
-  
+  const startTime = format(new Date(event.start_date.replace(' ', 'T')), 'HH:mm');
+  const endTime = format(new Date(event.end_date.replace(' ', 'T')), 'HH:mm');
+  const startDate = format(new Date(event.start_date.replace(' ', 'T')), 'dd/MM/yyyy');
   return `${startDate} ${startTime} - ${endTime}`;
 };
 
@@ -86,10 +84,8 @@ export const formatEventTimeShort = (event: CalendarEvent) => {
   if (event.all_day) {
     return 'Toute la journée';
   }
-  
-  const startTime = format(parseISO(event.start_date), 'HH:mm');
-  const endTime = format(parseISO(event.end_date), 'HH:mm');
-  
+  const startTime = format(new Date(event.start_date.replace(' ', 'T')), 'HH:mm');
+  const endTime = format(new Date(event.end_date.replace(' ', 'T')), 'HH:mm');
   return `${startTime} - ${endTime}`;
 };
 
@@ -137,11 +133,9 @@ export const getEventDuration = (event: CalendarEvent) => {
   if (event.all_day) {
     return 'Toute la journée';
   }
-  
-  const start = parseISO(event.start_date);
-  const end = parseISO(event.end_date);
+  const start = new Date(event.start_date.replace(' ', 'T'));
+  const end = new Date(event.end_date.replace(' ', 'T'));
   const diffInMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
-  
   if (diffInMinutes < 60) {
     return `${diffInMinutes} min`;
   } else if (diffInMinutes < 1440) {
@@ -157,13 +151,12 @@ export const getEventDuration = (event: CalendarEvent) => {
 export const getUpcomingEvents = (events: CalendarEvent[], days: number = 7) => {
   const now = new Date();
   const futureDate = addDays(now, days);
-  
   return events
     .filter(event => {
-      const eventDate = parseISO(event.start_date);
+      const eventDate = new Date(event.start_date.replace(' ', 'T'));
       return eventDate >= now && eventDate <= futureDate;
     })
-    .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
+    .sort((a, b) => new Date(a.start_date.replace(' ', 'T')).getTime() - new Date(b.start_date.replace(' ', 'T')).getTime());
 };
 
 export const getEventsByType = (events: CalendarEvent[]) => {

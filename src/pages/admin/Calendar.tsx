@@ -458,7 +458,7 @@ export default function Calendar() {
                           <div className="font-medium truncate">{event.title}</div>
                           {!event.all_day && (
                             <div className="text-xs opacity-90">
-                              {format(parseISO(event.start_date), 'HH:mm')}
+                              {format(new Date(event.start_date.replace(' ', 'T')), 'HH:mm')}
                             </div>
                           )}
                         </div>
