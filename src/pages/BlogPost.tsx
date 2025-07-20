@@ -89,7 +89,7 @@ export default function BlogPost() {
               <div className="flex items-center">
                 <Link to="/">
                   <img 
-                    src="/ufsbd-logo.png.jpg" 
+                    src="/ufsbd-logo-new.jpg" 
                     alt="UFSBD Logo" 
                     className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                   />

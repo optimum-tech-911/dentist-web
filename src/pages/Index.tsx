@@ -54,7 +54,7 @@ const Index = () => {
             <div className="flex items-center">
               <a href="https://www.ufsbd.fr" target="_blank" rel="noopener noreferrer">
                 <img 
-                  src="/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png" 
+                  src="/ufsbd-logo-new.jpg" 
                   alt="UFSBD Logo" 
                   className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                 />
