@@ -225,7 +225,6 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-<<<<<<< HEAD
       },
       events: {
         Row: {
@@ -282,8 +281,6 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-=======
->>>>>>> 943786f (Initial commit: add all project files)
       }
     }
     Views: {

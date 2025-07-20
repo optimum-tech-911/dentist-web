@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-<<<<<<< HEAD
-import { LayoutDashboard, FileText, CheckCircle, Users, LogOut, PenTool, FolderOpen, Network, Calendar } from 'lucide-react';
-=======
 import { LayoutDashboard, FileText, CheckCircle, Users, LogOut, PenTool, FolderOpen, Network } from 'lucide-react';
->>>>>>> 943786f (Initial commit: add all project files)
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,10 +25,6 @@ const managementItems = [
   { title: 'Articles approuvés', url: '/admin/approved', icon: CheckCircle },
   { title: 'Gestion Galerie', url: '/admin/gallery', icon: FolderOpen },
   { title: 'Organigramme', url: '/admin/organigramme', icon: Network },
-<<<<<<< HEAD
-  { title: 'Calendrier', url: '/admin/calendar', icon: Calendar },
-=======
->>>>>>> 943786f (Initial commit: add all project files)
 ];
 
 const adminItems = [
