@@ -25,7 +25,6 @@ export default function WriteBlog() {
     category: '',
     headerImage: ''
   });
-  const [addedVideoEmbed, setAddedVideoEmbed] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -76,15 +75,11 @@ export default function WriteBlog() {
     setIsSubmitting(true);
 
     try {
-      let finalContent = formData.content;
-      if (addedVideoEmbed) {
-        finalContent += '\n\n' + addedVideoEmbed;
-      }
       const { error } = await supabase
         .from('posts')
         .insert({
           title: formData.title,
-          content: finalContent,
+          content: formData.content,
           category: formData.category,
           author_email: user.email,
           author_id: user.id,

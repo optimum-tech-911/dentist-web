@@ -12,6 +12,22 @@ interface DashboardStats {
   totalUsers: number;
 }
 
+// Function to keep Supabase connection alive
+export function useSupabaseKeepAlive() {
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        // Make a simple query to keep the connection alive
+        await supabase.from('posts').select('id').limit(1);
+      } catch (error) {
+        console.error('Supabase keep-alive error:', error);
+      }
+    }, 5 * 60 * 1000); // Every 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
     totalPosts: 0,

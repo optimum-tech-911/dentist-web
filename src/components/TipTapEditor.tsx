@@ -59,7 +59,8 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
+      const html = editor.getHTML();
+      onChange(html);
     },
     editorProps: {
       attributes: {
@@ -87,36 +88,53 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   const setYoutube = useCallback(() => {
     const url = prompt('Collez l\'URL YouTube ici :');
     if (url && editor) {
-      // Extract video ID from various YouTube URL formats
-      const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-      const videoId = match ? match[1] : null;
-      if (videoId) {
-        editor.chain().focus().insertContent({
-          type: 'youtubeNode',
-          attrs: {
-            src: `https://www.youtube.com/embed/${videoId}`,
-            frameborder: 0,
-            allowfullscreen: true,
-            class: 'w-full aspect-video rounded-lg my-4'
-          }
-        }).run();
-      } else {
-        alert('URL YouTube invalide');
+      try {
+        // Extract video ID from various YouTube URL formats
+        const match = url.match(/(?:youtu.be\/|youtube.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+        const videoId = match ? match[1] : null;
+        if (videoId) {
+          const youtubeContent = {
+            type: 'youtubeNode',
+            attrs: {
+              src: `https://www.youtube.com/embed/${videoId}`,
+              frameborder: 0,
+              allowfullscreen: true,
+              class: 'w-full aspect-video rounded-lg my-4'
+            }
+          };
+          editor.chain().focus().insertContent(youtubeContent).run();
+        } else {
+          alert('URL YouTube invalide. Veuillez utiliser un lien YouTube valide.');
+        }
+      } catch (error) {
+        console.error('Error inserting YouTube video:', error);
+        alert('Erreur lors de l\'insertion de la vidéo YouTube.');
       }
     }
   }, [editor]);
 
   const setGalleryMedia = useCallback((media: any) => {
     if (!media) return;
-    if (media.file_type && media.file_type.startsWith('video/')) {
-      if (editor) {
-        editor.chain().focus().insertContent({
-          type: 'video',
-          attrs: { src: media.url }
-        }).run();
+    
+    try {
+      if (media.file_type && media.file_type.startsWith('video/')) {
+        if (editor) {
+          const videoContent = {
+            type: 'video',
+            attrs: { 
+              src: media.url,
+              controls: true,
+              preload: 'metadata'
+            }
+          };
+          editor.chain().focus().insertContent(videoContent).run();
+        }
+      } else {
+        setImage(media.url);
       }
-    } else {
-      setImage(media.url);
+    } catch (error) {
+      console.error('Error inserting media:', error);
+      // You could add a toast notification here if needed
     }
   }, [editor, setImage]);
 

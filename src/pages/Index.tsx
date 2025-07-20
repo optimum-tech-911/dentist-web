@@ -4,8 +4,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactForm } from '@/components/ContactForm';
-import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool } from 'lucide-react';
+import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool, Instagram } from 'lucide-react';
 import doctorHeroImage from '@/assets/doctor-hero.jpg';
+import { Helmet } from 'react-helmet';
+import { Footer } from '@/components/Footer';
 
 const Index = () => {
   const {
@@ -283,50 +285,7 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-slate-900 to-blue-900 text-white py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid gap-8 md:grid-cols-3 mb-8">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <a href="https://www.ufsbd.fr" target="_blank" rel="noopener noreferrer">
-                  <img src="/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png" alt="UFSBD Logo" className="h-20 w-auto hover:scale-105 transition-transform cursor-pointer" />
-                </a>
-              </div>
-              <p className="text-blue-200 leading-relaxed">
-                Union Française pour la Santé Bucco-Dentaire - Section Hérault
-              </p>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-yellow-300">Contact</h3>
-              <div className="space-y-2 text-blue-200">
-                <p>📧 Email: ufsbd34@ufsbd.fr</p>
-                <p>📍 283 rue Alfred Nobel, 34200 Montpellier</p>
-                <p>📞 Téléphone: 06 86 30 62 04</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-yellow-300">Liens utiles</h3>
-              <div className="space-y-3">
-                <div>
-                  <Link to="/blog" className="text-blue-200 hover:text-yellow-300 transition-colors inline-flex items-center">
-                    📰 Actualités
-                  </Link>
-                </div>
-                <div>
-                  <ContactForm isModal trigger={<button className="text-blue-200 hover:text-yellow-300 transition-colors text-left inline-flex items-center">
-                        ✉️ Nous contacter
-                      </button>} />
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-blue-800 pt-8 text-center">
-            <p className="text-blue-300">
-              © 2024 UFSBD Section Hérault. Tous droits réservés.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>;
 };
 export default Index;

@@ -8,7 +8,7 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 
 interface GallerySelectorProps {
-  onImageSelect: (image: GalleryImage) => void; // Will handle both images and videos
+  onImageSelect: (media: GalleryImage | any) => void; // Will handle both images and videos
   trigger?: React.ReactNode;
   title?: string;
   description?: string;
@@ -63,12 +63,7 @@ export function GallerySelector({
   };
 
   const handleImageSelect = (media: GalleryImage) => {
-    if (media.file_type.startsWith('video/')) {
-      // Insert as Markdown for video
-      onImageSelect(`![${media.name}](${media.url})`);
-    } else {
-      onImageSelect(media);
-    }
+    onImageSelect(media);
     setIsOpen(false);
     setSearchTerm('');
   };

@@ -17,12 +17,17 @@ interface DashboardStats {
   upcomingEvents: number;
 }
 
+// Function to keep Supabase connection alive
 export function useSupabaseKeepAlive() {
   useEffect(() => {
     const interval = setInterval(async () => {
-      // Ping a lightweight endpoint or table
-      await supabase.from('users').select('id').limit(1);
-    }, 10 * 60 * 1000); // every 10 minutes
+      try {
+        // Make a simple query to keep the connection alive
+        await supabase.from('posts').select('id').limit(1);
+      } catch (error) {
+        console.error('Supabase keep-alive error:', error);
+      }
+    }, 5 * 60 * 1000); // Every 5 minutes
 
     return () => clearInterval(interval);
   }, []);

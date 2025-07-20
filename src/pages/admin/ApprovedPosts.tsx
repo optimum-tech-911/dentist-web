@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, Eye } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Eye, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
   id: string;
@@ -21,6 +22,7 @@ interface Post {
 export default function ApprovedPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchApprovedPosts();
@@ -118,9 +120,9 @@ export default function ApprovedPosts() {
                     />
                   )}
                   <div className="prose max-w-none">
-                    <p className="text-sm text-muted-foreground line-clamp-3">
-                      {post.content.substring(0, 200)}...
-                    </p>
+                    <div className="line-clamp-3">
+                      <MarkdownRenderer content={post.content.substring(0, 300) + (post.content.length > 300 ? '...' : '')} />
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <Button

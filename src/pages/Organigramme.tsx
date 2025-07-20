@@ -8,6 +8,7 @@ import { OrganigramService, type OrganigramMember } from '@/lib/organigram';
 import { OrganigrammeCard } from '@/components/OrganigrammeCard';
 import { useAuth } from '@/hooks/useAuth';
 import { Tree } from '@minoru/react-dnd-treeview';
+import { Footer } from '@/components/Footer';
 
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
@@ -369,6 +370,7 @@ export default function Organigramme() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

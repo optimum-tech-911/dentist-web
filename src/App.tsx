@@ -24,10 +24,12 @@ import OrganigrammeAdmin from "./pages/admin/OrganigrammeAdmin";
 import Calendar from "./pages/admin/Calendar";
 import NotFound from "./pages/NotFound";
 import EditBlog from "./pages/EditBlog";
+import { useSupabaseKeepAlive } from './pages/admin/AdminDashboard';
 
 const queryClient = new QueryClient();
 
 const App = () => {
+  useSupabaseKeepAlive();
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
