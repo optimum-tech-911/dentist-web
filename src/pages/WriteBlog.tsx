@@ -130,7 +130,7 @@ export default function WriteBlog() {
                 Partagez vos connaissances sur la santé bucco-dentaire
               </p>
             </div>
-            <Button variant="outline" asChild className="text-blue-600 hover:bg-blue-50">
+            <Button variant="outline" asChild className="text-white border-white hover:bg-white hover:text-blue-600">
               <Link to="/" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Retour
