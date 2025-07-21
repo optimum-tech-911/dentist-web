@@ -195,7 +195,7 @@ export default function EditBlog() {
                   <GallerySelector onImageSelect={handleHeaderImageSelect} />
                 </div>
               </div>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-black" disabled={isSubmitting}>
                 {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </Button>
             </form>
