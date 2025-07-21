@@ -127,7 +127,7 @@ export default function EditBlog() {
               </h1>
               <p className="text-lg text-blue-100">Mettez à jour le contenu de votre article de blog.</p>
             </div>
-            <Button asChild variant="outline" className="text-white border-white">
+            <Button asChild variant="outline" className="text-white border-white hover:bg-white hover:text-blue-600">
               <Link to="/admin/approved">
                 <ArrowLeft className="h-4 w-4 mr-2" /> Retour
               </Link>
