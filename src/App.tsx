@@ -21,7 +21,6 @@ import ApprovedPosts from "./pages/admin/ApprovedPosts";
 import Users from "./pages/admin/Users";
 import Gallery from "./pages/admin/Gallery";
 import OrganigrammeAdmin from "./pages/admin/OrganigrammeAdmin";
-import Calendar from "./pages/admin/Calendar";
 import NotFound from "./pages/NotFound";
 import EditBlog from "./pages/EditBlog";
 import { useSupabaseKeepAlive } from './pages/admin/AdminDashboard';
@@ -68,7 +67,6 @@ const App = () => {
                 <Route path="users" element={<Users />} />
                 <Route path="gallery" element={<Gallery />} />
                 <Route path="organigramme" element={<OrganigrammeAdmin />} />
-                <Route path="calendar" element={<Calendar />} />
               </Route>
               {/* Service pages placeholders */}
               <Route path="/prevention" element={<div className="min-h-screen flex items-center justify-center"><h1 className="text-4xl font-bold">Prévention - Page en construction</h1></div>} />

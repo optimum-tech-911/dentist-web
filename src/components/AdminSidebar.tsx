@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FileText, CheckCircle, Users, LogOut, PenTool, FolderOpen, Network, Calendar as CalendarIcon } from 'lucide-react';
+import { LayoutDashboard, FileText, CheckCircle, Users, LogOut, PenTool, FolderOpen, Network } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +25,6 @@ const managementItems = [
   { title: 'Articles approuvés', url: '/admin/approved', icon: CheckCircle },
   { title: 'Gestion Galerie', url: '/admin/gallery', icon: FolderOpen },
   { title: 'Organigramme', url: '/admin/organigramme', icon: Network },
-  { title: 'Calendrier', url: '/admin/calendar', icon: CalendarIcon },
 ];
 
 const adminItems = [

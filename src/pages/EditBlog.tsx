@@ -127,7 +127,7 @@ export default function EditBlog() {
               </h1>
               <p className="text-lg text-blue-100">Mettez à jour le contenu de votre article de blog.</p>
             </div>
-            <Button asChild variant="outline" className="text-black border-white hover:bg-white hover:text-blue-600">
+            <Button asChild variant="outline" className="text-white border-white">
               <Link to="/admin/approved">
                 <ArrowLeft className="h-4 w-4 mr-2" /> Retour
               </Link>
@@ -195,7 +195,7 @@ export default function EditBlog() {
                   <GallerySelector onImageSelect={handleHeaderImageSelect} />
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-black !text-black" style={{ color: 'black' }} disabled={isSubmitting}>
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Enregistrement...' : 'Enregistrer les modifications'}
               </Button>
             </form>

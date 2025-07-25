@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
-import { useToast } from '@/hooks/use-toast';
-import { Footer } from '@/components/Footer';
 
 interface Post {
   id: string;
@@ -23,10 +21,8 @@ interface Post {
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [showMobileNav, setShowMobileNav] = useState(false);
   const { user, userRole, signOut } = useAuth();
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchApprovedPosts();
@@ -34,9 +30,6 @@ export default function Blog() {
 
   const fetchApprovedPosts = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
       const { data, error } = await supabase
         .from('posts')
         .select('*')
@@ -47,12 +40,6 @@ export default function Blog() {
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
-      setError('Erreur lors du chargement des articles');
-      toast({
-        title: "Erreur",
-        description: "Impossible de charger les articles. Veuillez réessayer.",
-        variant: "destructive"
-      });
     } finally {
       setLoading(false);
     }
@@ -64,21 +51,6 @@ export default function Blog() {
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center p-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">{error}</p>
-            <Button onClick={fetchApprovedPosts} variant="outline">
-              Réessayer
-            </Button>
           </div>
         </div>
       </div>
@@ -99,12 +71,13 @@ export default function Blog() {
               <div className="flex items-center">
                 <Link to="/">
                   <img 
-                    src="/ufsbd-logo-new.jpg" 
+                    src="/ufsbd-logo.png.jpg" 
                     alt="UFSBD Logo" 
                     className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                   />
                 </Link>
               </div>
+              
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-4">
                 <Button variant="ghost" asChild className="hover:text-primary transition-colors">
@@ -142,6 +115,7 @@ export default function Blog() {
                   </Button>
                 )}
               </nav>
+              
               {/* Mobile Navigation */}
               <div className="md:hidden">
                 <Button variant="ghost" size="icon" onClick={() => setShowMobileNav(!showMobileNav)}>
@@ -151,6 +125,7 @@ export default function Blog() {
                 </Button>
               </div>
             </div>
+            
             {/* Mobile Menu */}
             {showMobileNav && (
               <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
@@ -196,6 +171,7 @@ export default function Blog() {
             )}
           </div>
         </header>
+
         <div className="container mx-auto px-4 py-8">
           {/* Breadcrumb */}
           <nav className="flex justify-center mb-6">
@@ -215,6 +191,7 @@ export default function Blog() {
               Découvrez nos dernières actualités et articles sur la santé bucco-dentaire
             </p>
           </div>
+
           {posts.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">Aucun article publié pour le moment.</p>
@@ -230,10 +207,6 @@ export default function Blog() {
                           src={post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
                         />
                       </div>
                     )}
@@ -248,7 +221,7 @@ export default function Blog() {
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">
-                        <MarkdownRenderer content={post.content.substring(0, 200) + (post.content.length > 200 ? '...' : '')} />
+                        <MarkdownRenderer content={post.content} />
                       </div>
                     </CardContent>
                   </Card>
@@ -257,7 +230,6 @@ export default function Blog() {
             </div>
           )}
         </div>
-        <Footer />
       </div>
     </>
   );

@@ -21,14 +21,6 @@ export const YoutubeNode = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    // Ensure we have all necessary attributes for proper iframe rendering
-    const attrs = {
-      ...HTMLAttributes,
-      frameborder: HTMLAttributes.frameborder || 0,
-      allowfullscreen: HTMLAttributes.allowfullscreen !== false ? 'allowfullscreen' : undefined,
-      class: HTMLAttributes.class || 'w-full aspect-video rounded-lg my-4'
-    };
-    
-    return ['iframe', mergeAttributes(attrs)];
+    return ['iframe', mergeAttributes(HTMLAttributes)];
   }
 }); 
