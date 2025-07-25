@@ -307,7 +307,7 @@ const Index = () => {
                   <h3 className="text-xl font-semibold text-yellow-300">Contact</h3>
                   <div className="space-y-2 text-blue-200">
                     <p>📧 Email: ufsbd34@ufsbd.fr</p>
-                    <p>📍 283 rue Alfred Nobel, 34200 Montpellier</p>
+                    <p>📍 285 rue Alfred Nobel, 34200 Montpellier</p>
                     <p>📞 Téléphone: 06 86 30 62 04</p>
                   </div>
                 </div>
