@@ -60,12 +60,40 @@ All templates are in French and include proper UFSBD branding.
 
 ## 8. Troubleshooting
 
-If emails are not being sent:
+### Common Issues:
 
-1. Check that your Resend API key is correct
-2. Verify your domain is properly configured in Resend
-3. Check the browser console for any error messages
-4. Verify the environment variables are loaded correctly
+#### "Missing API key" Error
+If you see this error: `Missing API key. Pass it to the constructor new Resend("re_123")`
+
+1. **Check your .env file** - Make sure you have:
+   ```env
+   VITE_RESEND_API_KEY=re_your_actual_api_key_here
+   ```
+
+2. **Restart your development server** after adding the environment variable:
+   ```bash
+   npm run dev
+   ```
+
+3. **Check browser console** - The app will now show environment variable status in development mode
+
+4. **Test the setup** - Open browser console and run:
+   ```javascript
+   testEmailService()
+   ```
+
+#### Environment Variables Not Loading
+- Make sure your `.env` file is in the root directory (same level as `package.json`)
+- Ensure the file is named exactly `.env` (not `.env.local` or `.env.example`)
+- Restart your development server after making changes
+
+#### API Key Format
+- Resend API keys start with `re_`
+- Make sure there are no extra spaces or quotes around the key
+
+#### Domain Verification
+- You must verify your domain in Resend before sending emails
+- For testing, you can use Resend's sandbox domain temporarily
 
 ## 9. Migration from Mailjet
 
