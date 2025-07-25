@@ -8,6 +8,7 @@ import { OrganigramService, type OrganigramMember } from '@/lib/organigram';
 import { OrganigrammeCard } from '@/components/OrganigrammeCard';
 import { useAuth } from '@/hooks/useAuth';
 import { Tree } from '@minoru/react-dnd-treeview';
+import { Footer } from '@/components/Footer';
 
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
@@ -170,7 +171,7 @@ export default function Organigramme() {
             <div className="flex items-center">
               <Link to="/">
                 <img 
-                  src="/ufsbd-logo.png.jpg" 
+                  src="/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png" 
                   alt="UFSBD Logo" 
                   className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                 />
@@ -369,6 +370,7 @@ export default function Organigramme() {
           </Card>
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

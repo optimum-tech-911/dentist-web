@@ -89,13 +89,12 @@ export default function BlogPost() {
               <div className="flex items-center">
                 <Link to="/">
                   <img 
-                    src="/ufsbd-logo.png.jpg" 
+                    src="/ufsbd-logo-new.jpg" 
                     alt="UFSBD Logo" 
                     className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                   />
                 </Link>
               </div>
-              
               {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center space-x-4">
                 <Button variant="ghost" asChild className="hover:text-primary transition-colors">
@@ -133,7 +132,6 @@ export default function BlogPost() {
                   </Button>
                 )}
               </nav>
-              
               {/* Mobile Navigation */}
               <div className="md:hidden">
                 <Button variant="ghost" size="icon" onClick={() => setShowMobileNav(!showMobileNav)}>
@@ -143,7 +141,6 @@ export default function BlogPost() {
                 </Button>
               </div>
             </div>
-            
             {/* Mobile Menu */}
             {showMobileNav && (
               <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
@@ -189,7 +186,6 @@ export default function BlogPost() {
             )}
           </div>
         </header>
-
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* Breadcrumb */}
           <nav className="flex justify-center mb-6">
@@ -215,7 +211,6 @@ export default function BlogPost() {
               Retour aux articles
             </Link>
           </Button>
-
           <article className="space-y-6">
             <header className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -223,10 +218,8 @@ export default function BlogPost() {
                 <span>•</span>
                 <time>{new Date(post.created_at).toLocaleDateString()}</time>
               </div>
-              
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
-
             {post.image && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
@@ -236,7 +229,6 @@ export default function BlogPost() {
                 />
               </div>
             )}
-
             <div className="prose prose-lg max-w-none">
               <MarkdownRenderer content={post.content} />
             </div>

@@ -25,7 +25,6 @@ export default function WriteBlog() {
     category: '',
     headerImage: ''
   });
-  const [addedVideoEmbed, setAddedVideoEmbed] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
@@ -76,15 +75,11 @@ export default function WriteBlog() {
     setIsSubmitting(true);
 
     try {
-      let finalContent = formData.content;
-      if (addedVideoEmbed) {
-        finalContent += '\n\n' + addedVideoEmbed;
-      }
       const { error } = await supabase
         .from('posts')
         .insert({
           title: formData.title,
-          content: finalContent,
+          content: formData.content,
           category: formData.category,
           author_email: user.email,
           author_id: user.id,
@@ -135,7 +130,7 @@ export default function WriteBlog() {
                 Partagez vos connaissances sur la santé bucco-dentaire
               </p>
             </div>
-            <Button variant="outline" asChild className="text-blue-600 hover:bg-blue-50">
+            <Button variant="outline" asChild className="text-white border-white hover:bg-white hover:text-blue-600">
               <Link to="/" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Retour

@@ -99,8 +99,78 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Line clamp utilities for text truncation */
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+  
+  .line-clamp-4 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+  }
+  
+  .line-clamp-5 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 5;
+  }
+  
+  .line-clamp-6 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 6;
+  }
+}
+
+@layer components {
+  /* Video and media styling for blog posts and content */
+  .prose video {
+    @apply w-full max-w-3xl aspect-video rounded-xl shadow-lg my-6 mx-auto bg-black;
+  }
+  
+  .prose iframe {
+    @apply w-full aspect-video rounded-lg shadow-lg my-6;
+  }
+  
+  .prose img {
+    @apply w-full h-auto rounded-lg shadow-md my-4;
+  }
+  
+  /* Ensure videos are responsive */
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  iframe {
+    max-width: 100%;
+    height: auto;
   }
 }

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { EmailService } from '@/lib/email';
 
 interface ContactFormProps {
   trigger?: React.ReactNode;
@@ -52,25 +53,16 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
 
       if (error) throw error;
 
-      // Fetch all doctor and admin emails
-      const { data: users, error: userError } = await supabase
-        .from('users')
-        .select('email, role');
-      if (userError) throw userError;
-      const recipients = users
-        .filter(u => u.role === 'admin' || u.role === 'doctor')
-        .map(u => u.email);
-      // Always include the main admin email as fallback
-      if (!recipients.includes('ufsbd34@ufsbd.fr')) recipients.push('ufsbd34@ufsbd.fr');
-
-      // Create a mailto link for all recipients (fallback for now)
-      const mailtoLink = `mailto:${recipients.join(',')}` +
-        `?subject=Contact depuis le site web&body=Nom: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ATéléphone: ${formData.phone}%0D%0AMessage: ${formData.message}`;
-      window.location.href = mailtoLink;
+      // Send email notification using Resend
+      const emailResult = await EmailService.sendContactNotification(formData);
+      
+      if (!emailResult.success) {
+        console.warn('Failed to send email notification:', emailResult.error);
+      }
 
       toast({
-        title: 'Message envoyé!',
-        description: 'Votre message a été envoyé. Nous vous répondrons rapidement.'
+        title: "Message envoyé!",
+        description: "Votre message a été envoyé. Nous vous répondrons rapidement."
       });
 
       // Reset form
@@ -80,9 +72,9 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
     } catch (error) {
       console.error('Error submitting contact form:', error);
       toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue. Veuillez réessayer.',
-        variant: 'destructive'
+        title: "Erreur",
+        description: "Une erreur est survenue. Veuillez réessayer.",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
