@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Save, Users, Loader2, Image, Edit3 } from 'lucide-react';
+import { Plus, Trash2, Save, Users, Loader2, Image, Edit3, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { OrganigramService, type OrganigramMember, type OrganigramRole } from '@/lib/organigram';
@@ -187,6 +187,20 @@ export default function OrganigrammeAdmin() {
   };
 
   const availableRoles = OrganigramService.getAvailableRoles();
+
+  // Add moveMember function
+  const moveMember = async (id: string, direction: 'up' | 'down') => {
+    const index = members.findIndex(m => m.id === id);
+    if (index === -1) return;
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= members.length) return;
+    // Swap order_index values
+    const memberA = members[index];
+    const memberB = members[newIndex];
+    await OrganigramService.updateMember(memberA.id, { order_index: newIndex + 1 });
+    await OrganigramService.updateMember(memberB.id, { order_index: index + 1 });
+    await fetchMembers();
+  };
 
   if (!hasPermission) {
     return (
@@ -437,7 +451,7 @@ export default function OrganigrammeAdmin() {
 
       {/* Members List */}
       <div className="grid gap-6">
-        {members.map((member) => (
+        {members.map((member, index) => (
           <div key={member.id}>
             {editingId === member.id ? (
               <EditForm member={member} />
@@ -471,6 +485,28 @@ export default function OrganigrammeAdmin() {
                       </div>
                     </div>
                     <div className="flex space-x-2">
+                      {(userRole === 'admin' || userRole === 'doctor') && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={index === 0}
+                            onClick={() => moveMember(member.id, 'up')}
+                            title="Monter"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            disabled={index === members.length - 1}
+                            onClick={() => moveMember(member.id, 'down')}
+                            title="Descendre"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                       <Button 
                         variant="outline" 
                         size="sm"

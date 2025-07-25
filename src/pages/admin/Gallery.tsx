@@ -206,7 +206,7 @@ export default function Gallery() {
                   ) : img.file_type.startsWith('video/') ? (
                     <video src={img.url} controls className="w-full h-32 object-cover bg-black" />
                   ) : null}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
                       <Button 
                         size="sm" 
                         variant="secondary"
@@ -222,7 +222,7 @@ export default function Gallery() {
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
-                </div>
+                  </div>
               ))}
             </div>
           )}
@@ -244,6 +244,7 @@ export default function Gallery() {
               </Button>
             </div>
             <div className="p-4">
+              {selectedImage.file_type.startsWith('image/') ? (
               <img
                 src={selectedImage.url}
                 alt={selectedImage.name}
@@ -252,6 +253,13 @@ export default function Gallery() {
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />
+              ) : selectedImage.file_type.startsWith('video/') ? (
+                <video
+                  src={selectedImage.url}
+                  controls
+                  className="max-w-full max-h-[60vh] object-contain mx-auto bg-black"
+                />
+              ) : null}
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <p><strong>Taille:</strong> {formatFileSize(selectedImage.file_size)}</p>
                 <p><strong>Type:</strong> {selectedImage.file_type}</p>

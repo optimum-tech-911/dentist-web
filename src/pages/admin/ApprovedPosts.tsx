@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, Trash2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Trash2, Eye } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 interface Post {
@@ -22,7 +22,6 @@ interface Post {
 export default function ApprovedPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     fetchApprovedPosts();
@@ -120,9 +119,7 @@ export default function ApprovedPosts() {
                     />
                   )}
                   <div className="prose max-w-none">
-                    <div className="line-clamp-3">
-                      <MarkdownRenderer content={post.content.substring(0, 300) + (post.content.length > 300 ? '...' : '')} />
-                    </div>
+                    <MarkdownRenderer content={post.content} />
                   </div>
                   <div className="flex gap-2">
                     <Button
@@ -133,6 +130,15 @@ export default function ApprovedPosts() {
                       <Link to={`/blog/${post.id}`}>
                         <Eye className="h-4 w-4" />
                         View Post
+                      </Link>
+                    </Button>
+                    <Button
+                      asChild
+                      variant="secondary"
+                      className="flex items-center gap-2"
+                    >
+                      <Link to={`/edit/${post.id}`}>
+                        Edit
                       </Link>
                     </Button>
                     <Button

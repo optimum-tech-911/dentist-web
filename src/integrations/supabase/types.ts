@@ -225,62 +225,6 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
-      },
-      events: {
-        Row: {
-          id: string
-          title: string
-          description: string | null
-          start_date: string
-          end_date: string
-          all_day: boolean | null
-          location: string | null
-          event_type: string | null
-          priority: string | null
-          status: string | null
-          created_by: string | null
-          created_at: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          id?: string
-          title: string
-          description?: string | null
-          start_date: string
-          end_date: string
-          all_day?: boolean | null
-          location?: string | null
-          event_type?: string | null
-          priority?: string | null
-          status?: string | null
-          created_by?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          id?: string
-          title?: string
-          description?: string | null
-          start_date?: string
-          end_date?: string
-          all_day?: boolean | null
-          location?: string | null
-          event_type?: string | null
-          priority?: string | null
-          status?: string | null
-          created_by?: string | null
-          created_at?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
       }
     }
     Views: {
