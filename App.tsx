@@ -13,6 +13,7 @@ import { DebugInfo } from "./components/DebugInfo";
 // Lazy load components with error boundaries
 const Index = lazy(() => import("./pages/Index").catch(() => ({ default: () => <FallbackPage title="Home Page" /> })));
 const Auth = lazy(() => import("./pages/Auth").catch(() => ({ default: () => <FallbackPage title="Authentication" /> })));
+const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(() => ({ default: () => <FallbackPage title="Password Reset" /> })));
 const Blog = lazy(() => import("./pages/Blog").catch(() => ({ default: () => <FallbackPage title="Blog" /> })));
 const BlogPost = lazy(() => import("./pages/BlogPost").catch(() => ({ default: () => <FallbackPage title="Blog Post" /> })));
 const BlogSubmit = lazy(() => import("./pages/BlogSubmit").catch(() => ({ default: () => <FallbackPage title="Submit Blog" /> })));
@@ -118,8 +119,10 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<SafeRoute><Index /></SafeRoute>} />
+                <Route path="/" element={<SafeRoute><Auth /></SafeRoute>} />
+                <Route path="/home" element={<SafeRoute><Index /></SafeRoute>} />
                 <Route path="/auth" element={<SafeRoute><Auth /></SafeRoute>} />
+                <Route path="/reset-password" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/blog" element={<SafeRoute><Blog /></SafeRoute>} />
                 <Route path="/blog/:id" element={<SafeRoute><BlogPost /></SafeRoute>} />
                 <Route path="/edit/:id" element={<SafeRoute><EditBlog /></SafeRoute>} />

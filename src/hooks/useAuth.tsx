@@ -274,6 +274,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setUserRole(null);
       
+      // Redirect to login page after sign out
+      window.location.href = '/';
+      
       toast({
         title: "Signed out successfully"
       });
@@ -303,13 +306,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://ufsbd34.fr/auth'
-      });
+      // Import the email service
+      const { EmailService } = await import('@/lib/email');
       
-      if (error) {
-        setError(error.message);
-        return { error };
+      // Generate a reset link with a token
+      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+      const resetLink = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`;
+      
+      // Send custom password reset email
+      const emailResult = await EmailService.sendPasswordResetEmail(email, resetLink);
+      
+      if (!emailResult.success) {
+        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+        return { error: new Error('Email sending failed') };
       }
       
       toast({

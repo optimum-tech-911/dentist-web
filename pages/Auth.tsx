@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { toast } from '@/hooks/use-toast';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function Auth() {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -46,7 +47,7 @@ export default function Auth() {
 
   // Redirect authenticated users based on their role
   if (user && userRole) {
-    const from = location.state?.from?.pathname || '/';
+    const from = location.state?.from?.pathname || '/home';
     
     if (userRole === 'admin') {
       return <Navigate to="/admin" replace />;
