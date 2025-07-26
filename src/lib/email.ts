@@ -1,7 +1,7 @@
 import { Resend } from 'resend';
 
 // Initialize Resend with API key
-const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY);
+const resend = new Resend(import.meta.env.VITE_RESEND_API_KEY || 'placeholder-key');
 
 export interface EmailData {
   to: string;
