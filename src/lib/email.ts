@@ -60,10 +60,12 @@ export class EmailService {
         html: data.html,
       });
 
+      console.log('📧 Email sent successfully via Resend:', result);
       return { success: true, data: result };
     } catch (error) {
-      console.error('Error sending email:', error);
-      // Fallback to console logging in development
+      console.error('Error sending email via Resend:', error);
+      console.log('📧 Falling back to fallback email service...');
+      // Always fallback to ensure email functionality works
       return EmailFallbackService.sendEmail(data);
     }
   }

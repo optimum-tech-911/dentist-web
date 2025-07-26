@@ -316,7 +316,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Send custom password reset email
       const emailResult = await EmailService.sendPasswordResetEmail(email, resetLink);
       
+      console.log('📧 Password reset email result:', emailResult);
+      
       if (!emailResult.success) {
+        console.error('📧 Email sending failed:', emailResult.error);
         setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
         return { error: new Error('Email sending failed') };
       }
