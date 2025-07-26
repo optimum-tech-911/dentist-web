@@ -174,7 +174,7 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use Resend SMTP server
+# Resend SMTP configuration for email service
 [auth.email.smtp]
 enabled = true
 host = "smtp.resend.com"
