@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { EmailService } from '@/lib/email';
 
 interface ContactFormProps {
   trigger?: React.ReactNode;
@@ -52,11 +53,12 @@ export function ContactForm({ trigger, title = "Nous contacter", isModal = false
 
       if (error) throw error;
 
-      // Create mailto link for immediate email
-      const mailtoLink = `mailto:ufsbd34@ufsbd.fr?subject=Contact depuis le site web&body=Nom: ${formData.name}%0D%0AEmail: ${formData.email}%0D%0ATéléphone: ${formData.phone}%0D%0AMessage: ${formData.message}`;
+      // Send email notification using Resend
+      const emailResult = await EmailService.sendContactNotification(formData);
       
-      // Open default email client
-      window.location.href = mailtoLink;
+      if (!emailResult.success) {
+        console.warn('Failed to send email notification:', emailResult.error);
+      }
 
       toast({
         title: "Message envoyé!",

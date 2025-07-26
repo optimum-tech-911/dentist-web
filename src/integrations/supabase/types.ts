@@ -281,6 +281,47 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
+      },
+      password_reset_logs: {
+        Row: {
+          id: number
+          user_id: string | null
+          user_email: string
+          reset_timestamp: string | null
+          temp_password: string
+          used: boolean | null
+          used_timestamp: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: number
+          user_id?: string | null
+          user_email: string
+          reset_timestamp?: string | null
+          temp_password: string
+          used?: boolean | null
+          used_timestamp?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: number
+          user_id?: string | null
+          user_email?: string
+          reset_timestamp?: string | null
+          temp_password?: string
+          used?: boolean | null
+          used_timestamp?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "password_reset_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
@@ -290,6 +331,24 @@ export type Database = {
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      },
+      handle_password_reset: {
+        Args: {
+          user_email: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+          temp_password?: string
+          user_email?: string
+        }
+      }
+      mark_password_reset_used: {
+        Args: {
+          user_email: string
+          temp_password: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
