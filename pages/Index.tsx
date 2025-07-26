@@ -53,7 +53,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-3 md:py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Link to="/home">
+              <Link to="/">
                 <img 
                   src="/ufsbd-logo-new.jpg" 
                   alt="UFSBD Logo" 
@@ -92,7 +92,7 @@ const Index = () => {
               </div>
             ) : (
               <Button asChild className="btn-primary hidden md:inline-flex">
-                <Link to="/">Connexion</Link>
+                <Link to="/auth">Connexion</Link>
               </Button>
             )}
             </nav>
@@ -141,7 +141,7 @@ const Index = () => {
                   </>
                 ) : (
                   <Button asChild className="btn-primary mx-3">
-                    <Link to="/" onClick={() => setShowMobileNav(false)}>Connexion</Link>
+                    <Link to="/auth" onClick={() => setShowMobileNav(false)}>Connexion</Link>
                   </Button>
                 )}
               </div>

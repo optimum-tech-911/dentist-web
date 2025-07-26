@@ -119,8 +119,7 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
-                <Route path="/" element={<SafeRoute><Auth /></SafeRoute>} />
-                <Route path="/home" element={<SafeRoute><Index /></SafeRoute>} />
+                <Route path="/" element={<SafeRoute><Index /></SafeRoute>} />
                 <Route path="/auth" element={<SafeRoute><Auth /></SafeRoute>} />
                 <Route path="/reset-password" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/blog" element={<SafeRoute><Blog /></SafeRoute>} />

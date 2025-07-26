@@ -47,7 +47,7 @@ export default function Auth() {
 
   // Redirect authenticated users based on their role
   if (user && userRole) {
-    const from = location.state?.from?.pathname || '/home';
+    const from = location.state?.from?.pathname || '/';
     
     if (userRole === 'admin') {
       return <Navigate to="/admin" replace />;
