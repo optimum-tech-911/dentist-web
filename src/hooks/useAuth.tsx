@@ -306,30 +306,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Generate a reset link with a token
-      const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
-      const resetLink = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`;
-      
-      // Call Supabase Edge Function to send email
-      const { data, error } = await supabase.functions.invoke('Reset-pass-email', {
-        body: {
-          email: email,
-          resetLink: resetLink
-        }
+      // Use Supabase's built-in password reset
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
       });
       
-      console.log('📧 Password reset response:', { data, error });
-      
       if (error) {
-        console.error('📧 Supabase function error:', error);
+        console.error('📧 Password reset error:', error);
         setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
         return { error };
-      }
-      
-      if (!data?.success) {
-        console.error('📧 Email sending failed:', data?.error);
-        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-        return { error: new Error(data?.error || 'Email sending failed') };
       }
       
       toast({
