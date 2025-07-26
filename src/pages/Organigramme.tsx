@@ -361,7 +361,7 @@ export default function Organigramme() {
                 📧 Email: ufsbd34@ufsbd.fr
               </p>
               <p className="text-gray-600">
-                📍 283 rue Alfred Nobel, 34200 Montpellier
+                📍 285 rue Alfred Nobel, 34200 Montpellier
               </p>
               <p className="text-gray-600">
                 📞 Téléphone: 06 86 30 62 04

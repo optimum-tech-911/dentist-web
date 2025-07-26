@@ -154,7 +154,7 @@ export default function Contact() {
             <h2 className="text-2xl font-semibold">Autres moyens de nous contacter</h2>
             <div className="space-y-2 text-muted-foreground">
               <p>📧 Email: ufsbd34@ufsbd.fr</p>
-              <p>📍 Adresse: 283 rue Alfred Nobel, 34200 Montpellier</p>
+              <p>📍 Adresse: 285 rue Alfred Nobel, 34200 Montpellier</p>
               <p>📞 Téléphone: 06 86 30 62 04</p>
             </div>
             <div className="flex items-center gap-2 mt-4">
