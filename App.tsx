@@ -26,6 +26,8 @@ import Calendar from "./pages/admin/Calendar";
 import NotFound from "./pages/NotFound";
 import EditBlog from "./pages/EditBlog";
 import TestPage from "./pages/TestPage";
+import DiagnosticPage from "./pages/DiagnosticPage";
+import AppInitializer from "./components/AppInitializer";
 import { useSupabaseKeepAlive } from './lib/supabase-connection';
 
 const queryClient = new QueryClient();
@@ -33,8 +35,9 @@ const queryClient = new QueryClient();
 const App = () => {
   useSupabaseKeepAlive();
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+    <AppInitializer>
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <TooltipProvider>
             <Toaster />
@@ -49,6 +52,7 @@ const App = () => {
                  <Route path="/contact" element={<Contact />} />
                  <Route path="/organigramme" element={<Organigramme />} />
                  <Route path="/test" element={<TestPage />} />
+                 <Route path="/diagnostic" element={<DiagnosticPage />} />
                 <Route path="/write-blog" element={<WriteBlog />} />
                 <Route 
                   path="/submit" 
@@ -86,6 +90,7 @@ const App = () => {
         </AuthProvider>
       </QueryClientProvider>
     </ErrorBoundary>
+  </AppInitializer>
   );
 };
 

@@ -52,14 +52,28 @@ export class ErrorBoundary extends Component<Props, State> {
               Something went wrong
             </h1>
             <p className="text-muted-foreground mb-6">
-              An unexpected error occurred. Please try refreshing the page.
+              An unexpected error occurred. Please try refreshing the page or check the diagnostic page.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
-            >
-              Refresh Page
-            </button>
+            <div className="flex gap-4 flex-wrap justify-center">
+              <button
+                onClick={() => window.location.reload()}
+                className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
+              >
+                Refresh Page
+              </button>
+              <button
+                onClick={() => window.location.href = '/diagnostic'}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              >
+                View Diagnostics
+              </button>
+              <button
+                onClick={() => window.location.href = '/'}
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+              >
+                Go Home
+              </button>
+            </div>
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm text-muted-foreground">
