@@ -19,32 +19,48 @@ export default function PasswordReset() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isValidReset, setIsValidReset] = useState(false);
 
-  // Get parameters from URL (Supabase uses different parameters)
+  // Get parameters from URL
   const accessToken = searchParams.get('access_token');
   const refreshToken = searchParams.get('refresh_token');
   const type = searchParams.get('type');
+  const email = searchParams.get('email');
 
   useEffect(() => {
-    // Check if this is a password reset flow
-    if (type === 'recovery' && accessToken) {
-      // Get user info to display email
-      const getUser = async () => {
+    const handleReset = async () => {
+      // Check if this is a password reset flow
+      if (type === 'recovery' && accessToken) {
         try {
-          const { data: { user }, error } = await supabase.auth.getUser(accessToken);
-          if (user && !error) {
-            setUserEmail(user.email);
+          // Set the session with the access token
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken || ''
+          });
+          
+          if (data.user && !error) {
+            setUserEmail(data.user.email);
+            setIsValidReset(true);
+          } else {
+            console.error('Error setting session:', error);
+            navigate('/auth', { replace: true });
           }
         } catch (err) {
-          console.error('Error getting user:', err);
+          console.error('Error handling reset:', err);
+          navigate('/auth', { replace: true });
         }
-      };
-      getUser();
-    } else {
-      // Not a valid reset flow, redirect to login
-      navigate('/auth', { replace: true });
-    }
-  }, [accessToken, refreshToken, type, navigate]);
+      } else if (email) {
+        // Fallback for direct email parameter
+        setUserEmail(email);
+        setIsValidReset(true);
+      } else {
+        // Not a valid reset flow, redirect to login
+        navigate('/auth', { replace: true });
+      }
+    };
+
+    handleReset();
+  }, [accessToken, refreshToken, type, email, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,8 +104,15 @@ export default function PasswordReset() {
     }
   };
 
-  if (!accessToken || type !== 'recovery') {
-    return null; // Will redirect in useEffect
+  if (!isValidReset) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Vérification du lien de réinitialisation...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
