@@ -306,22 +306,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Import the email service
-      const { EmailService } = await import('@/lib/email');
-      
       // Generate a reset link with a token
       const resetToken = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
       const resetLink = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`;
       
-      // Send custom password reset email
-      const emailResult = await EmailService.sendPasswordResetEmail(email, resetLink);
+      // Call Supabase Edge Function to send email
+      const { data, error } = await supabase.functions.invoke('password-reset', {
+        body: {
+          email: email,
+          resetLink: resetLink
+        }
+      });
       
-      console.log('📧 Password reset email result:', emailResult);
+      console.log('📧 Password reset response:', { data, error });
       
-      if (!emailResult.success) {
-        console.error('📧 Email sending failed:', emailResult.error);
+      if (error) {
+        console.error('📧 Supabase function error:', error);
         setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-        return { error: new Error('Email sending failed') };
+        return { error };
+      }
+      
+      if (!data?.success) {
+        console.error('📧 Email sending failed:', data?.error);
+        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+        return { error: new Error(data?.error || 'Email sending failed') };
       }
       
       toast({
