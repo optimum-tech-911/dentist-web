@@ -1,21 +1,25 @@
-// supabase/functions/send-confirmation/index.ts
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { Resend } from 'npm:resend'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.1";
 
 serve(async (req) => {
-  const { email } = await req.json()
-  const resend = new Resend(Deno.env.get("RESEND_API_KEY"))
+  const { email } = await req.json();
+  const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
   try {
-    const data = await resend.emails.send({
-      from: "onboarding@resend.dev",
+    await resend.emails.send({
+      from: "noreply@ufsbd34.fr",
       to: email,
-      subject: "Welcome to My Dentist Website",
-      html: "<strong>Thanks for signing up!</strong>",
-    })
+      subject: "Welcome to UFSBD!",
+      html: "<p>Thanks for signing up! Please confirm your email.</p>",
+    });
 
-    return new Response(JSON.stringify(data))
-  } catch (error) {
-    return new Response(JSON.stringify({ error }), { status: 500 })
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
-})
+});
