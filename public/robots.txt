@@ -12,12 +12,3 @@ Allow: /
 
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /api/
-Disallow: /_redirects
-
-# Sitemap
-Sitemap: https://ufsbd34.fr/sitemap.xml
-
-# Crawl-delay for polite crawling
-Crawl-delay: 1
