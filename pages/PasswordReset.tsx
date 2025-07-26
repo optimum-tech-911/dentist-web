@@ -29,6 +29,15 @@ export default function PasswordReset() {
 
   useEffect(() => {
     const handleReset = async () => {
+      // Debug: Log all URL parameters
+      console.log('🔍 Password Reset Debug:', {
+        accessToken: accessToken ? 'present' : 'missing',
+        refreshToken: refreshToken ? 'present' : 'missing',
+        type,
+        email,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
+
       // Check if this is a password reset flow
       if (type === 'recovery' && accessToken) {
         try {
@@ -54,13 +63,14 @@ export default function PasswordReset() {
         setUserEmail(email);
         setIsValidReset(true);
       } else {
-        // Not a valid reset flow, redirect to login
-        navigate('/auth', { replace: true });
+        // Show a simple form for any reset-password URL
+        console.log('🔍 No valid parameters, showing basic reset form');
+        setIsValidReset(true);
       }
     };
 
     handleReset();
-  }, [accessToken, refreshToken, type, email, navigate]);
+  }, [accessToken, refreshToken, type, email, navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

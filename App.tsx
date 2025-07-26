@@ -122,6 +122,7 @@ const App = () => {
                 <Route path="/" element={<SafeRoute><Index /></SafeRoute>} />
                 <Route path="/auth" element={<SafeRoute><Auth /></SafeRoute>} />
                 <Route path="/reset-password" element={<SafeRoute><PasswordReset /></SafeRoute>} />
+                <Route path="/reset-password/*" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/blog" element={<SafeRoute><Blog /></SafeRoute>} />
                 <Route path="/blog/:id" element={<SafeRoute><BlogPost /></SafeRoute>} />
                 <Route path="/edit/:id" element={<SafeRoute><EditBlog /></SafeRoute>} />
