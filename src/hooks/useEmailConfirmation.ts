@@ -36,7 +36,7 @@ export const useEmailConfirmation = (): UseEmailConfirmationReturn => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ email, name }),
+          body: JSON.stringify({ email }),
         }
       )
 

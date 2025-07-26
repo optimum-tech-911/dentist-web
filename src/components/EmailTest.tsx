@@ -9,14 +9,13 @@ import { Mail, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 
 export const EmailTest = () => {
   const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
   const { sendConfirmationEmail, isLoading, error, success } = useEmailConfirmation();
 
   const handleSendEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
-    const result = await sendConfirmationEmail(email, name || undefined);
+    const result = await sendConfirmationEmail(email);
     
     if (result.success) {
       console.log('✅ Email sent successfully!', result);
@@ -72,17 +71,7 @@ export const EmailTest = () => {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="test-name">Name (Optional)</Label>
-              <Input
-                id="test-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="John Doe"
-                disabled={isLoading}
-              />
-            </div>
+
 
             <Button type="submit" className="w-full" disabled={isLoading || !email}>
               {isLoading ? (
