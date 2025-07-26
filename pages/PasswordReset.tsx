@@ -18,16 +18,33 @@ export default function PasswordReset() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  const email = searchParams.get('email');
-  const resetToken = searchParams.get('token');
+  // Get parameters from URL (Supabase uses different parameters)
+  const accessToken = searchParams.get('access_token');
+  const refreshToken = searchParams.get('refresh_token');
+  const type = searchParams.get('type');
 
   useEffect(() => {
-    // If no email or token, redirect to login
-    if (!email || !resetToken) {
-      navigate('/', { replace: true });
+    // Check if this is a password reset flow
+    if (type === 'recovery' && accessToken) {
+      // Get user info to display email
+      const getUser = async () => {
+        try {
+          const { data: { user }, error } = await supabase.auth.getUser(accessToken);
+          if (user && !error) {
+            setUserEmail(user.email);
+          }
+        } catch (err) {
+          console.error('Error getting user:', err);
+        }
+      };
+      getUser();
+    } else {
+      // Not a valid reset flow, redirect to login
+      navigate('/auth', { replace: true });
     }
-  }, [email, resetToken, navigate]);
+  }, [accessToken, refreshToken, type, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +63,7 @@ export default function PasswordReset() {
     setError(null);
 
     try {
-      // Update password using Supabase
+      // Update password using Supabase with the access token
       const { error } = await supabase.auth.updateUser({
         password: password
       });
@@ -58,11 +75,11 @@ export default function PasswordReset() {
 
       toast({
         title: "Mot de passe mis à jour !",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
+        description: "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
       });
 
       // Redirect to login page
-      navigate('/', { replace: true });
+      navigate('/auth', { replace: true });
       
     } catch (error: any) {
       setError(error.message || 'Une erreur est survenue lors de la réinitialisation du mot de passe.');
@@ -71,7 +88,7 @@ export default function PasswordReset() {
     }
   };
 
-  if (!email || !resetToken) {
+  if (!accessToken || type !== 'recovery') {
     return null; // Will redirect in useEffect
   }
 
@@ -100,7 +117,7 @@ export default function PasswordReset() {
               <Input
                 id="email"
                 type="email"
-                value={email}
+                value={userEmail || 'Chargement...'}
                 disabled
                 className="bg-gray-50"
               />
@@ -177,7 +194,7 @@ export default function PasswordReset() {
           <div className="mt-4 text-center">
             <Button
               variant="link"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/auth')}
               className="text-sm"
               disabled={loading}
             >

@@ -319,7 +319,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       toast({
         title: "Email de réinitialisation envoyé !",
-        description: "Veuillez vérifier votre boîte mail pour les instructions de réinitialisation du mot de passe.",
+        description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
         variant: "default"
       });
       
