@@ -1,15 +1,35 @@
-import { Resend } from 'resend';
-import { getResendApiKey } from './env-check';
+import { EmailFallbackService } from './email-fallback';
 
-// Lazy initialization of Resend client
-let resend: Resend | null = null;
+// Try to import Resend, but don't break if it fails
+let Resend: any = null;
+let resend: any = null;
+
+try {
+  const resendModule = require('resend');
+  Resend = resendModule.Resend;
+} catch (error) {
+  console.warn('Resend package not available, using fallback email service');
+}
 
 const getResendClient = () => {
-  if (!resend) {
-    const apiKey = getResendApiKey();
-    resend = new Resend(apiKey);
+  try {
+    if (!Resend) {
+      return null;
+    }
+    
+    if (!resend) {
+      const apiKey = import.meta.env.VITE_RESEND_API_KEY;
+      if (!apiKey) {
+        console.warn('Resend API key not configured');
+        return null;
+      }
+      resend = new Resend(apiKey);
+    }
+    return resend;
+  } catch (error) {
+    console.error('Failed to initialize Resend client:', error);
+    return null;
   }
-  return resend;
 };
 
 export interface EmailData {
@@ -21,11 +41,18 @@ export interface EmailData {
 
 export class EmailService {
   /**
-   * Send an email using Resend
+   * Send an email using Resend or fallback
    */
   static async sendEmail(data: EmailData) {
     try {
       const resendClient = getResendClient();
+      
+      if (!resendClient) {
+        // Use fallback service when Resend is not configured
+        console.warn('Resend not configured, using fallback email service');
+        return EmailFallbackService.sendEmail(data);
+      }
+      
       const result = await resendClient.emails.send({
         from: data.from || 'UFSBD Hérault <ufsbd34@ufsbd.fr>',
         to: data.to,
@@ -36,7 +63,8 @@ export class EmailService {
       return { success: true, data: result };
     } catch (error) {
       console.error('Error sending email:', error);
-      return { success: false, error };
+      // Fallback to console logging in development
+      return EmailFallbackService.sendEmail(data);
     }
   }
 
@@ -44,6 +72,12 @@ export class EmailService {
    * Send password reset email
    */
   static async sendPasswordResetEmail(email: string, resetLink: string) {
+    const resendClient = getResendClient();
+    
+    if (!resendClient) {
+      return EmailFallbackService.sendPasswordResetEmail(email, resetLink);
+    }
+    
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Réinitialisation de mot de passe</h2>
@@ -114,6 +148,12 @@ export class EmailService {
     phone: string;
     message: string;
   }) {
+    const resendClient = getResendClient();
+    
+    if (!resendClient) {
+      return EmailFallbackService.sendContactNotification(formData);
+    }
+    
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">Nouveau message de contact</h2>
