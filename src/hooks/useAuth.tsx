@@ -304,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`
+        redirectTo: 'https://ufsbd34.fr/auth'
       });
       
       if (error) {
