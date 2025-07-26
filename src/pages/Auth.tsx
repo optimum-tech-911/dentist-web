@@ -125,8 +125,8 @@ export default function Auth() {
     e.preventDefault();
     if (!email) {
       toast({
-        title: "Email required",
-        description: "Please enter your email address.",
+        title: "Email requis",
+        description: "Veuillez saisir votre adresse email.",
         variant: "destructive"
       });
       return;
@@ -139,14 +139,14 @@ export default function Auth() {
       const { error } = await resetPassword(email);
       if (error) {
         toast({
-          title: "Error sending reset email",
+          title: "Erreur lors de l'envoi de l'email",
           description: error.message,
           variant: "destructive"
         });
       } else {
         toast({
-          title: "Reset email sent!",
-          description: "Please check your email for password reset instructions."
+          title: "Email de réinitialisation envoyé !",
+          description: "Veuillez vérifier votre boîte mail pour les instructions de réinitialisation du mot de passe."
         });
         setShowForgotPassword(false);
       }
@@ -168,7 +168,7 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading authentication...</p>
+          <p className="text-muted-foreground">Chargement de l'authentification...</p>
         </div>
       </div>
     );
@@ -180,16 +180,16 @@ export default function Auth() {
         <CardHeader>
           <CardTitle>
             {showForgotPassword 
-              ? 'Reset Password' 
-              : (isLogin ? 'Sign In' : 'Sign Up')
+              ? 'Réinitialiser le mot de passe' 
+              : (isLogin ? 'Connexion' : 'Inscription')
             }
           </CardTitle>
           <CardDescription>
             {showForgotPassword 
-              ? 'Enter your email to receive password reset instructions'
+              ? 'Saisissez votre email pour recevoir les instructions de réinitialisation'
               : (isLogin 
-                ? 'Enter your credentials to access your account'
-                : 'Create a new account to get started'
+                ? 'Saisissez vos identifiants pour accéder à votre compte'
+                : 'Créez un nouveau compte pour commencer'
               )
             }
           </CardDescription>
@@ -230,10 +230,10 @@ export default function Auth() {
                 {loading ? (
                   <>
                     <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
+                    Envoi en cours...
                   </>
                 ) : (
-                  'Send Reset Email'
+                  'Envoyer l\'email de réinitialisation'
                 )}
               </Button>
               <div className="text-center">
@@ -244,7 +244,7 @@ export default function Auth() {
                   className="text-sm"
                   disabled={loading}
                 >
-                  Back to Sign In
+                  Retour à la connexion
                 </Button>
               </div>
             </form>
@@ -264,19 +264,19 @@ export default function Auth() {
                 </div>
                 {!isLogin && (
                   <div className="space-y-2">
-                    <Label htmlFor="name">Name (Optional)</Label>
-                    <Input
-                      id="name"
-                      type="text"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Your full name"
-                      disabled={loading}
-                    />
+                                      <Label htmlFor="name">Nom (Optionnel)</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Votre nom complet"
+                    disabled={loading}
+                  />
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Mot de passe</Label>
                   <Input
                     id="password"
                     type="password"
@@ -295,7 +295,7 @@ export default function Auth() {
                       className="text-sm p-0 h-auto"
                       disabled={loading}
                     >
-                      Forgot Password?
+                      Mot de passe oublié ?
                     </Button>
                   </div>
                 )}
@@ -303,12 +303,12 @@ export default function Auth() {
                   {loading || emailLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      {emailLoading ? 'Sending welcome email...' : 'Please wait...'}
+                      {emailLoading ? 'Envoi de l\'email de bienvenue...' : 'Veuillez patienter...'}
                     </>
                   ) : (
                     <>
                       {!isLogin && <Mail className="mr-2 h-4 w-4" />}
-                      {isLogin ? 'Sign In' : 'Sign Up & Send Welcome Email'}
+                      {isLogin ? 'Se connecter' : 'S\'inscrire et envoyer email de bienvenue'}
                     </>
                   )}
                 </Button>
@@ -321,8 +321,8 @@ export default function Auth() {
                   disabled={loading}
                 >
                   {isLogin 
-                    ? "Don't have an account? Sign up" 
-                    : "Already have an account? Sign in"
+                    ? "Vous n'avez pas de compte ? Inscrivez-vous" 
+                    : "Vous avez déjà un compte ? Connectez-vous"
                   }
                 </Button>
               </div>

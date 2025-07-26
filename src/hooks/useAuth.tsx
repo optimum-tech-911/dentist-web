@@ -313,8 +313,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       toast({
-        title: "Password Reset Email Sent!",
-        description: "Please check your email for password reset instructions.",
+        title: "Email de réinitialisation envoyé !",
+        description: "Veuillez vérifier votre boîte mail pour les instructions de réinitialisation du mot de passe.",
         variant: "default"
       });
       
