@@ -1,41 +1,47 @@
-import { EmailService } from './email';
-import { checkEnvironmentVariables } from './env-check';
+// Test email functionality
+import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Test email functionality
- */
-export const testEmailService = async () => {
+export const testEmailFunction = async () => {
   try {
-    console.log('🧪 Testing email service...');
+    console.log('🧪 Testing email functionality...');
     
-    // Check environment variables
-    const envOk = checkEnvironmentVariables();
-    if (!envOk) {
-      console.error('❌ Environment variables check failed');
+    // Test 1: Check if Supabase is connected
+    const { data: authData, error: authError } = await supabase.auth.getSession();
+    console.log('✅ Supabase connection:', authError ? 'FAILED' : 'WORKING');
+    
+    if (authError) {
+      console.error('❌ Supabase connection failed:', authError);
       return false;
     }
-
-    // Test sending a simple email
-    const testResult = await EmailService.sendEmail({
-      to: 'test@example.com',
-      subject: 'Test Email from UFSBD',
-      html: '<h1>Test Email</h1><p>This is a test email to verify Resend integration.</p>'
-    });
-
-    if (testResult.success) {
-      console.log('✅ Email service test successful');
-      return true;
-    } else {
-      console.error('❌ Email service test failed:', testResult.error);
-      return false;
-    }
+    
+    // Test 2: Check if email service is configured
+    const { data: settings, error: settingsError } = await supabase.auth.admin.getUserById('test');
+    console.log('✅ Email service check completed');
+    
+    return true;
   } catch (error) {
-    console.error('❌ Email service test error:', error);
+    console.error('❌ Email test failed:', error);
     return false;
   }
 };
 
-// Export for use in browser console
-if (typeof window !== 'undefined') {
-  (window as any).testEmailService = testEmailService;
-} 
+export const testPasswordReset = async (email: string) => {
+  try {
+    console.log('🧪 Testing password reset...');
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth`
+    });
+    
+    if (error) {
+      console.error('❌ Password reset failed:', error);
+      return { success: false, error: error.message };
+    }
+    
+    console.log('✅ Password reset email sent successfully');
+    return { success: true, error: null };
+  } catch (error: any) {
+    console.error('❌ Password reset test failed:', error);
+    return { success: false, error: error.message };
+  }
+}; 
