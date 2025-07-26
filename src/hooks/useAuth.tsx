@@ -303,16 +303,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Use Supabase's built-in password reset
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth`
       });
       
       if (error) {
         setError(error.message);
+        return { error };
       }
       
-      return { error };
+      toast({
+        title: "Password Reset Email Sent!",
+        description: "Please check your email for password reset instructions.",
+        variant: "default"
+      });
+      
+      return { error: null };
+      
     } catch (error: any) {
       const errorMessage = error?.message || 'Password reset failed. Please try again.';
       setError(errorMessage);
