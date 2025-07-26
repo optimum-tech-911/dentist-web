@@ -216,7 +216,7 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
-          },
+          }
           {
             foreignKeyName: "organigram_members_image_id_fkey"
             columns: ["image_id"]
