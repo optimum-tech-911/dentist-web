@@ -92,7 +92,7 @@ export default function Auth() {
           });
         } else {
           // Send confirmation email
-          const emailResult = await sendConfirmationEmail(email);
+          const emailResult = await sendConfirmationEmail(email, name);
           
           if (emailResult.success) {
             toast({
