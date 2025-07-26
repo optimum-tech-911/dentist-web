@@ -274,8 +274,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(null);
       setUserRole(null);
       
-      // Redirect to login page after sign out
-      window.location.href = '/auth';
+      // Redirect to home page after sign out
+      window.location.href = '/';
       
       toast({
         title: "Signed out successfully"

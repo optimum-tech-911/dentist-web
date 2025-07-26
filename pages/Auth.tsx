@@ -54,6 +54,7 @@ export default function Auth() {
     } else if (userRole === 'author') {
       return <Navigate to="/submit" replace />;
     } else {
+      // For regular users, go to the page they were trying to access or home
       return <Navigate to={from} replace />;
     }
   }
