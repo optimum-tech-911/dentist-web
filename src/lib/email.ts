@@ -1,4 +1,5 @@
 import { EmailFallbackService } from './email-fallback';
+import { SimpleEmailService } from './simple-email';
 
 // Try to import Resend, but don't break if it fails
 let Resend: any = null;
@@ -20,7 +21,7 @@ const getResendClient = () => {
     if (!resend) {
       const apiKey = import.meta.env.VITE_RESEND_API_KEY;
       if (!apiKey) {
-        console.warn('Resend API key not configured');
+        console.warn('Resend API key not configured - using fallback service');
         return null;
       }
       resend = new Resend(apiKey);
@@ -48,9 +49,9 @@ export class EmailService {
       const resendClient = getResendClient();
       
       if (!resendClient) {
-        // Use fallback service when Resend is not configured
-        console.warn('Resend not configured, using fallback email service');
-        return EmailFallbackService.sendEmail(data);
+        // Use simple email service when Resend is not configured
+        console.warn('Resend not configured, using simple email service');
+        return SimpleEmailService.sendEmail(data);
       }
       
       const result = await resendClient.emails.send({
@@ -64,9 +65,9 @@ export class EmailService {
       return { success: true, data: result };
     } catch (error) {
       console.error('Error sending email via Resend:', error);
-      console.log('📧 Falling back to fallback email service...');
+      console.log('📧 Falling back to simple email service...');
       // Always fallback to ensure email functionality works
-      return EmailFallbackService.sendEmail(data);
+      return SimpleEmailService.sendEmail(data);
     }
   }
 
@@ -77,7 +78,7 @@ export class EmailService {
     const resendClient = getResendClient();
     
     if (!resendClient) {
-      return EmailFallbackService.sendPasswordResetEmail(email, resetLink);
+      return SimpleEmailService.sendPasswordResetEmail(email, resetLink);
     }
     
     const html = `
@@ -153,7 +154,27 @@ export class EmailService {
     const resendClient = getResendClient();
     
     if (!resendClient) {
-      return EmailFallbackService.sendContactNotification(formData);
+      return SimpleEmailService.sendEmail({
+        to: 'ufsbd34@ufsbd.fr',
+        subject: `Nouveau message de ${formData.name} - UFSBD Hérault`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #2563eb;">Nouveau message de contact</h2>
+            <p><strong>Nom:</strong> ${formData.name}</p>
+            <p><strong>Email:</strong> ${formData.email}</p>
+            <p><strong>Téléphone:</strong> ${formData.phone}</p>
+            <p><strong>Message:</strong></p>
+            <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 15px 0;">
+              ${formData.message}
+            </div>
+            <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+            <p style="color: #6b7280; font-size: 14px;">
+              UFSBD Hérault<br>
+              Contact: ufsbd34@ufsbd.fr
+            </p>
+          </div>
+        `,
+      });
     }
     
     const html = `

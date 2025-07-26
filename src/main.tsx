@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import './lib/email-test' // Import email test utility
 
 // Global error handler
 window.addEventListener('error', (event) => {
