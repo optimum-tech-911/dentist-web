@@ -311,10 +311,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const resetLink = `${window.location.origin}/reset-password?email=${encodeURIComponent(email)}&token=${resetToken}`;
       
       // Call Supabase Edge Function to send email
-      const { data, error } = await supabase.functions.invoke('send-confirmation', {
+      const { data, error } = await supabase.functions.invoke('password-reset', {
         body: {
           email: email,
-          type: 'password-reset',
           resetLink: resetLink
         }
       });
