@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,7 +15,33 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { user, userRole, signIn, signUp, resetPassword } = useAuth();
+  
+  // Add error boundary for useAuth hook
+  let authData;
+  try {
+    authData = useAuth();
+  } catch (error) {
+    console.error('Auth hook error:', error);
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Authentication Error</CardTitle>
+            <CardDescription>
+              There was an error loading the authentication system. Please refresh the page.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => window.location.reload()} className="w-full">
+              Refresh Page
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { user, userRole, signIn, signUp, resetPassword, loading: authLoading, error: authError, clearError } = authData;
   const location = useLocation();
 
   // Redirect authenticated users based on their role
@@ -32,6 +60,7 @@ export default function Auth() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    clearError(); // Clear any previous errors
 
     try {
       if (isLogin) {
@@ -64,6 +93,7 @@ export default function Auth() {
         }
       }
     } catch (error) {
+      console.error('Auth error:', error);
       toast({
         title: "An error occurred",
         description: "Please try again later.",
@@ -86,6 +116,8 @@ export default function Auth() {
     }
 
     setLoading(true);
+    clearError(); // Clear any previous errors
+    
     try {
       const { error } = await resetPassword(email);
       if (error) {
@@ -102,6 +134,7 @@ export default function Auth() {
         setShowForgotPassword(false);
       }
     } catch (error) {
+      console.error('Password reset error:', error);
       toast({
         title: "An error occurred",
         description: "Please try again later.",
@@ -111,6 +144,18 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
+  // Show loading state while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
@@ -133,6 +178,24 @@ export default function Auth() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Show auth error if any */}
+          {authError && (
+            <Alert className="mb-4 border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">
+                {authError}
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="p-0 h-auto text-red-800 underline ml-2"
+                  onClick={clearError}
+                >
+                  Dismiss
+                </Button>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {showForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
@@ -143,10 +206,18 @@ export default function Auth() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  disabled={loading}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Email'}
+                {loading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  'Send Reset Email'
+                )}
               </Button>
               <div className="text-center">
                 <Button
@@ -154,6 +225,7 @@ export default function Auth() {
                   variant="link"
                   onClick={() => setShowForgotPassword(false)}
                   className="text-sm"
+                  disabled={loading}
                 >
                   Back to Sign In
                 </Button>
@@ -170,6 +242,7 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -180,6 +253,7 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
                 {isLogin && (
@@ -189,13 +263,21 @@ export default function Auth() {
                       variant="link"
                       onClick={() => setShowForgotPassword(true)}
                       className="text-sm p-0 h-auto"
+                      disabled={loading}
                     >
                       Forgot Password?
                     </Button>
                   </div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Please wait...' : (isLogin ? 'Sign In' : 'Sign Up')}
+                  {loading ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Please wait...
+                    </>
+                  ) : (
+                    isLogin ? 'Sign In' : 'Sign Up'
+                  )}
                 </Button>
               </form>
               <div className="mt-4 text-center">
@@ -203,6 +285,7 @@ export default function Auth() {
                   variant="link"
                   onClick={() => setIsLogin(!isLogin)}
                   className="text-sm"
+                  disabled={loading}
                 >
                   {isLogin 
                     ? "Don't have an account? Sign up" 

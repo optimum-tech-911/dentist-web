@@ -8,6 +8,7 @@ import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool, Instagram } from
 import doctorHeroImage from '@/assets/doctor-hero.jpg';
 import { Helmet } from 'react-helmet';
 import { Footer } from '@/components/Footer';
+import { SupabaseStatus } from '@/components/SupabaseStatus';
 
 const Index = () => {
   const {
@@ -286,6 +287,13 @@ const Index = () => {
 
       {/* Footer */}
       <Footer />
+      
+      {/* Debug info - only in development */}
+      {import.meta.env.DEV && (
+        <div className="fixed bottom-4 right-4 bg-background border rounded-lg p-3 shadow-lg">
+          <SupabaseStatus showDetails={true} />
+        </div>
+      )}
     </div>;
 };
 export default Index;
