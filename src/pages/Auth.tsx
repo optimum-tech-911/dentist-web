@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useEmailConfirmation } from '@/hooks/useEmailConfirmation';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +8,18 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, Mail } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Email confirmation hook
+  const { sendConfirmationEmail, isLoading: emailLoading } = useEmailConfirmation();
   
   // Add error boundary for useAuth hook
   let authData;
@@ -86,10 +91,22 @@ export default function Auth() {
             variant: "destructive"
           });
         } else {
-          toast({
-            title: "Account created!",
-            description: "Please check your email to verify your account."
-          });
+          // Send confirmation email
+          const emailResult = await sendConfirmationEmail(email, name || undefined);
+          
+          if (emailResult.success) {
+            toast({
+              title: "Account created! 🎉",
+              description: "Welcome email sent! Please check your inbox for confirmation.",
+              duration: 5000,
+            });
+          } else {
+            toast({
+              title: "Account created!",
+              description: "Your account was created but we couldn't send the welcome email. You can still use your account.",
+              variant: "default"
+            });
+          }
         }
       }
     } catch (error) {
@@ -245,6 +262,19 @@ export default function Auth() {
                     disabled={loading}
                   />
                 </div>
+                {!isLogin && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name (Optional)</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Your full name"
+                      disabled={loading}
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
@@ -269,14 +299,17 @@ export default function Auth() {
                     </Button>
                   </div>
                 )}
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
+                <Button type="submit" className="w-full" disabled={loading || emailLoading}>
+                  {loading || emailLoading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Please wait...
+                      {emailLoading ? 'Sending welcome email...' : 'Please wait...'}
                     </>
                   ) : (
-                    isLogin ? 'Sign In' : 'Sign Up'
+                    <>
+                      {!isLogin && <Mail className="mr-2 h-4 w-4" />}
+                      {isLogin ? 'Sign In' : 'Sign Up & Send Welcome Email'}
+                    </>
                   )}
                 </Button>
               </form>
