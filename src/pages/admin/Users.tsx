@@ -33,7 +33,7 @@ export default function Users() {
     } catch (error) {
       console.error('Error fetching users:', error);
       toast({
-        title: "Error loading users",
+        title: "Erreur lors du chargement des utilisateurs",
         description: "Failed to load users",
         variant: "destructive"
       });

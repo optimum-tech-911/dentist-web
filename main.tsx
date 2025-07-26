@@ -38,10 +38,10 @@ function showErrorFallback(message: string) {
           border: 1px solid rgba(255, 255, 255, 0.2);
         ">
           <h1 style="font-size: 2rem; margin-bottom: 1rem; font-weight: 600;">
-            🚨 Application Error
+            🚨 Erreur de l'application
           </h1>
           <p style="margin-bottom: 2rem; opacity: 0.9; line-height: 1.6;">
-            Something went wrong while loading the application. This has been logged for debugging.
+            Une erreur s'est produite lors du chargement de l'application. Cette erreur a été enregistrée pour débogage.
           </p>
           <div style="
             background: rgba(0, 0, 0, 0.3);
@@ -65,7 +65,7 @@ function showErrorFallback(message: string) {
             font-size: 16px;
             transition: all 0.2s ease;
           " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-            🔄 Refresh Page
+            🔄 Actualiser la page
           </button>
         </div>
       </div>
@@ -98,10 +98,10 @@ class ErrorBoundary extends HTMLElement {
           border: 1px solid rgba(255, 255, 255, 0.2);
         ">
           <h1 style="font-size: 2rem; margin-bottom: 1rem; font-weight: 600;">
-            🚨 Application Error
+            🚨 Erreur de l'application
           </h1>
           <p style="margin-bottom: 2rem; opacity: 0.9; line-height: 1.6;">
-            Sorry, something went wrong while loading the application.
+            Désolé, une erreur s'est produite lors du chargement de l'application.
           </p>
           <button onclick="window.location.reload()" style="
             background: rgba(255, 255, 255, 0.2);
@@ -113,7 +113,7 @@ class ErrorBoundary extends HTMLElement {
             font-size: 16px;
             transition: all 0.2s ease;
           " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
-            🔄 Refresh Page
+            🔄 Actualiser la page
           </button>
         </div>
       </div>
@@ -145,14 +145,14 @@ function initializeApp() {
     try {
       root.render(<App />);
       console.log('✅ App rendered successfully');
-    } catch (renderError) {
+              } catch (renderError) {
       console.error('❌ App render failed:', renderError);
-      showErrorFallback('Render error: ' + renderError.message);
+      showErrorFallback('Erreur de rendu: ' + renderError.message);
     }
     
   } catch (error) {
     console.error('❌ App initialization failed:', error);
-    showErrorFallback('Initialization error: ' + error.message);
+    showErrorFallback('Erreur d\'initialisation: ' + error.message);
   }
 }
 

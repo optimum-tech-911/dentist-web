@@ -111,11 +111,11 @@ export class ErrorBoundary extends Component<Props, State> {
             </div>
             
             <h1 className="text-2xl font-bold text-foreground mb-4">
-              Oops! Something went wrong
+              Oups ! Une erreur s'est produite
             </h1>
             
             <p className="text-muted-foreground mb-6">
-              An unexpected error occurred. Our team has been notified and is working to fix it.
+              Une erreur inattendue s'est produite. Notre équipe a été notifiée et travaille pour la corriger.
             </p>
 
             {/* Error ID for debugging */}
@@ -133,21 +133,21 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={this.handleRetry}
                 className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
               >
-                🔄 Try Again
+                🔄 Réessayer
               </button>
               
               <button
                 onClick={this.handleGoHome}
                 className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md hover:bg-secondary/90 transition-colors"
               >
-                🏠 Go Home
+                🏠 Accueil
               </button>
               
               <button
                 onClick={this.handleReload}
                 className="bg-destructive text-destructive-foreground px-4 py-2 rounded-md hover:bg-destructive/90 transition-colors"
               >
-                🔄 Reload Page
+                🔄 Recharger la page
               </button>
             </div>
 
@@ -155,11 +155,11 @@ export class ErrorBoundary extends Component<Props, State> {
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-6 text-left">
                 <summary className="cursor-pointer text-sm text-muted-foreground mb-2">
-                  🔍 Error Details (Development)
+                  🔍 Détails de l'erreur (Développement)
                 </summary>
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm mb-1">Error Message:</h4>
+                    <h4 className="font-semibold text-sm mb-1">Message d'erreur :</h4>
                     <pre className="text-xs bg-muted p-3 rounded overflow-auto text-red-600">
                       {this.state.error.toString()}
                     </pre>
@@ -167,7 +167,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   
                   {this.state.error.stack && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-1">Stack Trace:</h4>
+                      <h4 className="font-semibold text-sm mb-1">Trace de pile :</h4>
                       <pre className="text-xs bg-muted p-3 rounded overflow-auto">
                         {this.state.error.stack}
                       </pre>
@@ -176,7 +176,7 @@ export class ErrorBoundary extends Component<Props, State> {
                   
                   {this.state.errorInfo?.componentStack && (
                     <div>
-                      <h4 className="font-semibold text-sm mb-1">Component Stack:</h4>
+                      <h4 className="font-semibold text-sm mb-1">Pile des composants :</h4>
                       <pre className="text-xs bg-muted p-3 rounded overflow-auto">
                         {this.state.errorInfo.componentStack}
                       </pre>
@@ -189,7 +189,7 @@ export class ErrorBoundary extends Component<Props, State> {
             {/* Contact information */}
             <div className="mt-8 p-4 bg-muted rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">
-                If this problem persists, please contact support:
+                Si ce problème persiste, veuillez contacter le support :
               </p>
               <p className="text-sm">
                 📧 <a href="mailto:ufsbd34@ufsbd.fr" className="text-primary hover:underline">

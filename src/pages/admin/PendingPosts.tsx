@@ -41,7 +41,7 @@ export default function PendingPosts() {
     } catch (error) {
       console.error('Error fetching pending posts:', error);
       toast({
-        title: "Error loading posts",
+        title: "Erreur lors du chargement des articles",
         description: "Failed to load pending posts",
         variant: "destructive"
       });
@@ -67,8 +67,8 @@ export default function PendingPosts() {
     } catch (error) {
       console.error(`Error ${status} post:`, error);
       toast({
-        title: "Error",
-        description: `Failed to ${status} the post`,
+        title: "Erreur",
+        description: `Échec de ${status === 'approve' ? 'l\'approbation' : 'la rejection'} de l'article`,
         variant: "destructive"
       });
     }
@@ -91,8 +91,8 @@ export default function PendingPosts() {
     } catch (error) {
       console.error('Error deleting post:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete the post",
+        title: "Erreur",
+        description: "Échec de la suppression de l'article",
         variant: "destructive"
       });
     }

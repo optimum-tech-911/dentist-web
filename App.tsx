@@ -21,7 +21,7 @@ const Organigramme = lazy(() => import("./pages/Organigramme").catch(() => ({ de
 const WriteBlog = lazy(() => import("./pages/WriteBlog").catch(() => ({ default: () => <FallbackPage title="Write Blog" /> })));
 const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: () => <FallbackPage title="Edit Blog" /> })));
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
-const NotFound = lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <FallbackPage title="Page Not Found" /> })));
+const NotFound = lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <FallbackPage title="Page introuvable" /> })));
 
 // Admin components
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout").catch(() => ({ default: () => <FallbackPage title="Admin Layout" /> })));
@@ -53,16 +53,16 @@ const FallbackPage = ({ title }: { title: string }) => (
         </svg>
       </div>
       <h1 className="text-2xl font-bold text-foreground mb-4">
-        {title} - Loading Error
+        {title} - Erreur de chargement
       </h1>
       <p className="text-muted-foreground mb-6">
-        There was an error loading this page. Please try refreshing.
+        Une erreur s'est produite lors du chargement de cette page. Veuillez actualiser la page.
       </p>
       <button
         onClick={() => window.location.reload()}
         className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors"
       >
-        Refresh Page
+        Actualiser la page
       </button>
     </div>
   </div>
@@ -73,7 +73,7 @@ const LoadingSpinner = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
     <div className="text-center">
       <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Loading...</p>
+      <p className="text-muted-foreground">Chargement en cours...</p>
     </div>
   </div>
 );
@@ -82,9 +82,9 @@ const LoadingSpinner = () => (
 const SimpleFallback = ({ error }: { error: Error }) => (
   <div className="min-h-screen flex items-center justify-center bg-background p-4">
     <div className="text-center max-w-md">
-      <h1 className="text-2xl font-bold text-foreground mb-4">App Error</h1>
+      <h1 className="text-2xl font-bold text-foreground mb-4">Erreur de l'application</h1>
       <p className="text-muted-foreground mb-4">
-        Something went wrong while loading the application.
+        Une erreur s'est produite lors du chargement de l'application.
       </p>
       <div className="bg-red-50 border border-red-200 rounded p-3 mb-4 text-left">
         <p className="text-sm text-red-800 font-mono">{error.message}</p>
@@ -93,7 +93,7 @@ const SimpleFallback = ({ error }: { error: Error }) => (
         onClick={() => window.location.reload()}
         className="bg-primary text-primary-foreground px-4 py-2 rounded hover:bg-primary/90"
       >
-        Refresh Page
+        Actualiser la page
       </button>
     </div>
   </div>
@@ -101,7 +101,7 @@ const SimpleFallback = ({ error }: { error: Error }) => (
 
 // Error boundary wrapper for each route
 const SafeRoute = ({ children }: { children: React.ReactNode }) => (
-  <ErrorBoundary fallback={<FallbackPage title="Page Error" />}>
+                      <ErrorBoundary fallback={<FallbackPage title="Erreur de page" />}>
     <Suspense fallback={<LoadingSpinner />}>
       {children}
     </Suspense>

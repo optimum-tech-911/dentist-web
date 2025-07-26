@@ -31,14 +31,14 @@ export default function Auth() {
       <div className="min-h-screen flex items-center justify-center bg-background px-4">
         <Card className="w-full max-w-md">
           <CardHeader>
-            <CardTitle>Authentication Error</CardTitle>
+            <CardTitle>Erreur d'authentification</CardTitle>
             <CardDescription>
-              There was an error loading the authentication system. Please refresh the page.
+              Une erreur s'est produite lors du chargement du système d'authentification. Veuillez actualiser la page.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => window.location.reload()} className="w-full">
-              Refresh Page
+              Actualiser la page
             </Button>
           </CardContent>
         </Card>
@@ -112,8 +112,8 @@ export default function Auth() {
     } catch (error) {
       console.error('Auth error:', error);
       toast({
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "Une erreur s'est produite",
+        description: "Veuillez réessayer plus tard.",
         variant: "destructive"
       });
     } finally {
@@ -153,8 +153,8 @@ export default function Auth() {
     } catch (error) {
       console.error('Password reset error:', error);
       toast({
-        title: "An error occurred",
-        description: "Please try again later.",
+        title: "Une erreur s'est produite",
+        description: "Veuillez réessayer plus tard.",
         variant: "destructive"
       });
     } finally {

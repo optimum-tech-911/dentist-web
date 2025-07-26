@@ -24,16 +24,16 @@ const createFallbackAuthProvider = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>('Authentication service unavailable');
+  const [error, setError] = useState<string | null>('Service d\'authentification indisponible');
 
   const signIn = async (email: string, password: string) => {
-    setError('Authentication service is currently unavailable. Please try again later.');
-    return { error: new Error('Authentication service unavailable') };
+    setError('Le service d\'authentification est actuellement indisponible. Veuillez réessayer plus tard.');
+    return { error: new Error('Service d\'authentification indisponible') };
   };
 
   const signUp = async (email: string, password: string) => {
-    setError('Authentication service is currently unavailable. Please try again later.');
-    return { error: new Error('Authentication service unavailable') };
+    setError('Le service d\'authentification est actuellement indisponible. Veuillez réessayer plus tard.');
+    return { error: new Error('Service d\'authentification indisponible') };
   };
 
   const signOut = async () => {
@@ -46,8 +46,8 @@ const createFallbackAuthProvider = () => {
   };
 
   const resetPassword = async (email: string) => {
-    setError('Password reset service is currently unavailable. Please try again later.');
-    return { error: new Error('Password reset service unavailable') };
+    setError('Le service de réinitialisation de mot de passe est actuellement indisponible. Veuillez réessayer plus tard.');
+    return { error: new Error('Service de réinitialisation de mot de passe indisponible') };
   };
 
   const clearError = () => setError(null);
@@ -198,8 +198,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     if (!isSupabaseAvailable) {
-      setError('Authentication service is currently unavailable. Please try again later.');
-      return { error: new Error('Authentication service unavailable') };
+      setError('Le service d\'authentification est actuellement indisponible. Veuillez réessayer plus tard.');
+      return { error: new Error('Service d\'authentification indisponible') };
     }
 
     try {
@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       return { error };
     } catch (error: any) {
-      const errorMessage = error?.message || 'Sign in failed. Please try again.';
+      const errorMessage = error?.message || 'Échec de la connexion. Veuillez réessayer.';
       setError(errorMessage);
       if (import.meta.env.DEV) {
         console.error('Sign in error:', error);
@@ -230,8 +230,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     if (!isSupabaseAvailable) {
-      setError('Authentication service is currently unavailable. Please try again later.');
-      return { error: new Error('Authentication service unavailable') };
+      setError('Le service d\'authentification est actuellement indisponible. Veuillez réessayer plus tard.');
+      return { error: new Error('Service d\'authentification indisponible') };
     }
 
     try {
@@ -253,7 +253,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       return { error };
     } catch (error: any) {
-      const errorMessage = error?.message || 'Sign up failed. Please try again.';
+      const errorMessage = error?.message || 'Échec de l\'inscription. Veuillez réessayer.';
       setError(errorMessage);
       if (import.meta.env.DEV) {
         console.error('Sign up error:', error);
@@ -278,14 +278,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         title: "Signed out successfully"
       });
     } catch (error: any) {
-      const errorMessage = error?.message || 'Sign out failed. Please try again.';
+      const errorMessage = error?.message || 'Échec de la déconnexion. Veuillez réessayer.';
       setError(errorMessage);
       if (import.meta.env.DEV) {
         console.error('Sign out error:', error);
       }
       toast({
-        title: "Error signing out",
-        description: "Please try again.",
+        title: "Erreur lors de la déconnexion",
+        description: "Veuillez réessayer.",
         variant: "destructive"
       });
     } finally {
@@ -295,8 +295,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     if (!isSupabaseAvailable) {
-      setError('Password reset service is currently unavailable. Please try again later.');
-      return { error: new Error('Password reset service unavailable') };
+      setError('Le service de réinitialisation de mot de passe est actuellement indisponible. Veuillez réessayer plus tard.');
+      return { error: new Error('Service de réinitialisation de mot de passe indisponible') };
     }
 
     try {
@@ -321,7 +321,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: null };
       
     } catch (error: any) {
-      const errorMessage = error?.message || 'Password reset failed. Please try again.';
+      const errorMessage = error?.message || 'Échec de la réinitialisation du mot de passe. Veuillez réessayer.';
       setError(errorMessage);
       if (import.meta.env.DEV) {
         console.error('Password reset error:', error);

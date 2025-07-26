@@ -41,7 +41,7 @@ export default function ApprovedPosts() {
     } catch (error) {
       console.error('Error fetching approved posts:', error);
       toast({
-        title: "Error loading posts",
+        title: "Erreur lors du chargement des articles",
         description: "Failed to load approved posts",
         variant: "destructive"
       });
