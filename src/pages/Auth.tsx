@@ -78,9 +78,13 @@ export default function Auth() {
           });
         } else {
           toast({
-            title: "Welcome back!",
-            description: "You have been signed in successfully."
+            title: "Bienvenue !",
+            description: "Connexion réussie. Redirection vers l'accueil...",
           });
+          // Redirect to home page after successful login
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
         }
       } else {
         const { error } = await signUp(email, password);
@@ -96,17 +100,21 @@ export default function Auth() {
           
           if (emailResult.success) {
             toast({
-              title: "Account created! 🎉",
-              description: "Welcome email sent! Please check your inbox for confirmation.",
-              duration: 5000,
+              title: "Compte créé ! 🎉",
+              description: "Email de bienvenue envoyé ! Redirection vers l'accueil...",
+              duration: 3000,
             });
           } else {
             toast({
-              title: "Account created!",
-              description: "Your account was created but we couldn't send the welcome email. You can still use your account.",
-              variant: "default"
+              title: "Compte créé ! 🎉",
+              description: "Votre compte a été créé avec succès. Redirection vers l'accueil...",
+              duration: 3000,
             });
           }
+          // Redirect to home page after successful signup
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
         }
       }
     } catch (error) {

@@ -75,9 +75,13 @@ export default function Auth() {
           });
         } else {
           toast({
-            title: "Welcome back!",
-            description: "You have been signed in successfully."
+            title: "Bienvenue !",
+            description: "Connexion réussie. Redirection vers l'accueil...",
           });
+          // Redirect to home page after successful login
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
         }
       } else {
         const { error } = await signUp(email, password);
@@ -89,9 +93,14 @@ export default function Auth() {
           });
         } else {
           toast({
-            title: "Account created!",
-            description: "Please check your email to verify your account."
+            title: "Compte créé ! 🎉",
+            description: "Votre compte a été créé avec succès. Redirection vers l'accueil...",
+            duration: 3000,
           });
+          // Redirect to home page after successful signup
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 3000);
         }
       }
     } catch (error) {
