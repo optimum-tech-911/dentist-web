@@ -174,6 +174,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       });
       
+      if (!error) {
+        // Send welcome email via Resend API
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer re_PKY25c41_AZLTLYzknWWNygBm9eacocSt`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              from: 'UFSBD Hérault <onboarding@resend.dev>',
+              to: email,
+              subject: 'Bienvenue sur UFSBD Hérault!',
+              html: `
+                <div style=\"font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;\">
+                  <div style=\"text-align: center; margin-bottom: 30px;\">
+                    <h1 style=\"color: #2563eb; margin: 0;\">Bienvenue !</h1>
+                    <p style=\"color: #6b7280; margin: 5px 0;\">Merci de rejoindre l'UFSBD Hérault.</p>
+                  </div>
+                  <div style=\"background-color: #f8fafc; padding: 30px; border-radius: 8px; border-left: 4px solid #2563eb;\">
+                    <h2 style=\"color: #1e293b; margin-top: 0;\">Votre compte a été créé avec succès</h2>
+                    <p style=\"color: #374151; line-height: 1.6;\">Bonjour,</p>
+                    <p style=\"color: #374151; line-height: 1.6;\">Nous sommes ravis de vous accueillir sur notre plateforme. Vous pouvez dès à présent vous connecter et profiter de nos services.</p>
+                    <div style=\"text-align: center; margin: 30px 0;\">
+                      <a href=\"https://ufsbd34.fr/auth\" style=\"background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;\">Se connecter</a>
+                    </div>
+                  </div>
+                  <div style=\"margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;\">
+                    <p style=\"color: #6b7280; font-size: 14px; text-align: center; margin: 0;\">Cet email a été envoyé par UFSBD Hérault<br><strong>Contact :</strong> ufsbd34@ufsbd.fr<br><strong>Site web :</strong> <a href=\"https://ufsbd34.fr\" style=\"color: #2563eb;\">ufsbd34.fr</a></p>
+                  </div>
+                </div>
+              `
+            })
+          });
+        } catch (welcomeError) {
+          if (import.meta.env.DEV) {
+            console.error('Welcome email error:', welcomeError);
+          }
+        }
+      }
+      
       if (error) {
         setError(error.message);
       }
