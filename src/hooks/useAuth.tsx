@@ -80,140 +80,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
-  // Test Supabase connection
-  const testSupabaseConnection = async () => {
-    try {
-      console.log('🔍 Testing Supabase connection...');
-      const { data, error } = await supabase
-        .from('users')
-        .select('count')
-        .limit(1);
-      
-      if (error) {
-        console.error('❌ Supabase connection test failed:', error);
-        return false;
-      } else {
-        console.log('✅ Supabase connection test successful');
-        return true;
-      }
-    } catch (err) {
-      console.error('❌ Supabase connection test error:', err);
-      return false;
-    }
-  };
+
 
   // Function to fetch user role from database
   const fetchUserRole = async (userId: string) => {
     try {
-      console.log('🔍 Fetching role for userId:', userId);
-
-      // Add timeout to prevent infinite loading (increased to 15 seconds)
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Role fetch timeout')), 15000)
-      );
-
-      const roleFetchPromise = supabase
+      const { data, error } = await supabase
         .from('users')
         .select('role, email, id')
         .eq('id', userId)
         .single();
 
-      const { data, error } = await Promise.race([roleFetchPromise, timeoutPromise]) as any;
-
       if (error) {
-        console.error('❌ Error fetching user role:', error);
-        
         if (error.code === 'PGRST116') {
-          console.log('⚠️ User not found in users table');
-          
-          // Get user email from auth to create entry
+          // User not found in users table - create entry
           const { data: { user } } = await supabase.auth.getUser();
           if (user?.email) {
-            console.log('📝 Creating user entry for:', user.email);
-            
-            // Create user entry with default viewer role
-            const { error: insertError } = await supabase
+            await supabase
               .from('users')
               .insert({ 
                 id: userId, 
                 email: user.email, 
                 role: 'viewer' 
               });
-            
-            if (!insertError) {
-              console.log('✅ User entry created with viewer role');
-              setUserRole('viewer');
-            } else {
-              console.error('❌ Failed to create user entry:', insertError);
-              setUserRole('viewer');
-            }
-          } else {
-            setUserRole('viewer');
           }
+          setUserRole('viewer');
         } else {
-          console.error('❌ Database error:', error);
-          setUserRole('viewer'); // Default to viewer on other errors
+          setUserRole('viewer');
         }
         return;
       }
 
       if (data?.role) {
-        console.log(`✅ User role found in database: ${data.role} for ${data.email}`);
         setUserRole(data.role);
       } else {
-        console.log('⚠️ No role found in database, setting to viewer');
         setUserRole('viewer');
       }
     } catch (error) {
-      console.error('💥 Error in fetchUserRole:', error);
-      
-      // If it's a timeout error, try a simpler query
-      if (error.message === 'Role fetch timeout') {
-        console.log('⏰ Role fetch timed out, trying connection test...');
-        const isConnected = await testSupabaseConnection();
-        if (isConnected) {
-          console.log('✅ Database connection works, setting default role');
-          setUserRole('viewer');
-        } else {
-          console.error('❌ Database connection failed');
-          setUserRole('viewer');
-        }
-      } else {
-        setUserRole('viewer'); // Default to viewer on other errors
-      }
+      setUserRole('viewer');
     }
   };
 
   useEffect(() => {
     let isMounted = true;
     let authSubscription: any = null;
-
-    // Set loading to false after a timeout to prevent infinite loading
-    const loadingTimeout = setTimeout(() => {
-      if (isMounted && loading) {
-        console.log('⚠️ Loading timeout - forcing loading to false');
-        setLoading(false);
-      }
-    }, 15000); // 15 second timeout
-
-    // Test Supabase connection in the background, do not block UI
-    const testSupabaseConnection = async () => {
-      try {
-        const { data, error } = await supabase.from('posts').select('id').limit(1);
-        if (error && error.code !== 'PGRST116') {
-          console.warn('Supabase connection test failed:', error);
-          setIsSupabaseAvailable(false);
           setError('Database connection issue. Some features may be limited.');
-        } else {
-          setIsSupabaseAvailable(true);
-        }
-      } catch (err) {
-        console.error('Supabase connection test error:', err);
-        setIsSupabaseAvailable(false);
-        setError('Database connection issue. Some features may be limited.');
-      }
-    };
-    testSupabaseConnection(); // Run in background
+
 
     // Setup auth listener with role fetching
     const setupAuthListener = async () => {
@@ -284,28 +196,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      console.log('🔓 Attempting sign in for:', email);
-      
-      // Add timeout to prevent infinite loading
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Sign in timeout')), 10000)
-      );
-      
-      const signInPromise = supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
       
-      const { data, error } = await Promise.race([signInPromise, timeoutPromise]) as any;
-      
       // If we get a session back, that means credentials are correct
       if (data?.session && data?.user) {
-        console.log('✅ Got session and user - sign in successful!');
         setSession(data.session);
         setUser(data.user);
         
-        // Fetch role in background, don't block the UI
-        // Set a default role immediately to prevent blocking
+        // Fetch role in background
         setUserRole('viewer');
         fetchUserRole(data.user.id).catch(err => 
           console.error('Role fetch error:', err)
@@ -316,21 +217,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Handle errors
       if (error) {
-        console.log('❌ Sign in error:', error.message);
         setError(error.message);
         return { error };
       }
       
       return { error: new Error('Unknown sign in error') };
     } catch (error: any) {
-      console.log('💥 Sign in catch error:', error);
-      
-      if (error.message === 'Sign in timeout') {
-        setError('Connexion timeout. Veuillez réessayer.');
-      } else {
-        setError(error?.message || 'Échec de la connexion. Veuillez réessayer.');
-      }
-      
+      setError(error?.message || 'Échec de la connexion. Veuillez réessayer.');
       return { error };
     } finally {
       setLoading(false);

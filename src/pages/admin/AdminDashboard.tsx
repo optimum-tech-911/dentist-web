@@ -13,51 +13,7 @@ interface DashboardStats {
   totalUsers: number;
 }
 
-// Function to keep Supabase connection alive
-export function useSupabaseKeepAlive() {
-  useEffect(() => {
-    let isActive = true;
-    let keepAliveCount = 0;
-    
-    // Initial connection test
-    const testConnection = async () => {
-      try {
-        const { data, error } = await supabase.from('posts').select('id').limit(1);
-        if (error) {
-          if (import.meta.env.DEV) {
-            console.warn('Supabase keep-alive connection test failed:', error);
-          }
-        } else {
-          keepAliveCount++;
-          if (import.meta.env.DEV) {
-            console.log(`✅ Supabase keep-alive #${keepAliveCount} - Connection active`);
-          }
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Supabase keep-alive error:', error);
-        }
-      }
-    };
 
-    // Test connection immediately
-    testConnection();
-    
-    // Set up interval for periodic keep-alive
-    const interval = setInterval(() => {
-      if (!isActive) return;
-      testConnection();
-    }, 5 * 60 * 1000); // Every 5 minutes
-
-    return () => {
-      isActive = false;
-      clearInterval(interval);
-      if (import.meta.env.DEV) {
-        console.log('🔄 Supabase keep-alive stopped');
-      }
-    };
-  }, []);
-}
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats>({
