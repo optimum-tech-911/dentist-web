@@ -108,43 +108,9 @@ export default function Auth() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast({
-        title: "Email required",
-        description: "Please enter your email address.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-    clearError(); // Clear any previous errors
     
-    try {
-      const { error } = await resetPassword(email);
-      if (error) {
-        toast({
-          title: "Error sending reset email",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Reset email sent!",
-          description: "Please check your email for password reset instructions."
-        });
-        setShowForgotPassword(false);
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast({
-        title: "An error occurred",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Redirect to OTP password reset page
+    window.location.href = '/otp-reset-password';
   };
 
   // Show loading state while auth is initializing

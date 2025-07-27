@@ -123,43 +123,9 @@ export default function Auth() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
-      toast({
-        title: "Email requis",
-        description: "Veuillez saisir votre adresse email.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setLoading(true);
-    clearError(); // Clear any previous errors
     
-    try {
-      const { error } = await resetPassword(email);
-      if (error) {
-        toast({
-          title: "Erreur lors de l'envoi de l'email",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Email de réinitialisation envoyé !",
-          description: "Veuillez vérifier votre boîte mail pour les instructions de réinitialisation du mot de passe."
-        });
-        setShowForgotPassword(false);
-      }
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast({
-        title: "Une erreur s'est produite",
-        description: "Veuillez réessayer plus tard.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    // Redirect to OTP password reset page
+    window.location.href = '/otp-reset-password';
   };
 
   // Show loading state while auth is initializing
