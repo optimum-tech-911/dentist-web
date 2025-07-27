@@ -15,10 +15,13 @@ export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showOtpVerification, setShowOtpVerification] = useState(false);
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [otp, setOtp] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Email confirmation hook
@@ -199,12 +202,10 @@ export default function Auth() {
       if (data.session) {
         toast({
           title: "Code vérifié !",
-          description: "Vous pouvez maintenant définir votre nouveau mot de passe.",
+          description: "Définissez maintenant votre nouveau mot de passe.",
         });
         setShowOtpVerification(false);
-        // User is now authenticated, they can change their password in their profile
-        // For simplicity, redirect to a password change or show inline form
-        window.location.href = '/'; // Redirect to profile where they can change password
+        setShowPasswordChange(true);
       }
     } catch (error) {
       console.error('OTP verification error:', error);
@@ -227,6 +228,75 @@ export default function Auth() {
     }
   };
 
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Erreur",
+        description: "Le mot de passe doit contenir au moins 6 caractères.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    clearError();
+
+    try {
+      // Import supabase client
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) {
+        toast({
+          title: "Erreur",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      toast({
+        title: "Mot de passe mis à jour !",
+        description: "Votre mot de passe a été réinitialisé avec succès.",
+      });
+
+      // Reset all states and redirect to login
+      setShowPasswordChange(false);
+      setShowOtpVerification(false);
+      setShowForgotPassword(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      setOtp('');
+      
+      // Sign out and redirect to login
+      await supabase.auth.signOut();
+      window.location.reload(); // Refresh to show login form
+      
+    } catch (error: any) {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Show loading state while auth is initializing
   if (authLoading) {
     return (
@@ -244,7 +314,9 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            {showOtpVerification ? (
+            {showPasswordChange ? (
+              'Nouveau mot de passe'
+            ) : showOtpVerification ? (
               <>
                 <CheckCircle className="h-5 w-5" />
                 Vérifier le code OTP
@@ -259,7 +331,9 @@ export default function Auth() {
             )}
           </CardTitle>
           <CardDescription>
-            {showOtpVerification
+            {showPasswordChange
+              ? 'Définissez votre nouveau mot de passe'
+              : showOtpVerification
               ? `Entrez le code à 6 chiffres envoyé à ${email}`
               : showForgotPassword 
               ? 'Saisissez votre email pour recevoir un code de vérification'
@@ -289,7 +363,48 @@ export default function Auth() {
             </Alert>
           )}
 
-          {showOtpVerification ? (
+          {showPasswordChange ? (
+            <form onSubmit={handlePasswordChange} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="newPassword">Nouveau mot de passe</Label>
+                <Input
+                  id="newPassword"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  minLength={6}
+                  placeholder="Minimum 6 caractères"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                  minLength={6}
+                  placeholder="Répétez le mot de passe"
+                />
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Mise à jour...
+                  </>
+                ) : (
+                  'Réinitialiser le mot de passe'
+                )}
+              </Button>
+            </form>
+          ) : showOtpVerification ? (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="otp">Code de vérification</Label>
