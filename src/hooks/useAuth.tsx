@@ -138,15 +138,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Setup auth listener with role fetching
     const setupAuthListener = async () => {
-      authSubscription = supabase.auth.onAuthStateChange(async (_event, session) => {
+      authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
-        setSession(session);
-        setUser(session?.user ?? null);
         
-        // Fetch user role from database when user is authenticated
+        // Always accept the session regardless of email confirmation status
         if (session?.user) {
+          console.log('Auth event:', event, 'User:', session.user.email);
+          setSession(session);
+          setUser(session.user);
           await fetchUserRole(session.user.id);
         } else {
+          setSession(null);
+          setUser(null);
           setUserRole(null);
         }
         
