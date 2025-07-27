@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false by default for instant UI
   const [error, setError] = useState<string | null>(null);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
@@ -78,119 +78,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true;
     let authSubscription: any = null;
 
-    // Test Supabase connection first
+    // Test Supabase connection in the background, do not block UI
     const testSupabaseConnection = async () => {
       try {
-        // Simple test query
         const { data, error } = await supabase.from('posts').select('id').limit(1);
-        
-        if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned" which is fine
+        if (error && error.code !== 'PGRST116') {
           console.warn('Supabase connection test failed:', error);
           setIsSupabaseAvailable(false);
           setError('Database connection issue. Some features may be limited.');
-          return false;
+        } else {
+          setIsSupabaseAvailable(true);
         }
-        
-        setIsSupabaseAvailable(true);
-        return true;
       } catch (err) {
         console.error('Supabase connection test error:', err);
         setIsSupabaseAvailable(false);
         setError('Database connection issue. Some features may be limited.');
-        return false;
       }
     };
+    testSupabaseConnection(); // Run in background
 
-    // Set up auth state listener with comprehensive error handling
+    // Setup auth listener as before (but do not block UI)
     const setupAuthListener = async () => {
-      try {
-        // Test connection first
-        const connectionOk = await testSupabaseConnection();
-        if (!connectionOk) {
-          setLoading(false);
-          return;
-        }
-
-        // Set up auth state listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-          async (event, session) => {
-            if (!isMounted) return;
-            
-            try {
-              setSession(session);
-              setUser(session?.user ?? null);
-              
-              if (session?.user) {
-                // Fetch user role with error handling
-                try {
-                  const { data, error } = await supabase
-                    .from('users')
-                    .select('role')
-                    .eq('id', session.user.id)
-                    .single();
-                  
-                  if (!error && data && isMounted) {
-                    setUserRole(data.role);
-                  } else if (error && import.meta.env.DEV) {
-                    console.warn('Error fetching user role:', error);
-                    // Don't set error state for role fetch issues
-                  }
-                } catch (err) {
-                  if (import.meta.env.DEV) {
-                    console.error('Error fetching user role:', err);
-                  }
-                  // Don't set error state for role fetch issues
-                }
-              } else {
-                setUserRole(null);
-              }
-            } catch (err) {
-              console.error('Auth state change error:', err);
-              setError('Authentication state error. Please refresh the page.');
-            }
-            
-            if (isMounted) {
-              setLoading(false);
-            }
-          }
-        );
-
-        authSubscription = subscription;
-
-        // Check for existing session
-        try {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (isMounted) {
-            setSession(session);
-            setUser(session?.user ?? null);
-            setLoading(false);
-          }
-        } catch (error) {
-          if (import.meta.env.DEV) {
-            console.error('Error getting session:', error);
-          }
-          if (isMounted) {
-            setLoading(false);
-            setError('Session retrieval error. Please refresh the page.');
-          }
-        }
-
-      } catch (error) {
-        if (import.meta.env.DEV) {
-          console.error('Error setting up auth listener:', error);
-        }
-        if (isMounted) {
-          setLoading(false);
-          setError('Authentication setup error. Please refresh the page.');
-        }
+      authSubscription = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!isMounted) return;
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      });
+      // Initial session check
+      const { data: { session } } = await supabase.auth.getSession();
+      if (isMounted) {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
       }
     };
-
     setupAuthListener();
 
     return () => {
       isMounted = false;
-      if (authSubscription) {
+      if (authSubscription && typeof authSubscription.unsubscribe === 'function') {
         authSubscription.unsubscribe();
       }
     };
