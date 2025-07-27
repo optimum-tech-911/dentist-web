@@ -53,11 +53,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // TEMPORARY: Allow all access for testing
-  if (user) {
-    console.log('🔧 EMERGENCY: Allowing all access for testing');
-    return <>{children}</>;
-  }
+
 
   // Check role-based access
   if (requiredRole) {
