@@ -53,18 +53,20 @@ export default function PasswordReset() {
             setIsValidReset(true);
           } else {
             console.error('🔍 Error setting session:', error);
-            // Don't redirect immediately, show form anyway
-            setIsValidReset(true);
+            setError('Lien de réinitialisation invalide. Veuillez demander un nouveau lien.');
+            // Don't show form if session is invalid
+            setIsValidReset(false);
           }
         } catch (err) {
           console.error('🔍 Error handling reset:', err);
-          // Don't redirect immediately, show form anyway
-          setIsValidReset(true);
+          setError('Erreur lors de la validation du lien. Veuillez demander un nouveau lien.');
+          setIsValidReset(false);
         }
       } else {
-        // Show form for any reset attempt
-        console.log('🔍 Showing reset form');
-        setIsValidReset(true);
+        // No valid reset parameters
+        console.log('🔍 No valid reset parameters');
+        setError('Lien de réinitialisation invalide. Veuillez utiliser le lien depuis votre email.');
+        setIsValidReset(false);
       }
     };
 
@@ -92,9 +94,20 @@ export default function PasswordReset() {
     try {
       console.log('🔧 Updating password...');
       
+      // Check if we have a valid session first
+      const { data: sessionData } = await supabase.auth.getSession();
+      console.log('🔧 Current session:', sessionData.session ? 'Valid' : 'Invalid');
+      
+      if (!sessionData.session) {
+        console.error('🔧 No valid session found');
+        setError('Session invalide. Veuillez utiliser le lien de réinitialisation depuis votre email.');
+        setLoading(false);
+        return;
+      }
+      
       // Add timeout to prevent infinite loading
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000)
+        setTimeout(() => reject(new Error('Request timeout')), 15000) // Increased to 15 seconds
       );
       
       // Update password using Supabase
@@ -108,7 +121,15 @@ export default function PasswordReset() {
 
       if (error) {
         console.error('🔧 Password update error:', error);
-        setError(error.message);
+        
+        // Handle specific error cases
+        if (error.message.includes('JWT')) {
+          setError('Lien de réinitialisation expiré. Veuillez demander un nouveau lien.');
+        } else if (error.message.includes('timeout')) {
+          setError('La requête a pris trop de temps. Veuillez réessayer.');
+        } else {
+          setError(error.message);
+        }
         setLoading(false);
         return;
       }
@@ -132,17 +153,44 @@ export default function PasswordReset() {
       
     } catch (error: any) {
       console.error('🔧 Unexpected error:', error);
-      setError(error.message || 'Une erreur est survenue lors de la réinitialisation du mot de passe.');
+      
+      if (error.message === 'Request timeout') {
+        setError('La requête a pris trop de temps. Veuillez réessayer ou utiliser un nouveau lien de réinitialisation.');
+      } else {
+        setError(error.message || 'Une erreur est survenue lors de la réinitialisation du mot de passe.');
+      }
       setLoading(false);
     }
   };
 
-  if (!isValidReset) { // Show loading spinner while validating
+  if (!isValidReset) { // Show loading spinner while validating or error
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Vérification du lien de réinitialisation...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <div className="text-center max-w-md">
+          {error ? (
+            <>
+              <div className="mb-6">
+                <AlertCircle className="mx-auto h-16 w-16 text-red-500" />
+              </div>
+              <h1 className="text-2xl font-bold text-foreground mb-4">
+                Lien invalide
+              </h1>
+              <p className="text-muted-foreground mb-6">
+                {error}
+              </p>
+              <Button
+                onClick={() => navigate('/auth')}
+                className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:bg-primary/90"
+              >
+                Retour à la connexion
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Vérification du lien de réinitialisation...</p>
+            </>
+          )}
         </div>
       </div>
     );
