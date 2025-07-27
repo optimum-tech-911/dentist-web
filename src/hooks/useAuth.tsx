@@ -122,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserRole('viewer');
           }
         } else {
+          console.error('❌ Database error:', error);
           setUserRole('viewer'); // Default to viewer on other errors
         }
         return;

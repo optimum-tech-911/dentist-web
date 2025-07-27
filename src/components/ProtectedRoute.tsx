@@ -29,7 +29,9 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     userRole,
     requiredRole,
     loading,
-    roleChecked
+    roleChecked,
+    userId: user?.id,
+    isAuthenticated: !!user
   });
 
   // Show loading while auth is loading or role is being checked
@@ -51,25 +53,27 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Remove hardcoded email check - let database role handle it
-
+  // Check role-based access
   if (requiredRole) {
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
     console.log('🔍 Checking role access:', { userRole, allowedRoles, userEmail: user?.email });
     
-    // TEMPORARY FIX: If user is authenticated but no role, try to refresh
+    // If user has no role but is authenticated, try to refresh role
     if (!userRole && user) {
       console.log('⚠️ No role found but user exists - trying refresh...');
-      // For now, allow access if they're requesting admin and are authenticated
-      if (allowedRoles.includes('admin')) {
-        console.log('🔧 TEMPORARY: Allowing admin access for authenticated user');
-        return <>{children}</>;
-      }
+      // Don't allow access without proper role verification
       return <Navigate to="/" replace />;
     }
     
+    // Check if user has required role
     if (userRole && !allowedRoles.includes(userRole)) {
       console.log('❌ Role not allowed - redirecting to home');
+      return <Navigate to="/" replace />;
+    }
+    
+    // If no role is set but user is authenticated, deny access
+    if (!userRole) {
+      console.log('❌ No role assigned - redirecting to home');
       return <Navigate to="/" replace />;
     }
   }
