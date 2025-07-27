@@ -178,7 +178,7 @@ enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
-max_frequency = "1s"
+max_frequency = "10s"
 # Number of characters used in the email OTP.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
@@ -193,6 +193,11 @@ user = "resend"
 pass = "env(RESEND_API_KEY)"
 admin_email = "ufsbd34@ufsbd.fr"
 sender_name = "UFSBD Hérault"
+
+# Email templates
+[auth.email.template.magic_link]
+subject = "Code de vérification - UFSBD Hérault"
+content_path = "./supabase/templates/magic_link.html"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
