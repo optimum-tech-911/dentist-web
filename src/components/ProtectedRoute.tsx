@@ -1,5 +1,6 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useLocation } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,27 +8,70 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
-  const { user, userRole, loading } = useAuth();
+  const { user, userRole, loading, refreshUserRole } = useAuth();
   const location = useLocation();
+  const [roleChecked, setRoleChecked] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkRole = async () => {
+      if (user && !userRole && !loading) {
+        console.log('🔄 User exists but no role - refreshing role...');
+        await refreshUserRole();
+      }
+      setRoleChecked(true);
+    };
+    
+    checkRole();
+  }, [user, userRole, loading, refreshUserRole]);
+
+  console.log('🛡️ ProtectedRoute check:', {
+    user: user?.email,
+    userRole,
+    requiredRole,
+    loading,
+    roleChecked
+  });
+
+  // Show loading while auth is loading or role is being checked
+  if (loading || (user && !roleChecked)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">
+            {loading ? 'Vérification de l\'authentification...' : 'Vérification des permissions...'}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (!user) {
+    console.log('❌ No user - redirecting to auth');
     return <Navigate to="/auth" state={{ from: location }} replace />;
+  }
+
+  // Special case for flobbydisk8@gmail.com - always allow admin access
+  if (user.email === 'flobbydisk8@gmail.com') {
+    console.log('👑 Admin email detected - allowing access');
+    return <>{children}</>;
   }
 
   if (requiredRole) {
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    console.log('🔍 Checking role access:', { userRole, allowedRoles });
+    
+    if (!userRole) {
+      console.log('⚠️ No role found - redirecting to home');
+      return <Navigate to="/" replace />;
+    }
+    
     if (!allowedRoles.includes(userRole)) {
+      console.log('❌ Role not allowed - redirecting to home');
       return <Navigate to="/" replace />;
     }
   }
 
+  console.log('✅ Access granted');
   return <>{children}</>;
 }
