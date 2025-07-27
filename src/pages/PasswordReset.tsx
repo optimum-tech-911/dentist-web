@@ -30,67 +30,51 @@ export default function PasswordReset() {
 
   useEffect(() => {
     const handleReset = async () => {
-      console.log('🔍 Password Reset Debug:', {
-        accessToken: accessToken ? 'present' : 'missing',
-        refreshToken: refreshToken ? 'present' : 'missing',
-        type,
-        email,
-        allParams: Object.fromEntries(searchParams.entries())
-      });
+      // Gather all possible reset-related parameters
+      const hasAccessToken = !!accessToken;
+      const hasRefreshToken = !!refreshToken;
+      const hasTypeRecovery = type === 'recovery';
+      const hasToken = !!searchParams.get('token');
+      const hasEmail = !!email;
 
-      // More flexible validation - if user comes from email, let them proceed
-      console.log('🔍 Checking reset link parameters...');
-      console.log('🔍 Parameters found:', { accessToken: !!accessToken, refreshToken: !!refreshToken, type, email });
-      
-      // If we have any reset-related parameters, show the form
-      if (accessToken || email || type === 'recovery') {
-        console.log('🔍 Reset parameters detected, attempting to set session...');
-        
-        if (accessToken) {
+      // If any reset-related parameter is present, show the form
+      if (hasAccessToken || hasRefreshToken || hasTypeRecovery || hasToken || hasEmail) {
+        // Try to set session if access_token is present
+        if (hasAccessToken) {
           try {
-            console.log('🔍 Setting session with access token...');
             const { data, error } = await supabase.auth.setSession({
               access_token: accessToken,
               refresh_token: refreshToken || ''
             });
-            
             if (data.user && !error) {
-              console.log('🔍 Session set successfully for:', data.user.email);
               setUserEmail(data.user.email);
-              setIsValidReset(true);
+            } else if (hasEmail) {
+              setUserEmail(email);
             } else {
-              console.log('🔍 Session setting failed, but showing form anyway for user convenience');
-              setUserEmail(email || 'Email non disponible');
-              setIsValidReset(true);
+              setUserEmail('');
             }
           } catch (err) {
-            console.log('🔍 Session error, but showing form anyway:', err);
-            setUserEmail(email || 'Email non disponible');
-            setIsValidReset(true);
+            if (hasEmail) {
+              setUserEmail(email);
+            } else {
+              setUserEmail('');
+            }
           }
-        } else if (email) {
-          // Fallback: if we have email but no access token, still show form
-          console.log('🔍 Using email parameter:', email);
+        } else if (hasEmail) {
           setUserEmail(email);
-          setIsValidReset(true);
         } else {
-          // Generic reset form
-          console.log('🔍 Showing generic reset form');
-          setUserEmail('Email non disponible');
-          setIsValidReset(true);
+          setUserEmail('');
         }
+        setIsValidReset(true);
+        setError(null);
       } else {
-        // No reset parameters at all
-        console.log('🔍 No reset parameters found');
-        setError('Lien de réinitialisation invalide. Veuillez utiliser le lien depuis votre email.');
         setIsValidReset(false);
+        setError('Lien de réinitialisation invalide. Veuillez utiliser le lien depuis votre email.');
       }
     };
-
-    // Add a small delay to prevent flash of loading screen
-    const timer = setTimeout(handleReset, 100);
-    return () => clearTimeout(timer);
-  }, [accessToken, refreshToken, type, email, navigate, searchParams]);
+    handleReset();
+    // eslint-disable-next-line
+  }, [accessToken, refreshToken, type, email, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
