@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { AuthTest } from '@/components/AuthTest';
+
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -137,7 +137,6 @@ export default function Auth() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <div className="w-full max-w-md space-y-6">
-        <AuthTest />
         <Card>
         <CardHeader>
           <CardTitle>

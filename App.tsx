@@ -22,8 +22,7 @@ const Organigramme = lazy(() => import("./pages/Organigramme").catch(() => ({ de
 const WriteBlog = lazy(() => import("./pages/WriteBlog").catch(() => ({ default: () => <FallbackPage title="Write Blog" /> })));
 const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: () => <FallbackPage title="Edit Blog" /> })));
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
-const TestAccess = lazy(() => import("./pages/admin/TestAccess").catch(() => ({ default: () => <FallbackPage title="Test Access" /> })));
-const RoleTest = lazy(() => import("./components/RoleTest").catch(() => ({ default: () => <FallbackPage title="Role Test" /> })));
+
 const NotFound = lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <FallbackPage title="Page introuvable" /> })));
 
 // Admin components
@@ -131,8 +130,7 @@ const App = () => {
                 <Route path="/contact" element={<SafeRoute><Contact /></SafeRoute>} />
                 <Route path="/organigramme" element={<SafeRoute><Organigramme /></SafeRoute>} />
                 <Route path="/test" element={<SafeRoute><TestPage /></SafeRoute>} />
-                <Route path="/test-admin" element={<SafeRoute><TestAccess /></SafeRoute>} />
-                <Route path="/role-test" element={<SafeRoute><RoleTest /></SafeRoute>} />
+
                 <Route path="/write-blog" element={<SafeRoute><WriteBlog /></SafeRoute>} />
                 <Route 
                   path="/submit" 

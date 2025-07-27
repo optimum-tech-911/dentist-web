@@ -4,8 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
-import { AdminDebug } from '@/components/AdminDebug';
-import { AdminDiagnostic } from '@/components/AdminDiagnostic';
+
 
 interface DashboardStats {
   totalPosts: number;
@@ -159,8 +158,6 @@ export default function AdminDashboard() {
 
   return (
     <div className="space-y-6">
-      <AdminDebug />
-      <AdminDiagnostic />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Tableau de bord</h1>
