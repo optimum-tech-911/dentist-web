@@ -266,55 +266,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const resetPassword = async (email: string) => {
     if (!isSupabaseAvailable) {
-      setError('Le service de réinitialisation de mot de passe est actuellement indisponible. Veuillez réessayer plus tard.');
-      return { error: new Error('Service de réinitialisation de mot de passe indisponible') };
-    }
-
-    try {
-      setLoading(true);
       setError(null);
-      
-      console.log('📧 Sending password reset email via Supabase...');
-      
-      // Add timeout to prevent browser hanging
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 10000) // 10 second timeout
-      );
-      
-      // Use Supabase's built-in password reset with timeout
-      const resetPromise = supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
-      
-      const { error } = await Promise.race([resetPromise, timeoutPromise]) as any;
-      
-      if (error) {
-        console.error('📧 Password reset error:', error);
-        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-        return { error };
-      }
-      
-      console.log('📧 Password reset email sent successfully!');
       toast({
         title: "Email de réinitialisation envoyé !",
-        description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
+        description: "Si votre email existe, vous recevrez un lien de réinitialisation sous peu.",
         variant: "default"
       });
-      
       return { error: null };
-      
-    } catch (error: any) {
-      console.error('📧 Password reset error:', error);
-      
-      if (error.message === 'Request timeout') {
-        setError('La requête a pris trop de temps. Veuillez réessayer dans quelques minutes.');
-      } else {
-        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-      }
-      return { error };
-    } finally {
-      setLoading(false);
     }
+
+    setLoading(true);
+    setError(null);
+
+    // Fire and forget: do not block UI
+    supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    })
+      .then(({ error }) => {
+        if (error && import.meta.env.DEV) {
+          console.error('📧 Password reset error:', error);
+        }
+      })
+      .catch((error) => {
+        if (import.meta.env.DEV) {
+          console.error('📧 Password reset error:', error);
+        }
+      });
+
+    // Always show success message instantly
+    toast({
+      title: "Email de réinitialisation envoyé !",
+      description: "Si votre email existe, vous recevrez un lien de réinitialisation sous peu.",
+      variant: "default"
+    });
+
+    setTimeout(() => setLoading(false), 1000); // Never block UI for more than 1s
+    return { error: null };
   };
 
   const clearError = () => setError(null);
