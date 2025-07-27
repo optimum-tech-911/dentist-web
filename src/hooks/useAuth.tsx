@@ -306,13 +306,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Use fast direct Resend API instead of slow Supabase email
+      // Use fast direct Resend API with timeout protection
       const RESEND_API_KEY = 're_PKY25c41_AZLTLYzknWWNygBm9eacocSt';
       const resetLink = `${window.location.origin}/reset-password`;
       
       console.log('📧 Sending fast password reset email...');
       
-      const response = await fetch('https://api.resend.com/emails', {
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 8000) // 8 second timeout
+      );
+      
+      // Create the fetch promise
+      const fetchPromise = fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
@@ -372,6 +378,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
       });
       
+      // Race between fetch and timeout
+      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+      
       const data = await response.json();
       
       if (response.ok) {
@@ -386,27 +395,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('📧 Fast email error:', data);
         // Fallback to Supabase if Resend fails
         console.log('📧 Falling back to Supabase...');
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: resetLink
-        });
-        
-        if (error) {
-          setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-          return { error };
+        try {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: resetLink
+          });
+          
+          if (error) {
+            setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+            return { error };
+          }
+          
+          toast({
+            title: "Email de réinitialisation envoyé !",
+            description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
+            variant: "default"
+          });
+          return { error: null };
+        } catch (fallbackError) {
+          console.error('📧 Fallback also failed:', fallbackError);
+          setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
+          return { error: fallbackError };
         }
-        
-        toast({
-          title: "Email de réinitialisation envoyé !",
-          description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
-          variant: "default"
-        });
-        return { error: null };
       }
       
     } catch (error: any) {
       console.error('📧 Password reset error:', error);
-      setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-      return { error };
+      
+      // Handle timeout specifically
+      if (error.message === 'Request timeout') {
+        console.log('📧 Request timed out, trying Supabase fallback...');
+        try {
+          const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`
+          });
+          
+          if (supabaseError) {
+            setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
+            return { error: supabaseError };
+          }
+          
+          toast({
+            title: "Email de réinitialisation envoyé !",
+            description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
+            variant: "default"
+          });
+          return { error: null };
+        } catch (fallbackError) {
+          setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
+          return { error: fallbackError };
+        }
+      } else {
+        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+        return { error };
+      }
     } finally {
       setLoading(false);
     }
