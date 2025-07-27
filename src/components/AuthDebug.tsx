@@ -1,11 +1,40 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export function AuthDebug() {
   const { user, userRole, loading, session, error, refreshUserRole } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [supabaseTest, setSupabaseTest] = useState<string>('Testing...');
+
+  useEffect(() => {
+    const testSupabase = async () => {
+      try {
+        // Test basic connection
+        const { data, error } = await supabase.from('posts').select('id').limit(1);
+        if (error) {
+          setSupabaseTest(`❌ Connection Error: ${error.message}`);
+        } else {
+          setSupabaseTest('✅ Connected to Supabase');
+        }
+
+        // Test current session
+        const { data: sessionData } = await supabase.auth.getSession();
+        console.log('🔍 Raw Supabase session:', sessionData);
+        
+        // Test auth state
+        const { data: authData } = await supabase.auth.getUser();
+        console.log('🔍 Raw Supabase user:', authData);
+        
+      } catch (err) {
+        setSupabaseTest(`💥 Test Failed: ${err}`);
+      }
+    };
+    
+    testSupabase();
+  }, []);
 
   return (
     <Card className="max-w-2xl mx-auto mt-8">
@@ -32,6 +61,9 @@ export function AuthDebug() {
           </div>
           <div>
             <strong>Error:</strong> {error ? `❌ ${error}` : '✅ None'}
+          </div>
+          <div className="col-span-2">
+            <strong>Supabase:</strong> {supabaseTest}
           </div>
         </div>
         
@@ -77,13 +109,20 @@ export function AuthDebug() {
             >
               {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Role'}
             </Button>
-            <Button 
-              onClick={() => window.location.href = '/admin'}
-              variant="outline"
-              size="sm"
-            >
-              🚪 Try Admin Dashboard
-            </Button>
+                         <Button 
+               onClick={() => window.location.href = '/admin'}
+               variant="outline"
+               size="sm"
+             >
+               🚪 Try Admin Dashboard
+             </Button>
+             <Button 
+               onClick={() => window.location.href = '/auth'}
+               variant="secondary"
+               size="sm"
+             >
+               🔐 Go to Sign In
+             </Button>
           </div>
           <p className="text-sm mt-2">
             If you see "User: ✅" but "Role: ❌ None", click "Refresh Role".
