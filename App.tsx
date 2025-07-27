@@ -144,9 +144,9 @@ const App = () => {
                   path="/admin" 
                   element={
                     <SafeRoute>
-                      <ProtectedRoute requiredRole="admin">
+                      {/* <ProtectedRoute requiredRole="admin"> */}
                         <AdminLayout />
-                      </ProtectedRoute>
+                      {/* </ProtectedRoute> */}
                     </SafeRoute>
                   }
                 >
