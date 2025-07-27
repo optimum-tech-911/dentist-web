@@ -85,11 +85,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('🔍 Fetching role for userId:', userId);
 
-      const { data, error } = await supabase
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
+      );
+
+      const roleFetchPromise = supabase
         .from('users')
         .select('role, email, id')
         .eq('id', userId)
         .single();
+
+      const { data, error } = await Promise.race([roleFetchPromise, timeoutPromise]) as any;
 
       if (error) {
         console.error('❌ Error fetching user role:', error);
@@ -144,6 +151,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let isMounted = true;
     let authSubscription: any = null;
+
+    // Set loading to false after a timeout to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (isMounted && loading) {
+        console.log('⚠️ Loading timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 15000); // 15 second timeout
 
     // Test Supabase connection in the background, do not block UI
     const testSupabaseConnection = async () => {
@@ -216,6 +231,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
+      clearTimeout(loadingTimeout);
       if (authSubscription && typeof authSubscription.unsubscribe === 'function') {
         authSubscription.unsubscribe();
       }
@@ -234,84 +250,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('🔓 Attempting sign in for:', email);
       
-      const { data, error } = await supabase.auth.signInWithPassword({
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Sign in timeout')), 10000)
+      );
+      
+      const signInPromise = supabase.auth.signInWithPassword({
         email,
         password
       });
       
+      const { data, error } = await Promise.race([signInPromise, timeoutPromise]) as any;
+      
       // If we get a session back, that means credentials are correct
-      if (data.session && data.user) {
+      if (data?.session && data?.user) {
         console.log('✅ Got session and user - sign in successful!');
-        // Force accept the session even if there are confirmation issues
         setSession(data.session);
         setUser(data.user);
-        await fetchUserRole(data.user.id);
+        
+        // Fetch role in background, don't block the UI
+        fetchUserRole(data.user.id).catch(err => 
+          console.error('Role fetch error:', err)
+        );
+        
         return { error: null };
       }
       
-      // Handle errors, but ignore email confirmation errors
+      // Handle errors
       if (error) {
         console.log('❌ Sign in error:', error.message);
-        
-        // Check if it's an email confirmation error
-        if (error.message.toLowerCase().includes('email not confirmed') || 
-            error.message.toLowerCase().includes('email_not_confirmed') ||
-            error.message.toLowerCase().includes('confirm') ||
-            error.message.toLowerCase().includes('verification')) {
-          
-          console.log('🚫 Ignoring email confirmation error - trying alternative approach');
-          
-          // Try to force confirm the user and retry
-          try {
-            const { data: forceData } = await supabase.rpc('force_confirm_user', { user_email: email });
-            console.log('🔧 Force confirm result:', forceData);
-            
-            // Retry sign in after force confirmation
-            const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-              email,
-              password
-            });
-            
-            if (retryData.session) {
-              console.log('✅ Retry successful after force confirm!');
-              setSession(retryData.session);
-              setUser(retryData.user);
-              await fetchUserRole(retryData.user.id);
-              return { error: null };
-            }
-          } catch (forceError) {
-            console.log('⚠️ Force confirm failed, but continuing anyway');
-          }
-          
-          // Don't show error for email confirmation issues
-          return { error: null };
-        } else {
-          // For other errors, show them
-          setError(error.message);
-          return { error };
-        }
+        setError(error.message);
+        return { error };
       }
       
-      return { error };
+      return { error: new Error('Unknown sign in error') };
     } catch (error: any) {
-      const errorMessage = error?.message || 'Échec de la connexion. Veuillez réessayer.';
+      console.log('💥 Sign in catch error:', error);
       
-      console.log('💥 Catch block error:', errorMessage);
-      
-      // Also ignore email confirmation errors in catch block
-      if (errorMessage.toLowerCase().includes('email not confirmed') || 
-          errorMessage.toLowerCase().includes('email_not_confirmed') ||
-          errorMessage.toLowerCase().includes('confirm') ||
-          errorMessage.toLowerCase().includes('verification')) {
-        
-        console.log('🚫 Ignoring email confirmation error in catch block');
-        return { error: null };
+      if (error.message === 'Sign in timeout') {
+        setError('Connexion timeout. Veuillez réessayer.');
+      } else {
+        setError(error?.message || 'Échec de la connexion. Veuillez réessayer.');
       }
       
-      setError(errorMessage);
-      if (import.meta.env.DEV) {
-        console.error('Sign in error:', error);
-      }
       return { error };
     } finally {
       setLoading(false);
