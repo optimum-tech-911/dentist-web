@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useEmailConfirmation } from '@/hooks/useEmailConfirmation';
 import { Navigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import { AlertCircle, RefreshCw, Mail } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,9 +16,6 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
-  
-  // Email confirmation hook
-  const { sendConfirmationEmail, isLoading: emailLoading } = useEmailConfirmation();
   
   // Add error boundary for useAuth hook
   let authData;
@@ -95,22 +91,11 @@ export default function Auth() {
             variant: "destructive"
           });
         } else {
-          // Send confirmation email
-          const emailResult = await sendConfirmationEmail(email, name);
-          
-          if (emailResult.success) {
-            toast({
-              title: "Compte créé ! 🎉",
-              description: "Email de bienvenue envoyé ! Redirection vers l'accueil...",
-              duration: 3000,
-            });
-          } else {
-            toast({
-              title: "Compte créé ! 🎉",
-              description: "Votre compte a été créé avec succès. Redirection vers l'accueil...",
-              duration: 3000,
-            });
-          }
+          toast({
+            title: "Compte créé ! 🎉",
+            description: "Votre compte a été créé avec succès. Redirection vers l'accueil...",
+            duration: 3000,
+          });
           // Redirect to home page after successful signup
           setTimeout(() => {
             window.location.href = '/';
@@ -238,15 +223,15 @@ export default function Auth() {
                 </div>
                 {!isLogin && (
                   <div className="space-y-2">
-                                      <Label htmlFor="name">Nom (Optionnel)</Label>
-                  <Input
-                    id="name"
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Votre nom complet"
-                    disabled={loading}
-                  />
+                    <Label htmlFor="name">Nom (Optionnel)</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Votre nom complet"
+                      disabled={loading}
+                    />
                   </div>
                 )}
                 <div className="space-y-2">
@@ -273,17 +258,14 @@ export default function Auth() {
                     </Button>
                   </div>
                 )}
-                <Button type="submit" className="w-full" disabled={loading || emailLoading}>
-                  {loading || emailLoading ? (
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
                     <>
                       <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      {emailLoading ? 'Envoi de l\'email de bienvenue...' : 'Veuillez patienter...'}
+                      Veuillez patienter...
                     </>
                   ) : (
-                    <>
-                      {!isLogin && <Mail className="mr-2 h-4 w-4" />}
-                      {isLogin ? 'Se connecter' : 'S\'inscrire et envoyer email de bienvenue'}
-                    </>
+                    isLogin ? 'Se connecter' : 'S\'inscrire'
                   )}
                 </Button>
               </form>
