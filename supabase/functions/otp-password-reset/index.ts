@@ -53,7 +53,7 @@ serve(async (req) => {
 
     // Send OTP via email
     const { data: emailData, error: emailError } = await resend.emails.send({
-      from: 'UFSBD Hérault <ufsbd34@ufsbd.fr>',
+      from: 'UFSBD Hérault <onboarding@resend.dev>',
       to: email,
       subject: 'Code de vérification - Réinitialisation de mot de passe',
       html: `
@@ -103,11 +103,11 @@ serve(async (req) => {
             </p>
           </div>
           
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                      <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
             <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
               Cet email a été envoyé par UFSBD Hérault<br>
-              <strong>Contact :</strong> ufsbd34@ufsbd.fr<br>
-              <strong>Site web :</strong> <a href="https://ufsbd34.fr" style="color: #2563eb;">ufsbd34.fr</a>
+              <strong>Contact :</strong> contact@ufsbd-herault.fr<br>
+              <strong>Site web :</strong> <a href="https://your-website.com" style="color: #2563eb;">UFSBD Hérault</a>
             </p>
           </div>
         </div>
@@ -125,8 +125,8 @@ Ce code expire dans 10 minutes.
 
 Si vous n'avez pas demandé cette réinitialisation, ignorez cet email.
 
-Contact: ufsbd34@ufsbd.fr
-Site: ufsbd34.fr
+Contact: contact@ufsbd-herault.fr
+Site: UFSBD Hérault
       `
     })
 
