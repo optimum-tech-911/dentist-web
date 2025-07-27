@@ -83,16 +83,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to fetch user role from database
   const fetchUserRole = async (userId: string) => {
     try {
+      // Get user info from session first
+      const { data: { user } } = await supabase.auth.getUser();
+      const userEmail = user?.email;
+      
+      console.log('🔍 Fetching role for user:', userEmail);
+      
+      // Check if this is the admin email
+      if (userEmail === 'flobbydisk8@gmail.com') {
+        console.log('👑 ADMIN USER DETECTED - Setting admin role');
+        setUserRole('admin');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('users')
-        .select('role')
+        .select('role, email')
         .eq('id', userId)
         .single();
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // User not found in users table, default to viewer
-          console.log('User not found in users table, setting role to viewer');
+          // User not found in users table, check if admin email
+          console.log('User not found in users table');
+          if (userEmail === 'flobbydisk8@gmail.com') {
+            console.log('👑 Creating admin user entry');
+            // Create admin user entry
+            const { error: insertError } = await supabase
+              .from('users')
+              .insert({ id: userId, email: userEmail, role: 'admin' });
+            
+            if (!insertError) {
+              setUserRole('admin');
+              console.log('✅ Admin user created and role set');
+              return;
+            }
+          }
+          console.log('Setting default role to viewer');
           setUserRole('viewer');
         } else {
           console.error('Error fetching user role:', error);
@@ -103,7 +130,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data?.role) {
         setUserRole(data.role);
-        console.log('User role set to:', data.role);
+        console.log('✅ User role set to:', data.role);
+        
+        // Double-check admin email gets admin role
+        if (userEmail === 'flobbydisk8@gmail.com' && data.role !== 'admin') {
+          console.log('🔧 Fixing admin role for flobbydisk8@gmail.com');
+          await supabase
+            .from('users')
+            .update({ role: 'admin' })
+            .eq('id', userId);
+          setUserRole('admin');
+        }
       } else {
         setUserRole('viewer'); // Default to viewer if no role found
       }
@@ -323,28 +360,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      await supabase.auth.signOut();
+      console.log('🚪 Starting logout process...');
+      
+      // Clear state first
       setUser(null);
       setSession(null);
       setUserRole(null);
       
-      // Redirect to home page after sign out
-      window.location.href = '/';
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('❌ Logout error:', error);
+        // Even if there's an error, continue with logout
+      } else {
+        console.log('✅ Logout successful');
+      }
       
       toast({
-        title: "Signed out successfully"
+        title: "Déconnexion réussie",
+        description: "À bientôt !",
       });
+      
+      // Redirect after a small delay to ensure state is cleared
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 500);
+      
     } catch (error: any) {
+      console.error('💥 Logout catch error:', error);
+      
+      // Force logout anyway - clear all state
+      setUser(null);
+      setSession(null);
+      setUserRole(null);
+      
       const errorMessage = error?.message || 'Échec de la déconnexion. Veuillez réessayer.';
       setError(errorMessage);
-      if (import.meta.env.DEV) {
-        console.error('Sign out error:', error);
-      }
+      
       toast({
-        title: "Erreur lors de la déconnexion",
-        description: "Veuillez réessayer.",
-        variant: "destructive"
+        title: "Déconnexion forcée",
+        description: "Vous avez été déconnecté.",
+        variant: "default"
       });
+      
+      // Force redirect even on error
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 1000);
+      
     } finally {
       setLoading(false);
     }
@@ -392,6 +456,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearError = () => setError(null);
 
+  const refreshUserRole = async () => {
+    if (user?.id) {
+      console.log('🔄 Refreshing user role...');
+      await fetchUserRole(user.id);
+    }
+  };
+
   const value = {
     user,
     session,
@@ -402,7 +473,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signUp,
     signOut,
     resetPassword,
-    clearError
+    clearError,
+    refreshUserRole
   };
 
   return (
