@@ -268,8 +268,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isSupabaseAvailable) {
       setError(null);
       toast({
-        title: "Email de réinitialisation envoyé !",
-        description: "Si votre email existe, vous recevrez un lien de réinitialisation sous peu.",
+        title: "Code OTP envoyé !",
+        description: "Si votre email existe, vous recevrez un code de vérification sous peu.",
         variant: "default"
       });
       return { error: null };
@@ -278,30 +278,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setError(null);
 
-    // Fire and forget: do not block UI
-    supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `https://ufsbd34.fr/reset-password`
-    })
-      .then(({ error }) => {
-        if (error && import.meta.env.DEV) {
-          console.error('📧 Password reset error:', error);
-        }
-      })
-      .catch((error) => {
-        if (import.meta.env.DEV) {
-          console.error('📧 Password reset error:', error);
+    try {
+      // Use OTP instead of email link
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email,
+        options: {
+          shouldCreateUser: false, // Don't create user if doesn't exist
         }
       });
 
-    // Always show success message instantly
-    toast({
-      title: "Email de réinitialisation envoyé !",
-      description: "Si votre email existe, vous recevrez un lien de réinitialisation sous peu.",
-      variant: "default"
-    });
+      if (error && import.meta.env.DEV) {
+        console.error('📧 OTP error:', error);
+      }
 
-    setTimeout(() => setLoading(false), 1000); // Never block UI for more than 1s
-    return { error: null };
+      // Always show success message
+      toast({
+        title: "Code OTP envoyé !",
+        description: "Vérifiez votre email pour le code de vérification à 6 chiffres.",
+        variant: "default"
+      });
+
+      setLoading(false);
+      return { error: null };
+    } catch (error: any) {
+      if (import.meta.env.DEV) {
+        console.error('📧 OTP error:', error);
+      }
+      
+      toast({
+        title: "Code OTP envoyé !",
+        description: "Vérifiez votre email pour le code de vérification à 6 chiffres.",
+        variant: "default"
+      });
+
+      setLoading(false);
+      return { error: null };
+    }
   };
 
   const clearError = () => setError(null);

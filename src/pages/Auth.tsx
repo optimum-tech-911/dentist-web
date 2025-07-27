@@ -8,14 +8,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from '@/hooks/use-toast';
-import { AlertCircle, RefreshCw, Mail } from 'lucide-react';
+import { AlertCircle, RefreshCw, Mail, CheckCircle } from 'lucide-react';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOtpVerification, setShowOtpVerification] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   
   // Email confirmation hook
@@ -139,16 +142,14 @@ export default function Auth() {
       const { error } = await resetPassword(email);
       if (error) {
         toast({
-          title: "Erreur lors de l'envoi de l'email",
+          title: "Erreur lors de l'envoi du code",
           description: error.message,
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "Email de réinitialisation envoyé !",
-          description: "Veuillez vérifier votre boîte mail pour les instructions de réinitialisation du mot de passe."
-        });
+        // Show OTP verification step
         setShowForgotPassword(false);
+        setShowOtpVerification(true);
       }
     } catch (error) {
       console.error('Password reset error:', error);
@@ -157,6 +158,70 @@ export default function Auth() {
         description: "Veuillez réessayer plus tard.",
         variant: "destructive"
       });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (otp.length !== 6) {
+      toast({
+        title: "Code invalide",
+        description: "Veuillez entrer le code à 6 chiffres.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setLoading(true);
+    clearError();
+
+    try {
+      // Import supabase client
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
+      });
+
+      if (error) {
+        toast({
+          title: "Code invalide",
+          description: "Le code OTP est incorrect ou a expiré.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (data.session) {
+        toast({
+          title: "Code vérifié !",
+          description: "Vous pouvez maintenant définir votre nouveau mot de passe.",
+        });
+        setShowOtpVerification(false);
+        // User is now authenticated, they can change their password in their profile
+        // For simplicity, redirect to a password change or show inline form
+        window.location.href = '/'; // Redirect to profile where they can change password
+      }
+    } catch (error) {
+      console.error('OTP verification error:', error);
+      toast({
+        title: "Erreur de vérification",
+        description: "Veuillez réessayer.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    try {
+      await resetPassword(email);
     } finally {
       setLoading(false);
     }
@@ -178,15 +243,26 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>
-            {showForgotPassword 
-              ? 'Réinitialiser le mot de passe' 
-              : (isLogin ? 'Connexion' : 'Inscription')
-            }
+          <CardTitle className="flex items-center gap-2">
+            {showOtpVerification ? (
+              <>
+                <CheckCircle className="h-5 w-5" />
+                Vérifier le code OTP
+              </>
+            ) : showForgotPassword ? (
+              <>
+                <Mail className="h-5 w-5" />
+                Réinitialiser le mot de passe
+              </>
+            ) : (
+              isLogin ? 'Connexion' : 'Inscription'
+            )}
           </CardTitle>
           <CardDescription>
-            {showForgotPassword 
-              ? 'Saisissez votre email pour recevoir les instructions de réinitialisation'
+            {showOtpVerification
+              ? `Entrez le code à 6 chiffres envoyé à ${email}`
+              : showForgotPassword 
+              ? 'Saisissez votre email pour recevoir un code de vérification'
               : (isLogin 
                 ? 'Saisissez vos identifiants pour accéder à votre compte'
                 : 'Créez un nouveau compte pour commencer'
@@ -213,7 +289,65 @@ export default function Auth() {
             </Alert>
           )}
 
-          {showForgotPassword ? (
+          {showOtpVerification ? (
+            <form onSubmit={handleVerifyOtp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="otp">Code de vérification</Label>
+                <div className="flex justify-center">
+                  <InputOTP
+                    maxLength={6}
+                    value={otp}
+                    onChange={setOtp}
+                    disabled={loading}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </div>
+
+              <Button type="submit" className="w-full" disabled={loading || otp.length !== 6}>
+                {loading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Vérification...
+                  </>
+                ) : (
+                  'Vérifier le code'
+                )}
+              </Button>
+
+              <div className="text-center space-y-2">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={handleResendOtp}
+                  disabled={loading}
+                  className="text-sm"
+                >
+                  Renvoyer le code
+                </Button>
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => {
+                    setShowOtpVerification(false);
+                    setOtp('');
+                  }}
+                  className="text-sm"
+                  disabled={loading}
+                >
+                  Retour à la connexion
+                </Button>
+              </div>
+            </form>
+          ) : showForgotPassword ? (
             <form onSubmit={handleForgotPassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="reset-email">Email</Label>
@@ -233,20 +367,10 @@ export default function Auth() {
                     Envoi en cours...
                   </>
                 ) : (
-                  'Envoyer l\'email de réinitialisation'
+                  'Envoyer le code OTP'
                 )}
               </Button>
-              <div className="text-center space-y-2">
-                <div className="text-sm text-muted-foreground">ou</div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => window.location.href = '/otp-reset'}
-                  className="w-full text-sm"
-                  disabled={loading}
-                >
-                  Utiliser un code OTP (recommandé)
-                </Button>
+              <div className="text-center">
                 <Button
                   type="button"
                   variant="link"

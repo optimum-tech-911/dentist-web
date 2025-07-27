@@ -22,7 +22,6 @@ const WriteBlog = lazy(() => import("./pages/WriteBlog").catch(() => ({ default:
 const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: () => <FallbackPage title="Edit Blog" /> })));
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
 const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(() => ({ default: () => <FallbackPage title="Password Reset" /> })));
-const OtpPasswordReset = lazy(() => import("./components/OtpPasswordReset").catch(() => ({ default: () => <FallbackPage title="OTP Password Reset" /> })));
 const NotFound = lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <FallbackPage title="Page introuvable" /> })));
 
 // Admin components
@@ -124,7 +123,6 @@ const App = () => {
                 <Route path="/auth" element={<SafeRoute><Auth /></SafeRoute>} />
                 <Route path="/reset-password" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/reset-password/*" element={<SafeRoute><PasswordReset /></SafeRoute>} />
-                <Route path="/otp-reset" element={<SafeRoute><OtpPasswordReset /></SafeRoute>} />
                 <Route path="/blog" element={<SafeRoute><Blog /></SafeRoute>} />
                 <Route path="/blog/:id" element={<SafeRoute><BlogPost /></SafeRoute>} />
                 <Route path="/edit/:id" element={<SafeRoute><EditBlog /></SafeRoute>} />
