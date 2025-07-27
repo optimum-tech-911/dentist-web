@@ -14,6 +14,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
   clearError: () => void;
+  refreshUserRole: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -52,6 +53,10 @@ const createFallbackAuthProvider = () => {
 
   const clearError = () => setError(null);
 
+  const refreshUserRole = async () => {
+    // No-op for fallback provider
+  };
+
   return {
     user,
     session,
@@ -62,7 +67,8 @@ const createFallbackAuthProvider = () => {
     signUp,
     signOut,
     resetPassword,
-    clearError
+    clearError,
+    refreshUserRole
   };
 };
 
@@ -73,6 +79,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false); // Set to false by default for instant UI
   const [error, setError] = useState<string | null>(null);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
+
+  // Function to fetch user role from database
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        if (error.code === 'PGRST116') {
+          // User not found in users table, default to viewer
+          console.log('User not found in users table, setting role to viewer');
+          setUserRole('viewer');
+        } else {
+          console.error('Error fetching user role:', error);
+          setUserRole('viewer'); // Default to viewer on error
+        }
+        return;
+      }
+
+      if (data?.role) {
+        setUserRole(data.role);
+        console.log('User role set to:', data.role);
+      } else {
+        setUserRole('viewer'); // Default to viewer if no role found
+      }
+    } catch (error) {
+      console.error('Error in fetchUserRole:', error);
+      setUserRole('viewer'); // Default to viewer on error
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -97,19 +136,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
     testSupabaseConnection(); // Run in background
 
-    // Setup auth listener as before (but do not block UI)
+    // Setup auth listener with role fetching
     const setupAuthListener = async () => {
-      authSubscription = supabase.auth.onAuthStateChange((_event, session) => {
+      authSubscription = supabase.auth.onAuthStateChange(async (_event, session) => {
         if (!isMounted) return;
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Fetch user role from database when user is authenticated
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        } else {
+          setUserRole(null);
+        }
+        
         setLoading(false);
       });
+      
       // Initial session check
       const { data: { session } } = await supabase.auth.getSession();
       if (isMounted) {
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Fetch user role on initial load
+        if (session?.user) {
+          await fetchUserRole(session.user.id);
+        }
+        
         setLoading(false);
       }
     };
