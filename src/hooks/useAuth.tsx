@@ -219,13 +219,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const redirectUrl = "https://ufsbd34.fr/";
       const { error } = await supabase.auth.signUp({
         email,
-        password,
-        options: {
-          emailRedirectTo: redirectUrl
-        }
+        password
       });
       
       if (!error) {
