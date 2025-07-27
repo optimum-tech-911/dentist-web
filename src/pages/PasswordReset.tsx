@@ -29,7 +29,6 @@ export default function PasswordReset() {
 
   useEffect(() => {
     const handleReset = async () => {
-      // Debug: Log all URL parameters
       console.log('🔍 Password Reset Debug:', {
         accessToken: accessToken ? 'present' : 'missing',
         refreshToken: refreshToken ? 'present' : 'missing',
@@ -38,38 +37,39 @@ export default function PasswordReset() {
         allParams: Object.fromEntries(searchParams.entries())
       });
 
-      // Check if this is a password reset flow
+      // Quick validation - if we have any reset parameters, show the form
       if (type === 'recovery' && accessToken) {
         try {
-          // Set the session with the access token
+          console.log('🔍 Setting session with access token...');
           const { data, error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken || ''
           });
           
           if (data.user && !error) {
+            console.log('🔍 Session set successfully for:', data.user.email);
             setUserEmail(data.user.email);
             setIsValidReset(true);
           } else {
-            console.error('Error setting session:', error);
-            navigate('/auth', { replace: true });
+            console.error('🔍 Error setting session:', error);
+            // Don't redirect immediately, show form anyway
+            setIsValidReset(true);
           }
         } catch (err) {
-          console.error('Error handling reset:', err);
-          navigate('/auth', { replace: true });
+          console.error('🔍 Error handling reset:', err);
+          // Don't redirect immediately, show form anyway
+          setIsValidReset(true);
         }
-      } else if (email) {
-        // Fallback for direct email parameter (less secure, but for debugging/older links)
-        setUserEmail(email);
-        setIsValidReset(true);
       } else {
-        // Not a valid reset flow, redirect to login or show basic form
-        console.log('🔍 No valid parameters, showing basic reset form');
-        setIsValidReset(true); // Allow showing the form even without full params for debugging
+        // Show form for any reset attempt
+        console.log('🔍 Showing reset form');
+        setIsValidReset(true);
       }
     };
 
-    handleReset();
+    // Add a small delay to prevent flash of loading screen
+    const timer = setTimeout(handleReset, 100);
+    return () => clearTimeout(timer);
   }, [accessToken, refreshToken, type, email, navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,27 +89,45 @@ export default function PasswordReset() {
     setError(null);
 
     try {
-      // Update password using Supabase with the access token
-      const { error } = await supabase.auth.updateUser({
+      console.log('🔧 Updating password...');
+      
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      // Update password using Supabase
+      const updatePromise = supabase.auth.updateUser({
         password: password
       });
+      
+      const { data, error } = await Promise.race([updatePromise, timeoutPromise]) as any;
+
+      console.log('🔧 Update result:', { data, error });
 
       if (error) {
+        console.error('🔧 Password update error:', error);
         setError(error.message);
+        setLoading(false);
         return;
       }
+
+      console.log('🔧 Password updated successfully!');
 
       toast({
         title: "Mot de passe mis à jour !",
         description: "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
       });
 
-      // Redirect to login page
-      navigate('/auth', { replace: true });
+      // Small delay to show the success message
+      setTimeout(() => {
+        console.log('🔧 Redirecting to login page...');
+        navigate('/auth', { replace: true });
+      }, 1000);
       
     } catch (error: any) {
+      console.error('🔧 Unexpected error:', error);
       setError(error.message || 'Une erreur est survenue lors de la réinitialisation du mot de passe.');
-    } finally {
       setLoading(false);
     }
   };
@@ -145,17 +163,6 @@ export default function PasswordReset() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={userEmail || 'Chargement...'}
-                disabled
-                className="bg-gray-50"
-              />
-            </div>
-            
             <div className="space-y-2">
               <Label htmlFor="password">Nouveau mot de passe</Label>
               <div className="relative">
