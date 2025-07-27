@@ -23,6 +23,9 @@ const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: (
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
 const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(() => ({ default: () => <FallbackPage title="Password Reset" /> })));
 const OTPPasswordReset = lazy(() => import("./pages/OTPPasswordReset").catch(() => ({ default: () => <FallbackPage title="OTP Password Reset" /> })));
+const PasswordResetEmail = lazy(() => import("./pages/PasswordResetEmail").catch(() => ({ default: () => <FallbackPage title="Password Reset Email" /> })));
+const VerifyOTP = lazy(() => import("./pages/VerifyOTP").catch(() => ({ default: () => <FallbackPage title="Verify OTP" /> })));
+const ResetPasswordNew = lazy(() => import("./pages/ResetPasswordNew").catch(() => ({ default: () => <FallbackPage title="Reset Password" /> })));
 const NotFound = lazy(() => import("./pages/NotFound").catch(() => ({ default: () => <FallbackPage title="Page introuvable" /> })));
 
 // Admin components
@@ -125,6 +128,9 @@ const App = () => {
                 <Route path="/reset-password" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/reset-password/*" element={<SafeRoute><PasswordReset /></SafeRoute>} />
                 <Route path="/otp-reset-password" element={<SafeRoute><OTPPasswordReset /></SafeRoute>} />
+                <Route path="/reset-password-email" element={<SafeRoute><PasswordResetEmail /></SafeRoute>} />
+                <Route path="/verify-otp" element={<SafeRoute><VerifyOTP /></SafeRoute>} />
+                <Route path="/reset-password-new" element={<SafeRoute><ResetPasswordNew /></SafeRoute>} />
                 <Route path="/blog" element={<SafeRoute><Blog /></SafeRoute>} />
                 <Route path="/blog/:id" element={<SafeRoute><BlogPost /></SafeRoute>} />
                 <Route path="/edit/:id" element={<SafeRoute><EditBlog /></SafeRoute>} />
