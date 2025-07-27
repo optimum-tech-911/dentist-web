@@ -113,9 +113,19 @@ file_size_limit = "50MiB"
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://localhost:8081"
+site_url = "https://ufsbd34.fr"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["http://localhost:8081", "http://127.0.0.1:8081", "http://localhost:8081/auth", "http://127.0.0.1:8081/auth"]
+additional_redirect_urls = [
+  "https://ufsbd34.fr",
+  "https://ufsbd34.fr/auth", 
+  "https://ufsbd34.fr/reset-password",
+  "http://localhost:8081",
+  "http://127.0.0.1:8081", 
+  "http://localhost:8081/auth", 
+  "http://127.0.0.1:8081/auth",
+  "http://localhost:8081/reset-password",
+  "http://127.0.0.1:8081/reset-password"
+]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # If disabled, the refresh token will never expire.

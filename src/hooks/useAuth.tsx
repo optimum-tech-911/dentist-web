@@ -280,7 +280,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Fire and forget: do not block UI
     supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`
+      redirectTo: `https://ufsbd34.fr/reset-password`
     })
       .then(({ error }) => {
         if (error && import.meta.env.DEV) {
