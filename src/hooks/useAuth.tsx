@@ -306,148 +306,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       setError(null);
       
-      // Use fast direct Resend API with timeout protection
-      const RESEND_API_KEY = 're_PKY25c41_AZLTLYzknWWNygBm9eacocSt';
-      const resetLink = `${window.location.origin}/reset-password`;
+      console.log('📧 Sending password reset email via Supabase...');
       
-      console.log('📧 Sending fast password reset email...');
-      
-      // Create a timeout promise
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 8000) // 8 second timeout
-      );
-      
-      // Create the fetch promise
-      const fetchPromise = fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${RESEND_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          from: 'UFSBD Hérault <onboarding@resend.dev>',
-          to: email,
-          subject: 'Réinitialisation de mot de passe - UFSBD Hérault',
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-              <div style="text-align: center; margin-bottom: 30px;">
-                <h1 style="color: #2563eb; margin: 0;">UFSBD Hérault</h1>
-                <p style="color: #6b7280; margin: 5px 0;">Union Française pour la Santé Bucco-Dentaire</p>
-              </div>
-              
-              <div style="background-color: #f8fafc; padding: 30px; border-radius: 8px; border-left: 4px solid #2563eb;">
-                <h2 style="color: #1e293b; margin-top: 0;">Réinitialisation de mot de passe</h2>
-                
-                <p style="color: #374151; line-height: 1.6;">Bonjour,</p>
-                
-                <p style="color: #374151; line-height: 1.6;">
-                  Vous avez demandé la réinitialisation de votre mot de passe pour votre compte UFSBD Hérault.
-                </p>
-                
-                <p style="color: #374151; line-height: 1.6;">
-                  Cliquez sur le bouton ci-dessous pour réinitialiser votre mot de passe :
-                </p>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="${resetLink}" 
-                     style="background-color: #2563eb; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-                    Réinitialiser le mot de passe
-                  </a>
-                </div>
-                
-                <div style="background-color: #fef3c7; border: 1px solid #f59e0b; border-radius: 6px; padding: 15px; margin: 20px 0;">
-                  <p style="color: #92400e; margin: 0; font-size: 14px;">
-                    <strong>⚠️ Important :</strong> Ce lien expirera dans 1 heure pour des raisons de sécurité.
-                  </p>
-                </div>
-                
-                <p style="color: #374151; line-height: 1.6;">
-                  Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email en toute sécurité.
-                </p>
-              </div>
-              
-              <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                <p style="color: #6b7280; font-size: 14px; text-align: center; margin: 0;">
-                  Cet email a été envoyé par UFSBD Hérault<br>
-                  <strong>Contact :</strong> ufsbd34@ufsbd.fr<br>
-                  <strong>Site web :</strong> <a href="https://ufsbd34.fr" style="color: #2563eb;">ufsbd34.fr</a>
-                </p>
-              </div>
-            </div>
-          `
-        })
+      // Use Supabase's built-in password reset (more reliable)
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`
       });
       
-      // Race between fetch and timeout
-      const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
-      
-      const data = await response.json();
-      
-      if (response.ok) {
-        console.log('📧 Fast email sent successfully:', data.id);
-        toast({
-          title: "Email de réinitialisation envoyé !",
-          description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
-          variant: "default"
-        });
-        return { error: null };
-      } else {
-        console.error('📧 Fast email error:', data);
-        // Fallback to Supabase if Resend fails
-        console.log('📧 Falling back to Supabase...');
-        try {
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: resetLink
-          });
-          
-          if (error) {
-            setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
-            return { error };
-          }
-          
-          toast({
-            title: "Email de réinitialisation envoyé !",
-            description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
-            variant: "default"
-          });
-          return { error: null };
-        } catch (fallbackError) {
-          console.error('📧 Fallback also failed:', fallbackError);
-          setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
-          return { error: fallbackError };
-        }
-      }
-      
-    } catch (error: any) {
-      console.error('📧 Password reset error:', error);
-      
-      // Handle timeout specifically
-      if (error.message === 'Request timeout') {
-        console.log('📧 Request timed out, trying Supabase fallback...');
-        try {
-          const { error: supabaseError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`
-          });
-          
-          if (supabaseError) {
-            setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
-            return { error: supabaseError };
-          }
-          
-          toast({
-            title: "Email de réinitialisation envoyé !",
-            description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
-            variant: "default"
-          });
-          return { error: null };
-        } catch (fallbackError) {
-          setError('Service temporairement indisponible. Veuillez réessayer dans quelques minutes.');
-          return { error: fallbackError };
-        }
-      } else {
+      if (error) {
+        console.error('📧 Password reset error:', error);
         setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
         return { error };
       }
+      
+      console.log('📧 Password reset email sent successfully!');
+      toast({
+        title: "Email de réinitialisation envoyé !",
+        description: "Veuillez vérifier votre boîte mail (et dossier spam) pour les instructions de réinitialisation du mot de passe.",
+        variant: "default"
+      });
+      
+      return { error: null };
+      
+    } catch (error: any) {
+      console.error('📧 Password reset error:', error);
+      setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+      return { error };
     } finally {
       setLoading(false);
     }
