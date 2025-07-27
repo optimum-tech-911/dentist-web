@@ -51,11 +51,7 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
     return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
-  // Special case for flobbydisk8@gmail.com - always allow admin access
-  if (user.email === 'flobbydisk8@gmail.com') {
-    console.log('👑 Admin email detected - allowing access');
-    return <>{children}</>;
-  }
+  // Remove hardcoded email check - let database role handle it
 
   if (requiredRole) {
     const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];

@@ -83,69 +83,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to fetch user role from database
   const fetchUserRole = async (userId: string) => {
     try {
-      // Get user info from session first
-      const { data: { user } } = await supabase.auth.getUser();
-      const userEmail = user?.email;
-      
-      console.log('🔍 Fetching role for user:', userEmail);
-      
-      // Check if this is the admin email
-      if (userEmail === 'flobbydisk8@gmail.com') {
-        console.log('👑 ADMIN USER DETECTED - Setting admin role');
-        setUserRole('admin');
-        return;
-      }
+      console.log('🔍 Fetching role for userId:', userId);
 
       const { data, error } = await supabase
         .from('users')
-        .select('role, email')
+        .select('role, email, id')
         .eq('id', userId)
         .single();
 
       if (error) {
+        console.error('❌ Error fetching user role:', error);
+        
         if (error.code === 'PGRST116') {
-          // User not found in users table, check if admin email
-          console.log('User not found in users table');
-          if (userEmail === 'flobbydisk8@gmail.com') {
-            console.log('👑 Creating admin user entry');
-            // Create admin user entry
+          console.log('⚠️ User not found in users table');
+          
+          // Get user email from auth to create entry
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user?.email) {
+            console.log('📝 Creating user entry for:', user.email);
+            
+            // Create user entry with default viewer role
             const { error: insertError } = await supabase
               .from('users')
-              .insert({ id: userId, email: userEmail, role: 'admin' });
+              .insert({ 
+                id: userId, 
+                email: user.email, 
+                role: 'viewer' 
+              });
             
             if (!insertError) {
-              setUserRole('admin');
-              console.log('✅ Admin user created and role set');
-              return;
+              console.log('✅ User entry created with viewer role');
+              setUserRole('viewer');
+            } else {
+              console.error('❌ Failed to create user entry:', insertError);
+              setUserRole('viewer');
             }
+          } else {
+            setUserRole('viewer');
           }
-          console.log('Setting default role to viewer');
-          setUserRole('viewer');
         } else {
-          console.error('Error fetching user role:', error);
-          setUserRole('viewer'); // Default to viewer on error
+          setUserRole('viewer'); // Default to viewer on other errors
         }
         return;
       }
 
       if (data?.role) {
+        console.log(`✅ User role found in database: ${data.role} for ${data.email}`);
         setUserRole(data.role);
-        console.log('✅ User role set to:', data.role);
-        
-        // Double-check admin email gets admin role
-        if (userEmail === 'flobbydisk8@gmail.com' && data.role !== 'admin') {
-          console.log('🔧 Fixing admin role for flobbydisk8@gmail.com');
-          await supabase
-            .from('users')
-            .update({ role: 'admin' })
-            .eq('id', userId);
-          setUserRole('admin');
-        }
       } else {
-        setUserRole('viewer'); // Default to viewer if no role found
+        console.log('⚠️ No role found in database, setting to viewer');
+        setUserRole('viewer');
       }
     } catch (error) {
-      console.error('Error in fetchUserRole:', error);
+      console.error('💥 Error in fetchUserRole:', error);
       setUserRole('viewer'); // Default to viewer on error
     }
   };
@@ -178,19 +168,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
         
-        console.log('Auth state change:', event, session ? 'Session exists' : 'No session');
+        console.log('🔄 Auth state change:', event, session ? `Session for ${session.user?.email}` : 'No session');
         
-        // FORCE ACCEPT ALL SESSIONS - ignore email confirmation completely
         if (session?.user) {
-          console.log('✅ ACCEPTING USER SESSION:', session.user.email);
-          console.log('📧 Email confirmation status:', session.user.email_confirmed_at ? 'CONFIRMED' : 'NOT CONFIRMED - BUT ALLOWING ANYWAY');
+          console.log(`👤 User session: ${session.user.email}`);
           
           // Clear any existing errors since we're accepting the session
           setError(null);
           
+          // Set session and user first
           setSession(session);
           setUser(session.user);
+          
+          // Fetch role from database
+          console.log('🔍 Fetching user role from database...');
           await fetchUserRole(session.user.id);
+          
         } else {
           console.log('❌ No session - clearing user state');
           setSession(null);
@@ -203,15 +196,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // Initial session check
       const { data: { session } } = await supabase.auth.getSession();
-      if (isMounted) {
+      if (isMounted && session?.user) {
+        console.log('🚀 Initial session found for:', session.user.email);
         setSession(session);
-        setUser(session?.user ?? null);
+        setUser(session.user);
         
         // Fetch user role on initial load
-        if (session?.user) {
-          await fetchUserRole(session.user.id);
-        }
+        console.log('🔍 Initial role fetch...');
+        await fetchUserRole(session.user.id);
         
+        setLoading(false);
+      } else if (isMounted) {
+        console.log('❌ No initial session found');
         setLoading(false);
       }
     };
