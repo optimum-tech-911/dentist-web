@@ -308,10 +308,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log('📧 Sending password reset email via Supabase...');
       
-      // Use Supabase's built-in password reset (more reliable)
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      // Add timeout to prevent browser hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000) // 10 second timeout
+      );
+      
+      // Use Supabase's built-in password reset with timeout
+      const resetPromise = supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`
       });
+      
+      const { error } = await Promise.race([resetPromise, timeoutPromise]) as any;
       
       if (error) {
         console.error('📧 Password reset error:', error);
@@ -330,7 +337,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
     } catch (error: any) {
       console.error('📧 Password reset error:', error);
-      setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+      
+      if (error.message === 'Request timeout') {
+        setError('La requête a pris trop de temps. Veuillez réessayer dans quelques minutes.');
+      } else {
+        setError('Échec de l\'envoi de l\'email de réinitialisation. Veuillez réessayer.');
+      }
       return { error };
     } finally {
       setLoading(false);
