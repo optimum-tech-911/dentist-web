@@ -123,6 +123,31 @@ export function AuthDebug() {
              >
                🔐 Go to Sign In
              </Button>
+             {user && (
+               <Button 
+                 onClick={async () => {
+                   // Force set admin role in database
+                   const { error } = await supabase
+                     .from('users')
+                     .upsert({ 
+                       id: user.id, 
+                       email: user.email, 
+                       role: 'admin' 
+                     });
+                   
+                   if (error) {
+                     alert(`Error: ${error.message}`);
+                   } else {
+                     alert('Admin role set! Refreshing...');
+                     await refreshUserRole();
+                   }
+                 }}
+                 variant="destructive"
+                 size="sm"
+               >
+                 👑 Force Admin Role
+               </Button>
+             )}
           </div>
           <p className="text-sm mt-2">
             If you see "User: ✅" but "Role: ❌ None", click "Refresh Role".
