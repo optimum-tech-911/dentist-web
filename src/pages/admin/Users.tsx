@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Shield } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface User {
@@ -16,6 +18,7 @@ interface User {
 export default function Users() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [adminEmail, setAdminEmail] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -69,6 +72,59 @@ export default function Users() {
     }
   };
 
+  const assignAdminByEmail = async () => {
+    if (!adminEmail.trim()) {
+      toast({
+        title: "Email requis",
+        description: "Veuillez saisir une adresse email",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // First, try to find user by email and update their role
+      const { data: existingUsers, error: fetchError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', adminEmail.trim());
+
+      if (fetchError) throw fetchError;
+
+      if (existingUsers && existingUsers.length > 0) {
+        // User exists, update their role
+        const { error } = await supabase
+          .from('users')
+          .update({ role: 'admin' })
+          .eq('email', adminEmail.trim());
+
+        if (error) throw error;
+
+        toast({
+          title: "Rôle admin assigné ! ✅",
+          description: `${adminEmail} a maintenant le rôle d'administrateur`,
+        });
+        
+        await fetchUsers(); // Refresh the list
+        setAdminEmail(''); // Clear the input
+      } else {
+        // User doesn't exist in public.users, check auth.users
+        toast({
+          title: "Utilisateur non trouvé",
+          description: "L'utilisateur doit d'abord créer un compte sur le site",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      console.error('Error assigning admin role:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible d'assigner le rôle d'administrateur",
+        variant: "destructive"
+      });
+    }
+  };
+
   const deleteUser = async (userId: string) => {
     if (!window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) return;
     try {
@@ -117,6 +173,37 @@ export default function Users() {
         <h1 className="text-3xl font-bold">Users</h1>
         <p className="text-muted-foreground">Manage user roles and permissions</p>
       </div>
+
+      {/* Quick Admin Assignment Section */}
+      <Card className="border-red-200 bg-red-50/50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-red-800">
+            <Shield className="h-5 w-5" />
+            Assigner un Rôle d'Administrateur
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Input
+              type="email"
+              placeholder="Saisir l'email de l'utilisateur..."
+              value={adminEmail}
+              onChange={(e) => setAdminEmail(e.target.value)}
+              className="flex-1"
+            />
+            <Button 
+              onClick={assignAdminByEmail}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Shield className="h-4 w-4 mr-2" />
+              Assigner Admin
+            </Button>
+          </div>
+          <p className="text-sm text-muted-foreground mt-2">
+            ⚠️ L'utilisateur doit d'abord avoir créé un compte sur le site
+          </p>
+        </CardContent>
+      </Card>
 
       <div className="space-y-4">
         {users.map((user) => (

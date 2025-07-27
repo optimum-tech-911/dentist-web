@@ -169,6 +169,12 @@ export default function AdminDashboard() {
               Page d'accueil
             </Link>
           </Button>
+          <Button asChild variant="outline">
+            <Link to="/admin/users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Gérer Utilisateurs
+            </Link>
+          </Button>
           <Button asChild className="bg-blue-600 hover:bg-blue-700">
             <Link to="/submit" className="flex items-center gap-2">
               <PenTool className="h-4 w-4" />
