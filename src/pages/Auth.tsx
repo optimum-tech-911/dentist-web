@@ -236,7 +236,17 @@ export default function Auth() {
                   'Envoyer l\'email de réinitialisation'
                 )}
               </Button>
-              <div className="text-center">
+              <div className="text-center space-y-2">
+                <div className="text-sm text-muted-foreground">ou</div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => window.location.href = '/otp-reset'}
+                  className="w-full text-sm"
+                  disabled={loading}
+                >
+                  Utiliser un code OTP (recommandé)
+                </Button>
                 <Button
                   type="button"
                   variant="link"
