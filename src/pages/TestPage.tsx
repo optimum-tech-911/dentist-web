@@ -1,5 +1,6 @@
 import React from 'react';
 import { EmailTest } from '@/components/EmailTest';
+import { AuthDebug } from '@/components/AuthDebug';
 
 export default function TestPage() {
   return (
@@ -11,6 +12,9 @@ export default function TestPage() {
         <p className="text-muted-foreground mb-6">
           If you can see this page, the basic React app is working correctly.
         </p>
+        
+        {/* Auth Debug Component */}
+        <AuthDebug />
         
         {/* Email Test Component */}
         <EmailTest />
