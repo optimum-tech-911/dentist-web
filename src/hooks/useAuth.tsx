@@ -80,14 +80,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
+  // Test Supabase connection
+  const testSupabaseConnection = async () => {
+    try {
+      console.log('🔍 Testing Supabase connection...');
+      const { data, error } = await supabase
+        .from('users')
+        .select('count')
+        .limit(1);
+      
+      if (error) {
+        console.error('❌ Supabase connection test failed:', error);
+        return false;
+      } else {
+        console.log('✅ Supabase connection test successful');
+        return true;
+      }
+    } catch (err) {
+      console.error('❌ Supabase connection test error:', err);
+      return false;
+    }
+  };
+
   // Function to fetch user role from database
   const fetchUserRole = async (userId: string) => {
     try {
       console.log('🔍 Fetching role for userId:', userId);
 
-      // Add timeout to prevent infinite loading
+      // Add timeout to prevent infinite loading (increased to 15 seconds)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Role fetch timeout')), 5000)
+        setTimeout(() => reject(new Error('Role fetch timeout')), 15000)
       );
 
       const roleFetchPromise = supabase
@@ -144,7 +166,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('💥 Error in fetchUserRole:', error);
-      setUserRole('viewer'); // Default to viewer on error
+      
+      // If it's a timeout error, try a simpler query
+      if (error.message === 'Role fetch timeout') {
+        console.log('⏰ Role fetch timed out, trying connection test...');
+        const isConnected = await testSupabaseConnection();
+        if (isConnected) {
+          console.log('✅ Database connection works, setting default role');
+          setUserRole('viewer');
+        } else {
+          console.error('❌ Database connection failed');
+          setUserRole('viewer');
+        }
+      } else {
+        setUserRole('viewer'); // Default to viewer on other errors
+      }
     }
   };
 
@@ -269,6 +305,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(data.user);
         
         // Fetch role in background, don't block the UI
+        // Set a default role immediately to prevent blocking
+        setUserRole('viewer');
         fetchUserRole(data.user.id).catch(err => 
           console.error('Role fetch error:', err)
         );
