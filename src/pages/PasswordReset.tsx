@@ -20,6 +20,7 @@ export default function PasswordReset() {
   const [error, setError] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isValidReset, setIsValidReset] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   // Get parameters from URL
   const accessToken = searchParams.get('access_token');
@@ -116,14 +117,18 @@ export default function PasswordReset() {
 
       toast({
         title: "Mot de passe mis à jour !",
-        description: "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.",
+        description: "Votre mot de passe a été réinitialisé avec succès. Redirection vers la page de connexion...",
       });
 
-      // Small delay to show the success message
+      // Show redirecting state
+      setIsRedirecting(true);
+
+      // Show success message and redirect
       setTimeout(() => {
         console.log('🔧 Redirecting to login page...');
-        navigate('/auth', { replace: true });
-      }, 1000);
+        // Force redirect to login page
+        window.location.href = '/auth';
+      }, 1500);
       
     } catch (error: any) {
       console.error('🔧 Unexpected error:', error);
@@ -138,6 +143,18 @@ export default function PasswordReset() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Vérification du lien de réinitialisation...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isRedirecting) { // Show redirecting state
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-500 mx-auto mb-4"></div>
+          <p className="text-green-600 font-medium mb-2">Mot de passe mis à jour avec succès !</p>
+          <p className="text-muted-foreground">Redirection vers la page de connexion...</p>
         </div>
       </div>
     );
