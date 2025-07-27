@@ -322,6 +322,53 @@ export type Database = {
             referencedColumns: ["id"]
           }
         ]
+      },
+      otp_password_reset: {
+        Row: {
+          id: number
+          user_id: string | null
+          user_email: string
+          otp_code: string
+          created_at: string | null
+          expires_at: string | null
+          used: boolean | null
+          used_at: string | null
+          attempts: number | null
+          max_attempts: number | null
+        }
+        Insert: {
+          id?: number
+          user_id?: string | null
+          user_email: string
+          otp_code: string
+          created_at?: string | null
+          expires_at?: string | null
+          used?: boolean | null
+          used_at?: string | null
+          attempts?: number | null
+          max_attempts?: number | null
+        }
+        Update: {
+          id?: number
+          user_id?: string | null
+          user_email?: string
+          otp_code?: string
+          created_at?: string | null
+          expires_at?: string | null
+          used?: boolean | null
+          used_at?: string | null
+          attempts?: number | null
+          max_attempts?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "otp_password_reset_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
@@ -348,7 +395,40 @@ export type Database = {
           user_email: string
           temp_password: string
         }
-        Returns: boolean
+      }
+      generate_password_reset_otp: {
+        Args: {
+          user_email: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+          otp_code?: string
+          user_email?: string
+          expires_at?: string
+        }
+      }
+      verify_otp_code: {
+        Args: {
+          user_email: string
+          otp_code: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+          otp_id?: number
+        }
+      }
+      verify_otp_and_reset_password: {
+        Args: {
+          user_email: string
+          otp_code: string
+          new_password: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+        }
       }
     }
     Enums: {
