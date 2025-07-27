@@ -144,6 +144,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Always accept the session regardless of email confirmation status
         if (session?.user) {
           console.log('Auth event:', event, 'User:', session.user.email);
+          console.log('User email_confirmed_at:', session.user.email_confirmed_at);
+          console.log('User confirmation status:', session.user.email_confirmed_at ? 'CONFIRMED' : 'NOT CONFIRMED');
           setSession(session);
           setUser(session.user);
           await fetchUserRole(session.user.id);
