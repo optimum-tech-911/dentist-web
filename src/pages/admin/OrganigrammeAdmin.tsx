@@ -79,6 +79,16 @@ export default function OrganigrammeAdmin() {
   };
 
   const handleDelete = async (id: string) => {
+    // Double-check permission before deletion
+    if (!hasPermission) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions pour supprimer des membres.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
       await OrganigramService.deleteMember(id);
       await fetchMembers(); // Refresh the list
@@ -98,6 +108,16 @@ export default function OrganigrammeAdmin() {
   };
 
   const handleMoveUp = async (id: string) => {
+    // Check permission before moving
+    if (!hasPermission) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions pour déplacer des membres.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const currentIndex = members.findIndex(m => m.id === id);
     if (currentIndex <= 0) return; // Already at top
     
@@ -126,6 +146,16 @@ export default function OrganigrammeAdmin() {
   };
 
   const handleMoveDown = async (id: string) => {
+    // Check permission before moving
+    if (!hasPermission) {
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les permissions pour déplacer des membres.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     const currentIndex = members.findIndex(m => m.id === id);
     if (currentIndex >= members.length - 1) return; // Already at bottom
     
