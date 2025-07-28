@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,7 +31,7 @@ export default function SimpleOTPReset() {
   const [canResend, setCanResend] = useState(false);
 
   // Timer for OTP expiration
-  useState(() => {
+  useEffect(() => {
     if (currentStep === 'otp' && timeLeft > 0) {
       const interval = setInterval(() => {
         setTimeLeft(prev => {
@@ -46,7 +46,7 @@ export default function SimpleOTPReset() {
 
       return () => clearInterval(interval);
     }
-  });
+  }, [currentStep, timeLeft]);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,11 +72,11 @@ export default function SimpleOTPReset() {
       setCurrentStep('otp');
       
       toast({
-        title: "OTP envoyé !",
-        description: `Code OTP envoyé à ${email}. Vérifiez votre boîte email.`,
+        title: "Email envoyé !",
+        description: `Un email de réinitialisation a été envoyé à ${email}. Vérifiez votre boîte email et cliquez sur le lien.`,
       });
     } catch (error) {
-      setError('Erreur lors de l\'envoi du code OTP.');
+      setError('Erreur lors de l\'envoi de l\'email.');
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ export default function SimpleOTPReset() {
       const result = await sendOTPEmail(email);
       
       if (!result.success) {
-        setError(result.error || 'Erreur lors de l\'envoi du code OTP.');
+        setError(result.error || 'Erreur lors de l\'envoi de l\'email.');
         return;
       }
 
@@ -169,11 +169,11 @@ export default function SimpleOTPReset() {
       setCanResend(false);
       
       toast({
-        title: "Nouveau OTP envoyé !",
-        description: `Nouveau code OTP envoyé à ${email}. Vérifiez votre boîte email.`,
+        title: "Email renvoyé !",
+        description: `Un nouvel email de réinitialisation a été envoyé à ${email}.`,
       });
     } catch (error) {
-      setError('Erreur lors de l\'envoi du code OTP.');
+      setError('Erreur lors de l\'envoi de l\'email.');
     } finally {
       setLoading(false);
     }
@@ -208,7 +208,7 @@ export default function SimpleOTPReset() {
               {currentStep === 'password' && 'Nouveau mot de passe'}
             </CardTitle>
             <CardDescription>
-              {currentStep === 'email' && 'Saisissez votre email pour recevoir un code OTP'}
+              {currentStep === 'email' && 'Saisissez votre email pour recevoir un lien de réinitialisation'}
               {currentStep === 'otp' && `Code OTP envoyé à ${email}`}
               {currentStep === 'password' && 'Définissez votre nouveau mot de passe'}
             </CardDescription>
@@ -246,10 +246,40 @@ export default function SimpleOTPReset() {
                   ) : (
                     <>
                       <Mail className="mr-2 h-4 w-4" />
-                      Envoyer le code OTP
+                      Envoyer l'email de réinitialisation
                     </>
                   )}
                 </Button>
+                
+                {/* Test button for development */}
+                {process.env.NODE_ENV === 'development' && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      const testEmail = 'test@example.com';
+                      const testOtp = '123456';
+                      setEmail(testEmail);
+                      setOtpCode(testOtp);
+                      setCurrentStep('otp');
+                      // Store test OTP
+                      const testOtpData = {
+                        email: testEmail.toLowerCase(),
+                        code: testOtp,
+                        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                        used: false
+                      };
+                      localStorage.setItem('ufsbd_otp_codes', JSON.stringify([testOtpData]));
+                      toast({
+                        title: "Test OTP créé",
+                        description: `Email: ${testEmail}, OTP: ${testOtp}`,
+                      });
+                    }}
+                    className="w-full text-xs"
+                  >
+                    🧪 Test OTP (Dev Only)
+                  </Button>
+                )}
               </form>
             )}
 
@@ -296,7 +326,7 @@ export default function SimpleOTPReset() {
                     disabled={!canResend || loading}
                     className="text-sm"
                   >
-                    {canResend ? 'Renvoyer le code' : 'Renvoyer le code (60s)'}
+                    {canResend ? 'Renvoyer l\'email' : 'Renvoyer l\'email (60s)'}
                   </Button>
                 </div>
               </form>

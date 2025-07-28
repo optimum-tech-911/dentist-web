@@ -63,7 +63,8 @@ export const sendOTPEmail = async (email: string): Promise<{ success: boolean; e
     const code = generateOTP();
     storeOTP(email, code);
 
-    // Send email using Supabase Auth API
+    // Use Supabase's built-in password reset
+    // This will send an email with a reset link that includes a session
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/simple-otp-reset`,
     });
@@ -75,6 +76,7 @@ export const sendOTPEmail = async (email: string): Promise<{ success: boolean; e
 
     // For development/testing, also log the OTP to console
     console.log(`📧 OTP for ${email}: ${code}`);
+    console.log(`📧 Email sent to ${email} with reset link`);
     
     return { success: true };
   } catch (error: any) {
@@ -85,7 +87,7 @@ export const sendOTPEmail = async (email: string): Promise<{ success: boolean; e
 
 export const updatePasswordWithOTP = async (email: string, newPassword: string): Promise<{ success: boolean; error?: string }> => {
   try {
-    // Find user by email
+    // Check if user exists
     const { data: users, error: userError } = await supabase
       .from('users')
       .select('id')
@@ -96,8 +98,22 @@ export const updatePasswordWithOTP = async (email: string, newPassword: string):
       return { success: false, error: 'User not found' };
     }
 
-    // Update password in auth.users (this requires admin privileges)
-    // For now, we'll use the auth API to update password
+    // Get current session (should be available after clicking reset link)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+    }
+
+    if (!session) {
+      // If no session, the user needs to click the reset link from email
+      return { 
+        success: false, 
+        error: 'No active session. Please click the reset link from your email first.' 
+      };
+    }
+
+    // Update password using the current session
     const { error } = await supabase.auth.updateUser({
       password: newPassword
     });
