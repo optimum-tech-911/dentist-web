@@ -10,8 +10,8 @@ interface EmailData {
   textContent: string;
 }
 
-// Initialize Resend
-const resend = new Resend(process.env.REACT_APP_RESEND_API_KEY || 're_1234567890');
+// Initialize Resend with the correct environment variable
+const resend = new Resend(process.env.RESEND_API_KEY || 're_PKY25c41_AZLTLYzknWWNygBm9eacocSt');
 
 // Real email sending using Resend
 export const sendRealEmail = async (emailData: EmailData): Promise<{ success: boolean; error?: string }> => {
@@ -19,6 +19,7 @@ export const sendRealEmail = async (emailData: EmailData): Promise<{ success: bo
     console.log('📧 SENDING REAL EMAIL WITH RESEND...');
     console.log(`To: ${emailData.to}`);
     console.log(`Subject: ${emailData.subject}`);
+    console.log(`API Key: ${process.env.RESEND_API_KEY ? '✅ Configured' : '❌ Missing'}`);
     
     // Send email using Resend
     const { data, error } = await resend.emails.send({
