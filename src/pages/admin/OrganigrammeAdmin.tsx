@@ -79,16 +79,6 @@ export default function OrganigrammeAdmin() {
   };
 
   const handleDelete = async (id: string) => {
-    const member = members.find(m => m.id === id);
-    if (member && ['president', 'secretaire', 'tresorier'].includes(member.role)) {
-      toast({
-        title: "Suppression impossible",
-        description: "Les postes du bureau exécutif ne peuvent pas être supprimés.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     try {
       await OrganigramService.deleteMember(id);
       await fetchMembers(); // Refresh the list
@@ -553,16 +543,14 @@ export default function OrganigrammeAdmin() {
                       >
                         <ChevronDown className="h-4 w-4" />
                       </Button>
-                      {!['president', 'secretaire', 'tresorier'].includes(member.role) && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleDelete(member.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Supprimer
-                        </Button>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDelete(member.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Supprimer
+                      </Button>
                     </div>
                   </div>
                 </CardHeader>
