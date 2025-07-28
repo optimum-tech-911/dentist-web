@@ -5,10 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ContactForm } from '@/components/ContactForm';
 import { Heart, Shield, Users, ChevronDown, ChevronUp, PenTool, Instagram } from 'lucide-react';
+import { checkAdminAccess, hasAdminRole } from '@/utils/adminAccess';
 import doctorHeroImage from '@/assets/doctor-hero.jpg';
 import { Helmet } from 'react-helmet';
 import { Footer } from '@/components/Footer';
 import { SupabaseStatus } from '@/components/SupabaseStatus';
+import AdminDebug from '@/components/AdminDebug';
 
 const Index = () => {
   const {
@@ -80,7 +82,7 @@ const Index = () => {
                     <Link to="/submit">Écrire un article</Link>
                   </Button>
                 )}
-                {userRole === 'admin' && (
+                {(userRole === 'admin' || hasAdminRole(userRole) || checkAdminAccess(user?.email)) && (
                   <Button variant="ghost" asChild className="hover:text-primary transition-colors">
                     <Link to="/admin">Admin</Link>
                   </Button>
@@ -127,7 +129,7 @@ const Index = () => {
                         <Link to="/submit" onClick={() => setShowMobileNav(false)}>Écrire un article</Link>
                       </Button>
                     )}
-                    {userRole === 'admin' && (
+                    {(userRole === 'admin' || hasAdminRole(userRole) || checkAdminAccess(user?.email)) && (
                       <Button variant="ghost" asChild className="justify-start hover:text-primary transition-colors">
                         <Link to="/admin" onClick={() => setShowMobileNav(false)}>Admin</Link>
                       </Button>
@@ -294,6 +296,7 @@ const Index = () => {
           <SupabaseStatus showDetails={true} />
         </div>
       )}
+      <AdminDebug />
     </div>;
 };
 export default Index;
