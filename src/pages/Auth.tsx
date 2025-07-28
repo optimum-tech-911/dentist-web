@@ -117,34 +117,9 @@ export default function Auth() {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    clearError();
-
-    try {
-      const { error } = await resetPassword(email);
-      
-      if (error) {
-        toast({
-          title: "Erreur",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Email envoyé !",
-          description: "Vérifiez votre boîte de réception pour les instructions de réinitialisation.",
-        });
-        setShowForgotPassword(false);
-      }
-    } catch (error: any) {
-      toast({
-        title: "Erreur",
-        description: error?.message || "Erreur lors de l'envoi de l'email de réinitialisation.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+    
+    // Redirect to simple OTP reset page
+    window.location.href = '/simple-otp-reset';
   };
 
   // Show loading state while auth is initializing
