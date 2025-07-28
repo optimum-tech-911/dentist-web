@@ -103,7 +103,11 @@ export default function BlogSubmit() {
                 Partagez vos connaissances sur la santé bucco-dentaire
               </p>
             </div>
-            <Button variant="outline" asChild className="text-white border-white hover:bg-white hover:text-blue-600">
+            <Button
+              variant="outline"
+              asChild
+              className="border-blue-600 text-blue-600 bg-white hover:bg-blue-600 hover:text-white hover:border-blue-700 transition-colors"
+            >
               <Link to="/" className="flex items-center gap-2">
                 <ArrowLeft className="h-4 w-4" />
                 Retour
