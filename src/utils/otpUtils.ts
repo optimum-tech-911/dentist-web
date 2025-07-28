@@ -1,6 +1,7 @@
 // Simple OTP utility for password reset
 import { supabase } from '@/integrations/supabase/client';
 import { createOTPEmailTemplate, createPlainTextOTPEmail } from './emailTemplates';
+import { sendRealEmail } from './emailService';
 
 // Store OTP codes in localStorage (for demo purposes)
 // In production, you'd use a database table
@@ -59,48 +60,6 @@ export const verifyOTP = (email: string, code: string): boolean => {
   }
 };
 
-// Function to send email using a third-party service
-const sendEmailWithService = async (to: string, subject: string, htmlContent: string, textContent: string) => {
-  // For now, we'll use a simple approach that works with most email services
-  // In production, you'd integrate with SendGrid, Mailgun, AWS SES, etc.
-  
-  try {
-    // This is a placeholder for actual email service integration
-    // You would replace this with your chosen email service
-    
-    // Example with SendGrid (you'd need to install @sendgrid/mail):
-    /*
-    const sgMail = require('@sendgrid/mail');
-    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-    
-    const msg = {
-      to: to,
-      from: 'noreply@ufsbd34.fr',
-      subject: subject,
-      text: textContent,
-      html: htmlContent,
-    };
-    
-    await sgMail.send(msg);
-    */
-    
-    // For development, we'll simulate the email sending
-    console.log('📧 EMAIL SENT (Simulated):');
-    console.log(`To: ${to}`);
-    console.log(`Subject: ${subject}`);
-    console.log(`HTML Content Length: ${htmlContent.length} characters`);
-    console.log(`Text Content Length: ${textContent.length} characters`);
-    
-    // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    return { success: true };
-  } catch (error) {
-    console.error('Email sending error:', error);
-    return { success: false, error: 'Failed to send email' };
-  }
-};
-
 export const sendOTPEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
   try {
     const code = generateOTP();
@@ -111,17 +70,25 @@ export const sendOTPEmail = async (email: string): Promise<{ success: boolean; e
     const htmlContent = createOTPEmailTemplate(code, email);
     const textContent = createPlainTextOTPEmail(code, email);
 
-    // Send the email
-    const result = await sendEmailWithService(email, subject, htmlContent, textContent);
+    console.log(`🔐 Generated OTP: ${code} for ${email}`);
+
+    // Send the email using real email service
+    const result = await sendRealEmail({
+      to: email,
+      subject: subject,
+      htmlContent: htmlContent,
+      textContent: textContent
+    });
 
     if (!result.success) {
       return { success: false, error: result.error || 'Failed to send email' };
     }
 
-    // For development, also log the OTP to console
+    // Log success
     console.log(`📧 REAL EMAIL SENT to ${email}`);
     console.log(`📧 OTP Code: ${code}`);
     console.log(`📧 Email contains the OTP code: ${code}`);
+    console.log('📧 Check your email inbox and spam folder!');
     
     return { success: true };
   } catch (error: any) {
