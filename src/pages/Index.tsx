@@ -10,7 +10,6 @@ import doctorHeroImage from '@/assets/doctor-hero.jpg';
 import { Helmet } from 'react-helmet';
 import { Footer } from '@/components/Footer';
 import { SupabaseStatus } from '@/components/SupabaseStatus';
-import AdminDebug from '@/components/AdminDebug';
 
 const Index = () => {
   const {
@@ -296,7 +295,6 @@ const Index = () => {
           <SupabaseStatus showDetails={true} />
         </div>
       )}
-      <AdminDebug />
     </div>;
 };
 export default Index;
