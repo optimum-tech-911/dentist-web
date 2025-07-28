@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Save, Users, Loader2, Image, Edit3 } from 'lucide-react';
+import { Plus, Trash2, Save, Users, Loader2, Image, Edit3, ChevronUp, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { OrganigramService, type OrganigramMember, type OrganigramRole } from '@/lib/organigram';
@@ -102,6 +102,62 @@ export default function OrganigrammeAdmin() {
       toast({
         title: "Erreur",
         description: "Impossible de supprimer le membre.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMoveUp = async (id: string) => {
+    const currentIndex = members.findIndex(m => m.id === id);
+    if (currentIndex <= 0) return; // Already at top
+    
+    try {
+      const member = members[currentIndex];
+      const prevMember = members[currentIndex - 1];
+      
+      // Swap order_index values
+      await OrganigramService.updateMember(id, { order_index: prevMember.order_index });
+      await OrganigramService.updateMember(prevMember.id, { order_index: member.order_index });
+      
+      await fetchMembers(); // Refresh the list
+      
+      toast({
+        title: "Position mise à jour",
+        description: "Le membre a été déplacé vers le haut."
+      });
+    } catch (error) {
+      console.error('Error moving member up:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de déplacer le membre.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMoveDown = async (id: string) => {
+    const currentIndex = members.findIndex(m => m.id === id);
+    if (currentIndex >= members.length - 1) return; // Already at bottom
+    
+    try {
+      const member = members[currentIndex];
+      const nextMember = members[currentIndex + 1];
+      
+      // Swap order_index values
+      await OrganigramService.updateMember(id, { order_index: nextMember.order_index });
+      await OrganigramService.updateMember(nextMember.id, { order_index: member.order_index });
+      
+      await fetchMembers(); // Refresh the list
+      
+      toast({
+        title: "Position mise à jour",
+        description: "Le membre a été déplacé vers le bas."
+      });
+    } catch (error) {
+      console.error('Error moving member down:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de déplacer le membre.",
         variant: "destructive"
       });
     }
@@ -478,6 +534,24 @@ export default function OrganigrammeAdmin() {
                       >
                         <Edit3 className="h-4 w-4 mr-2" />
                         Modifier
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleMoveUp(member.id)}
+                        disabled={members.indexOf(member) === 0}
+                        title="Déplacer vers le haut"
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleMoveDown(member.id)}
+                        disabled={members.indexOf(member) === members.length - 1}
+                        title="Déplacer vers le bas"
+                      >
+                        <ChevronDown className="h-4 w-4" />
                       </Button>
                       {!['president', 'secretaire', 'tresorier'].includes(member.role) && (
                         <Button 
