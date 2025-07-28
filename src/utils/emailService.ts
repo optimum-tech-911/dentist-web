@@ -38,6 +38,11 @@ export const testEmailToMyself = async (): Promise<{ success: boolean; error?: s
           <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
             This email confirms that the password reset OTP system will work correctly.
           </p>
+          <div style="text-align: center; margin-top: 20px;">
+            <a href="https://ufsbd34.fr/simple-otp-reset" style="background-color: #4f46e5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
+              Test Password Reset
+            </a>
+          </div>
         </div>
       </div>
     `,
@@ -55,6 +60,8 @@ This is a test email to verify that the email sending system is working correctl
 - Time: ${new Date().toLocaleString()}
 
 This email confirms that the password reset OTP system will work correctly.
+
+Test Password Reset: https://ufsbd34.fr/simple-otp-reset
     `
   };
 

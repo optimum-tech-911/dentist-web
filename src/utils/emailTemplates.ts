@@ -1,5 +1,8 @@
 // Email templates for OTP password reset
 export const createOTPEmailTemplate = (otpCode: string, email: string) => {
+  // Use the actual website domain instead of localhost
+  const websiteUrl = 'https://ufsbd34.fr';
+  
   return `
 <!DOCTYPE html>
 <html>
@@ -101,7 +104,7 @@ export const createOTPEmailTemplate = (otpCode: string, email: string) => {
         <p>If you're having trouble, you can also click the button below to go directly to the reset page:</p>
         
         <div style="text-align: center;">
-            <a href="${window.location.origin}/simple-otp-reset" class="button">Reset Password</a>
+            <a href="${websiteUrl}/simple-otp-reset" class="button">Reset Password</a>
         </div>
         
         <div class="footer">
@@ -116,6 +119,9 @@ export const createOTPEmailTemplate = (otpCode: string, email: string) => {
 };
 
 export const createPlainTextOTPEmail = (otpCode: string, email: string) => {
+  // Use the actual website domain instead of localhost
+  const websiteUrl = 'https://ufsbd34.fr';
+  
   return `
 Password Reset Request - UFSBD34
 
@@ -132,7 +138,7 @@ IMPORTANT:
 - Do not share this code with anyone
 - If you didn't request this reset, please ignore this email
 
-Reset page: ${window.location.origin}/simple-otp-reset
+Reset page: ${websiteUrl}/simple-otp-reset
 
 This email was sent to: ${email}
 
