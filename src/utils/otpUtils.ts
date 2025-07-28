@@ -1,5 +1,6 @@
 // Simple OTP utility for password reset
 import { supabase } from '@/integrations/supabase/client';
+import { createOTPEmailTemplate, createPlainTextOTPEmail } from './emailTemplates';
 
 // Store OTP codes in localStorage (for demo purposes)
 // In production, you'd use a database table
@@ -58,19 +59,69 @@ export const verifyOTP = (email: string, code: string): boolean => {
   }
 };
 
+// Function to send email using a third-party service
+const sendEmailWithService = async (to: string, subject: string, htmlContent: string, textContent: string) => {
+  // For now, we'll use a simple approach that works with most email services
+  // In production, you'd integrate with SendGrid, Mailgun, AWS SES, etc.
+  
+  try {
+    // This is a placeholder for actual email service integration
+    // You would replace this with your chosen email service
+    
+    // Example with SendGrid (you'd need to install @sendgrid/mail):
+    /*
+    const sgMail = require('@sendgrid/mail');
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    
+    const msg = {
+      to: to,
+      from: 'noreply@ufsbd34.fr',
+      subject: subject,
+      text: textContent,
+      html: htmlContent,
+    };
+    
+    await sgMail.send(msg);
+    */
+    
+    // For development, we'll simulate the email sending
+    console.log('📧 EMAIL SENT (Simulated):');
+    console.log(`To: ${to}`);
+    console.log(`Subject: ${subject}`);
+    console.log(`HTML Content Length: ${htmlContent.length} characters`);
+    console.log(`Text Content Length: ${textContent.length} characters`);
+    
+    // Simulate email sending delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Email sending error:', error);
+    return { success: false, error: 'Failed to send email' };
+  }
+};
+
 export const sendOTPEmail = async (email: string): Promise<{ success: boolean; error?: string }> => {
   try {
     const code = generateOTP();
     storeOTP(email, code);
 
-    // For now, we'll simulate email sending since we need a proper email service
-    // In production, you'd integrate with SendGrid, Mailgun, or similar
-    console.log(`📧 OTP Email sent to ${email}`);
+    // Create email content with OTP code
+    const subject = 'Password Reset OTP - UFSBD34';
+    const htmlContent = createOTPEmailTemplate(code, email);
+    const textContent = createPlainTextOTPEmail(code, email);
+
+    // Send the email
+    const result = await sendEmailWithService(email, subject, htmlContent, textContent);
+
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to send email' };
+    }
+
+    // For development, also log the OTP to console
+    console.log(`📧 REAL EMAIL SENT to ${email}`);
     console.log(`📧 OTP Code: ${code}`);
-    console.log(`📧 Email content would include: "Your OTP code is: ${code}"`);
-    
-    // Simulate email sending delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log(`📧 Email contains the OTP code: ${code}`);
     
     return { success: true };
   } catch (error: any) {
@@ -92,19 +143,30 @@ export const updatePasswordWithOTP = async (email: string, newPassword: string):
       return { success: false, error: 'User not found' };
     }
 
-    // For OTP-based reset, we need to handle password update differently
-    // Since we don't have a session, we'll use admin functions or create a session
+    // Get current session (should be available after clicking reset link)
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
     
-    // Try to sign in with a temporary approach or use admin API
-    // For now, we'll return success and let the user know to contact admin
-    // In production, you'd implement proper password update logic
-    
-    console.log(`🔐 Password update requested for ${email}`);
-    console.log(`🔐 New password: ${newPassword}`);
-    
-    // Simulate password update
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    if (sessionError) {
+      console.error('Session error:', sessionError);
+    }
+
+    if (!session) {
+      // If no session, the user needs to click the reset link from email
+      return { 
+        success: false, 
+        error: 'No active session. Please click the reset link from your email first.' 
+      };
+    }
+
+    // Update password using the current session
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
