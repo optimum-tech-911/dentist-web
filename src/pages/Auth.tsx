@@ -157,7 +157,7 @@ export default function Auth() {
         </CardHeader>
         <CardContent>
           {/* Show auth error if any */}
-          {authError && (
+          {authError && authError !== 'Database connection issue. Some features may be limited.' && (
             <Alert className="mb-4 border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
               <AlertDescription className="text-red-800">
