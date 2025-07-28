@@ -1,5 +1,7 @@
-// Real email sending service
+// Real email sending service using Resend
 // This will actually send emails with the OTP code
+
+import { Resend } from 'resend';
 
 interface EmailData {
   to: string;
@@ -8,22 +10,34 @@ interface EmailData {
   textContent: string;
 }
 
-// Real email sending using a free service
+// Initialize Resend
+const resend = new Resend(process.env.REACT_APP_RESEND_API_KEY || 're_1234567890');
+
+// Real email sending using Resend
 export const sendRealEmail = async (emailData: EmailData): Promise<{ success: boolean; error?: string }> => {
   try {
-    console.log('📧 SENDING REAL EMAIL...');
+    console.log('📧 SENDING REAL EMAIL WITH RESEND...');
     console.log(`To: ${emailData.to}`);
     console.log(`Subject: ${emailData.subject}`);
     
-    // For immediate testing, we'll use a simple approach
-    // In production, you'd use SendGrid, Mailgun, or similar
-    
-    // Simulate email sending process
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    console.log('✅ EMAIL SENT SUCCESSFULLY!');
+    // Send email using Resend
+    const { data, error } = await resend.emails.send({
+      from: 'UFSBD34 <noreply@ufsbd34.fr>',
+      to: [emailData.to],
+      subject: emailData.subject,
+      html: emailData.htmlContent,
+      text: emailData.textContent,
+    });
+
+    if (error) {
+      console.error('❌ Resend email failed:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ RESEND EMAIL SENT SUCCESSFULLY!');
     console.log('📧 Check your email inbox (and spam folder)');
     console.log('📧 The email contains the OTP code');
+    console.log('📧 Email ID:', data?.id);
     
     return { success: true };
   } catch (error) {
@@ -35,12 +49,12 @@ export const sendRealEmail = async (emailData: EmailData): Promise<{ success: bo
 // Alternative: Using a webhook service for immediate email sending
 export const sendEmailWithWebhook = async (emailData: EmailData): Promise<{ success: boolean; error?: string }> => {
   try {
-    // This would use a service like webhook.site or similar
-    // For now, we'll simulate the process
-    
     console.log('📧 SENDING EMAIL VIA WEBHOOK...');
     console.log(`To: ${emailData.to}`);
     console.log(`Subject: ${emailData.subject}`);
+    
+    // This would use a service like webhook.site or similar
+    // For now, we'll simulate the process
     
     // Simulate webhook call
     await new Promise(resolve => setTimeout(resolve, 1500));
