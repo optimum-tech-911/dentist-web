@@ -1,44 +1,31 @@
-// Test email sending with Resend
-import { sendRealEmail } from './emailService';
-import { createOTPEmailTemplate, createPlainTextOTPEmail } from './emailTemplates';
+// Email testing utilities for browser console
+import { testEmailToMyself } from './emailService';
 
-export const testEmailSending = async (testEmail: string) => {
+// Global function to test email sending from browser console
+export const testEmailSending = async (email: string = 'test@example.com') => {
+  console.log('🧪 Testing email sending...');
+  console.log(`📧 Target email: ${email}`);
+  
   try {
-    console.log('🧪 Testing email sending with Resend...');
-    console.log(`Test email: ${testEmail}`);
-    
-    // Generate test OTP
-    const testOTP = '123456';
-    
-    // Create email content
-    const subject = 'Test Email - UFSBD34 OTP';
-    const htmlContent = createOTPEmailTemplate(testOTP, testEmail);
-    const textContent = createPlainTextOTPEmail(testOTP, testEmail);
-    
-    console.log('📧 Sending test email...');
-    
-    // Send the email
-    const result = await sendRealEmail({
-      to: testEmail,
-      subject: subject,
-      htmlContent: htmlContent,
-      textContent: textContent
-    });
+    const result = await testEmailToMyself();
     
     if (result.success) {
-      console.log('✅ Test email sent successfully!');
-      console.log('📧 Check your email inbox for the test email');
-      console.log(`📧 OTP Code: ${testOTP}`);
-      return true;
+      console.log('✅ Email test successful!');
+      console.log('📧 Check your email inbox (and spam folder)');
+      console.log('📧 You should receive a test email from UFSBD34');
     } else {
-      console.error('❌ Test email failed:', result.error);
-      return false;
+      console.error('❌ Email test failed:', result.error);
     }
+    
+    return result;
   } catch (error) {
-    console.error('❌ Test email error:', error);
-    return false;
+    console.error('❌ Email test error:', error);
+    return { success: false, error: 'Test failed' };
   }
 };
 
-// Test function that can be called from browser console
-(window as any).testEmailSending = testEmailSending;
+// Make it available globally for console testing
+if (typeof window !== 'undefined') {
+  (window as any).testEmailSending = testEmailSending;
+  (window as any).testEmailToMyself = testEmailToMyself;
+}
