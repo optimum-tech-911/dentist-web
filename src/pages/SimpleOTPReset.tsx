@@ -73,7 +73,7 @@ export default function SimpleOTPReset() {
       
       toast({
         title: "OTP envoyé !",
-        description: `Code OTP envoyé à ${email}. Vérifiez votre console pour le code.`,
+        description: `Code OTP envoyé à ${email}. Vérifiez votre boîte email.`,
       });
     } catch (error) {
       setError('Erreur lors de l\'envoi du code OTP.');
@@ -170,7 +170,7 @@ export default function SimpleOTPReset() {
       
       toast({
         title: "Nouveau OTP envoyé !",
-        description: `Nouveau code OTP envoyé à ${email}. Vérifiez votre console.`,
+        description: `Nouveau code OTP envoyé à ${email}. Vérifiez votre boîte email.`,
       });
     } catch (error) {
       setError('Erreur lors de l\'envoi du code OTP.');

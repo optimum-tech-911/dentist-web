@@ -63,13 +63,23 @@ export const sendOTPEmail = async (email: string): Promise<{ success: boolean; e
     const code = generateOTP();
     storeOTP(email, code);
 
-    // For demo purposes, we'll show the OTP in console and toast
-    // In production, you'd send this via email service
+    // Send email using Supabase Auth API
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/simple-otp-reset`,
+    });
+
+    if (error) {
+      console.error('Error sending email:', error);
+      return { success: false, error: error.message };
+    }
+
+    // For development/testing, also log the OTP to console
     console.log(`📧 OTP for ${email}: ${code}`);
     
     return { success: true };
-  } catch (error) {
-    return { success: false, error: 'Failed to send OTP' };
+  } catch (error: any) {
+    console.error('Error in sendOTPEmail:', error);
+    return { success: false, error: 'Failed to send OTP email' };
   }
 };
 
