@@ -5,7 +5,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 export default function AdminLayout() {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-white">
+      <div className="min-h-screen flex w-full bg-white !bg-white">
         <AdminSidebar />
         <main className="flex-1 overflow-hidden bg-white">
           <header className="h-12 flex items-center border-b px-4">
