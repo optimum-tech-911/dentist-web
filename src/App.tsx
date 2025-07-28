@@ -73,15 +73,8 @@ const FallbackPage = ({ title }: { title: string }) => (
   </div>
 );
 
-// Loading component
-const LoadingSpinner = () => (
-  <div className="min-h-screen flex items-center justify-center bg-background">
-    <div className="text-center">
-      <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-      <p className="text-muted-foreground">Chargement en cours...</p>
-    </div>
-  </div>
-);
+// Instant loading - no spinner
+const LoadingSpinner = () => null;
 
 // Simple fallback component for debugging
 const SimpleFallback = ({ error }: { error: Error }) => (
@@ -152,7 +145,7 @@ const App = () => {
                   path="/admin" 
                   element={
                     <SafeRoute>
-                      <ProtectedRoute requiredRole="admin">
+                      <ProtectedRoute requiredRole={['admin', 'doctor']}>
                         <AdminLayout />
                       </ProtectedRoute>
                     </SafeRoute>

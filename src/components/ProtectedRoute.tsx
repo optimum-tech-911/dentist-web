@@ -25,18 +25,9 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
 
 
-  // Show loading while auth is loading or role is being checked
-  if (loading || (user && !roleChecked)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {loading ? 'Vérification de l\'authentification...' : 'Vérification des permissions...'}
-          </p>
-        </div>
-      </div>
-    );
+  // Show minimal loading only if absolutely necessary
+  if (loading) {
+    return null; // Show nothing while loading for instant feel
   }
 
   if (!user) {

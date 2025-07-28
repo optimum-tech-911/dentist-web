@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false); // Set to false by default for instant UI
+  const [loading, setLoading] = useState(false); // Start with false for instant UI
   const [error, setError] = useState<string | null>(null);
   const [isSupabaseAvailable, setIsSupabaseAvailable] = useState(true);
 
@@ -132,11 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
         if (!isMounted) return;
         
-        console.log('🔄 Auth state change:', event, session ? `Session for ${session.user?.email}` : 'No session');
-        
         if (session?.user) {
-          console.log(`👤 User session: ${session.user.email}`);
-          
           // Clear any existing errors since we're accepting the session
           setError(null);
           
@@ -144,12 +140,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setSession(session);
           setUser(session.user);
           
-          // Fetch role from database
-          console.log('🔍 Fetching user role from database...');
-          await fetchUserRole(session.user.id);
+          // Fetch role from database in background
+          fetchUserRole(session.user.id).catch(err => 
+            console.error('Role fetch error:', err)
+          );
           
         } else {
-          console.log('❌ No session - clearing user state');
           setSession(null);
           setUser(null);
           setUserRole(null);
@@ -161,17 +157,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Initial session check
       const { data: { session } } = await supabase.auth.getSession();
       if (isMounted && session?.user) {
-        console.log('🚀 Initial session found for:', session.user.email);
         setSession(session);
         setUser(session.user);
         
-        // Fetch user role on initial load
-        console.log('🔍 Initial role fetch...');
-        await fetchUserRole(session.user.id);
+        // Fetch user role on initial load in background
+        fetchUserRole(session.user.id).catch(err => 
+          console.error('Initial role fetch error:', err)
+        );
         
         setLoading(false);
       } else if (isMounted) {
-        console.log('❌ No initial session found');
         setLoading(false);
       }
     };
@@ -179,7 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       isMounted = false;
-      clearTimeout(loadingTimeout);
       if (authSubscription && typeof authSubscription.unsubscribe === 'function') {
         authSubscription.unsubscribe();
       }
