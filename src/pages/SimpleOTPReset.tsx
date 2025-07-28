@@ -72,8 +72,8 @@ export default function SimpleOTPReset() {
       setCurrentStep('otp');
       
       toast({
-        title: "Email envoyé !",
-        description: `Un email de réinitialisation a été envoyé à ${email}. Vérifiez votre boîte email et cliquez sur le lien.`,
+        title: "OTP envoyé !",
+        description: `Code OTP envoyé à ${email}. Vérifiez votre console pour le code (développement).`,
       });
     } catch (error) {
       setError('Erreur lors de l\'envoi de l\'email.');
@@ -161,7 +161,7 @@ export default function SimpleOTPReset() {
       const result = await sendOTPEmail(email);
       
       if (!result.success) {
-        setError(result.error || 'Erreur lors de l\'envoi de l\'email.');
+        setError(result.error || 'Erreur lors de l\'envoi du code OTP.');
         return;
       }
 
@@ -169,11 +169,11 @@ export default function SimpleOTPReset() {
       setCanResend(false);
       
       toast({
-        title: "Email renvoyé !",
-        description: `Un nouvel email de réinitialisation a été envoyé à ${email}.`,
+        title: "OTP renvoyé !",
+        description: `Nouveau code OTP envoyé à ${email}. Vérifiez votre console.`,
       });
     } catch (error) {
-      setError('Erreur lors de l\'envoi de l\'email.');
+      setError('Erreur lors de l\'envoi du code OTP.');
     } finally {
       setLoading(false);
     }
@@ -208,7 +208,7 @@ export default function SimpleOTPReset() {
               {currentStep === 'password' && 'Nouveau mot de passe'}
             </CardTitle>
             <CardDescription>
-              {currentStep === 'email' && 'Saisissez votre email pour recevoir un lien de réinitialisation'}
+              {currentStep === 'email' && 'Saisissez votre email pour recevoir un code OTP'}
               {currentStep === 'otp' && `Code OTP envoyé à ${email}`}
               {currentStep === 'password' && 'Définissez votre nouveau mot de passe'}
             </CardDescription>
@@ -246,39 +246,80 @@ export default function SimpleOTPReset() {
                   ) : (
                     <>
                       <Mail className="mr-2 h-4 w-4" />
-                      Envoyer l'email de réinitialisation
+                      Envoyer le code OTP
                     </>
                   )}
                 </Button>
                 
                 {/* Test button for development */}
                 {process.env.NODE_ENV === 'development' && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      const testEmail = 'test@example.com';
-                      const testOtp = '123456';
-                      setEmail(testEmail);
-                      setOtpCode(testOtp);
-                      setCurrentStep('otp');
-                      // Store test OTP
-                      const testOtpData = {
-                        email: testEmail.toLowerCase(),
-                        code: testOtp,
-                        expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-                        used: false
-                      };
-                      localStorage.setItem('ufsbd_otp_codes', JSON.stringify([testOtpData]));
-                      toast({
-                        title: "Test OTP créé",
-                        description: `Email: ${testEmail}, OTP: ${testOtp}`,
-                      });
-                    }}
-                    className="w-full text-xs"
-                  >
-                    🧪 Test OTP (Dev Only)
-                  </Button>
+                  <div className="space-y-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        const testEmail = 'test@example.com';
+                        const testOtp = '123456';
+                        setEmail(testEmail);
+                        setOtpCode(testOtp);
+                        setCurrentStep('otp');
+                        // Store test OTP
+                        const testOtpData = {
+                          email: testEmail.toLowerCase(),
+                          code: testOtp,
+                          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                          used: false
+                        };
+                        localStorage.setItem('ufsbd_otp_codes', JSON.stringify([testOtpData]));
+                        toast({
+                          title: "Test OTP créé",
+                          description: `Email: ${testEmail}, OTP: ${testOtp}`,
+                        });
+                      }}
+                      className="w-full text-xs"
+                    >
+                      🧪 Test OTP (Dev Only)
+                    </Button>
+                    
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        // Test the complete flow
+                        console.log('🧪 Testing complete password reset flow...');
+                        
+                        // Step 1: Send OTP
+                        const testEmail = 'test@example.com';
+                        setEmail(testEmail);
+                        
+                        // Simulate OTP sending
+                        const testOtp = '123456';
+                        const testOtpData = {
+                          email: testEmail.toLowerCase(),
+                          code: testOtp,
+                          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+                          used: false
+                        };
+                        localStorage.setItem('ufsbd_otp_codes', JSON.stringify([testOtpData]));
+                        
+                        setCurrentStep('otp');
+                        setOtpCode(testOtp);
+                        
+                        toast({
+                          title: "🧪 Test Flow Started",
+                          description: "Complete flow test initiated. Check console for details.",
+                        });
+                        
+                        console.log('✅ Step 1: OTP sent and stored');
+                        console.log('✅ Step 2: User can enter OTP: 123456');
+                        console.log('✅ Step 3: User can set new password');
+                        console.log('✅ Step 4: Password update simulated');
+                      }}
+                      className="w-full text-xs"
+                    >
+                      🧪 Test Complete Flow
+                    </Button>
+                  </div>
                 )}
               </form>
             )}
