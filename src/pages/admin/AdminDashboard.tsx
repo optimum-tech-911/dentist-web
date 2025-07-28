@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Users, PenTool, Home } from 'lucide-react';
+import { FileText, CheckCircle, Clock, Users, PenTool, Home, Shield } from 'lucide-react';
+import AdminAccessManager from '@/components/AdminAccessManager';
 
 
 interface DashboardStats {
@@ -136,6 +137,12 @@ export default function AdminDashboard() {
             <Link to="/submit" className="flex items-center gap-2">
               <PenTool className="h-4 w-4" />
               Écrire un Article
+            </Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/admin-access" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Gérer Accès Admin
             </Link>
           </Button>
         </div>

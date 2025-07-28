@@ -1,6 +1,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { checkAdminAccess, hasAdminRole } from '@/utils/adminAccess';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -36,25 +37,20 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
 
 
 
-  // TEMPORARY: Force allow admin access for any authenticated user
+  // PERMANENT: Robust admin access check
   if (user && requiredRole) {
-    console.log('🔧 TEMPORARY: Allowing admin access for authenticated user');
-    return <>{children}</>;
-  }
-
-  // Check role-based access
-  if (requiredRole) {
-    const allowedRoles = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
-    
-    // Check if user has required role
-    if (userRole && !allowedRoles.includes(userRole)) {
-      return <Navigate to="/" replace />;
+    // Check if user has admin role from database
+    if (hasAdminRole(userRole)) {
+      return <>{children}</>;
     }
     
-    // If no role is set but user is authenticated, deny access
-    if (!userRole) {
-      return <Navigate to="/" replace />;
+    // Check if user email is in admin list
+    if (checkAdminAccess(user?.email)) {
+      return <>{children}</>;
     }
+    
+    // If user is authenticated but not admin, redirect
+    return <Navigate to="/" replace />;
   }
 
   return <>{children}</>;
