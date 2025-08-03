@@ -19,12 +19,38 @@ interface Post {
   image?: string;
 }
 
+// Helper function to check if URL is a gallery signed URL and refresh it
+const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+  // Check if it's a gallery signed URL
+  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    try {
+      // Extract file path from the signed URL
+      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
+      if (urlParts) {
+        // Generate fresh signed URL
+        const { data, error } = await supabase.storage
+          .from('gallery')
+          .createSignedUrl(urlParts, 3600);
+        
+        if (!error && data?.signedUrl) {
+          return data.signedUrl;
+        }
+      }
+    } catch (error) {
+      console.log('Could not refresh URL, using original:', error);
+    }
+  }
+  // Return original URL if not a gallery URL or refresh failed
+  return imageUrl;
+};
+
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [refreshedImageUrl, setRefreshedImageUrl] = useState<string>('');
   const { user, userRole, signOut } = useAuth();
 
   useEffect(() => {
@@ -50,6 +76,10 @@ export default function BlogPost() {
         }
       } else {
         setPost(data);
+        // If post has an image, try to refresh the URL
+        if (data.image) {
+          refreshImageUrl(data.image).then(setRefreshedImageUrl);
+        }
       }
     } catch (error) {
       console.error('Error fetching post:', error);
@@ -223,15 +253,9 @@ export default function BlogPost() {
             {post.image && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
-                  src={post.image}
+                  src={refreshedImageUrl || post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.log('Image failed to load, trying to refresh signed URL:', post.image);
-                    // If image fails to load, it might be an expired signed URL
-                    // For now, hide the image - a proper fix would regenerate the signed URL
-                    e.currentTarget.style.display = 'none';
-                  }}
                 />
               </div>
             )}

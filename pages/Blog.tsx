@@ -10,6 +10,27 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 
+// Helper function to refresh gallery image URLs
+const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    try {
+      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
+      if (urlParts) {
+        const { data, error } = await supabase.storage
+          .from('gallery')
+          .createSignedUrl(urlParts, 3600);
+        
+        if (!error && data?.signedUrl) {
+          return data.signedUrl;
+        }
+      }
+    } catch (error) {
+      console.log('Could not refresh URL, using original:', error);
+    }
+  }
+  return imageUrl;
+};
+
 interface Post {
   id: string;
   title: string;
@@ -25,6 +46,7 @@ export default function Blog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showMobileNav, setShowMobileNav] = useState(false);
+  const [refreshedImageUrls, setRefreshedImageUrls] = useState<Record<string, string>>({});
   const { user, userRole, signOut } = useAuth();
   const { toast } = useToast();
 
@@ -45,6 +67,24 @@ export default function Blog() {
 
       if (error) throw error;
       setPosts(data || []);
+      
+      // Refresh image URLs for posts that have gallery images
+      if (data) {
+        const urlPromises = data
+          .filter(post => post.image)
+          .map(async (post) => {
+            const refreshedUrl = await refreshImageUrl(post.image!);
+            return { id: post.id, url: refreshedUrl };
+          });
+          
+        const refreshedUrls = await Promise.all(urlPromises);
+        const urlMap = refreshedUrls.reduce((acc, { id, url }) => {
+          acc[id] = url;
+          return acc;
+        }, {} as Record<string, string>);
+        
+        setRefreshedImageUrls(urlMap);
+      }
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Erreur lors du chargement des articles');
@@ -227,7 +267,7 @@ export default function Blog() {
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <img
-                          src={post.image}
+                          src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
