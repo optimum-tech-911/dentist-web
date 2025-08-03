@@ -44,7 +44,24 @@ export default function Blog() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      
+      // Convert image paths to public URLs for all posts
+      const postsWithUrls = await Promise.all(
+        (data || []).map(async (post) => {
+          if (post.image) {
+            const { data: urlData } = await supabase.storage
+              .from('gallery')
+              .getPublicUrl(post.image);
+            return {
+              ...post,
+              image: urlData?.publicUrl || post.image
+            };
+          }
+          return post;
+        })
+      );
+      
+      setPosts(postsWithUrls);
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Erreur lors du chargement des articles');
