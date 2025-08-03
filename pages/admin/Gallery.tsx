@@ -16,6 +16,12 @@ export default function Gallery() {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  // Debug: Log when component mounts
+  useEffect(() => {
+    console.log('🚀 Gallery component mounted!');
+    console.log('👤 User:', user);
+  }, [user]);
+
   // Load images on component mount
   useEffect(() => {
     fetchImages();
