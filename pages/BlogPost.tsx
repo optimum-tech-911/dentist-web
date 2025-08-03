@@ -30,7 +30,7 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
         // Generate fresh signed URL
         const { data, error } = await supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 3600);
+          .createSignedUrl(urlParts, 604800); // 7 days expiry
         
         if (!error && data?.signedUrl) {
           return data.signedUrl;
