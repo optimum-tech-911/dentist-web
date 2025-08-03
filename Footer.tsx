@@ -10,7 +10,7 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
               <a href="https://www.ufsbd.fr" target="_blank" rel="noopener noreferrer">
-                <img src="/fevicon.ico" alt="UFSBD Logo" className="h-20 w-auto hover:scale-105 transition-transform cursor-pointer" />
+                <img src="/ufsbd-logo-new.jpg" alt="UFSBD Logo" className="h-20 w-auto hover:scale-105 transition-transform cursor-pointer" />
               </a>
             </div>
             <p className="text-blue-200 leading-relaxed">
