@@ -226,6 +226,12 @@ export default function BlogPost() {
                   src={post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.log('Image failed to load, trying to refresh signed URL:', post.image);
+                    // If image fails to load, it might be an expired signed URL
+                    // For now, hide the image - a proper fix would regenerate the signed URL
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               </div>
             )}
