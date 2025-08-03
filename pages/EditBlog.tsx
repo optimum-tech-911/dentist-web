@@ -16,10 +16,12 @@ import { Helmet } from 'react-helmet';
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>();
-  const { user, userRole } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -27,7 +29,6 @@ export default function EditBlog() {
     headerImage: ''
   });
   const [initialLoaded, setInitialLoaded] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (id && !initialLoaded) {
@@ -37,26 +38,41 @@ export default function EditBlog() {
   }, [id]);
 
   const fetchPost = async (postId: string) => {
-    setLoading(true);
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('posts')
         .select('*')
         .eq('id', postId)
         .single();
-      if (error || !data) {
-        toast({ title: 'Erreur', description: "Impossible de charger l'article.", variant: 'destructive' });
-        navigate('/admin/approved');
-        return;
-      }
+
+      if (error) throw error;
+
       setFormData({
-        title: data.title || '',
-        content: data.content || '',
-        category: data.category || '',
+        title: data.title,
+        content: data.content,
+        category: data.category,
         headerImage: data.image || ''
       });
+
+      // Generate preview URL for existing image
+      if (data.image) {
+        try {
+          const { data: urlData, error: urlError } = await supabase.storage
+            .from('gallery')
+            .createSignedUrl(data.image, 3600);
+          
+          if (!urlError && urlData?.signedUrl) {
+            setPreviewImageUrl(urlData.signedUrl);
+          }
+        } catch (error) {
+          console.error('Error generating preview URL for existing image:', error);
+        }
+      }
+
       setInitialLoaded(true);
-    } catch (e) {
+    } catch (error) {
+      console.error('Error fetching post:', error);
       toast({ title: 'Erreur', description: "Impossible de charger l'article.", variant: 'destructive' });
       navigate('/admin/approved');
     } finally {
@@ -68,8 +84,24 @@ export default function EditBlog() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleHeaderImageSelect = (image: GalleryImage) => {
-    setFormData(prev => ({ ...prev, headerImage: image.url }));
+  const handleHeaderImageSelect = async (image: GalleryImage) => {
+    setFormData(prev => ({ ...prev, headerImage: image.file_path })); // Store file path instead of signed URL
+    
+    // Generate signed URL for preview
+    try {
+      const { data, error } = await supabase.storage
+        .from('gallery')
+        .createSignedUrl(image.file_path, 3600);
+      
+      if (!error && data?.signedUrl) {
+        setPreviewImageUrl(data.signedUrl);
+      } else {
+        setPreviewImageUrl(image.url); // Fallback to original URL
+      }
+    } catch (error) {
+      console.error('Error generating preview URL:', error);
+      setPreviewImageUrl(image.url); // Fallback to original URL
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,7 +209,7 @@ export default function EditBlog() {
                   {formData.headerImage && (
                     <div className="relative">
                       <img
-                        src={formData.headerImage}
+                        src={previewImageUrl}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
                       />
@@ -186,7 +218,10 @@ export default function EditBlog() {
                         variant="destructive"
                         size="sm"
                         className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                        onClick={() => handleInputChange('headerImage', '')}
+                        onClick={() => {
+                          handleInputChange('headerImage', '');
+                          setPreviewImageUrl('');
+                        }}
                       >
                         ×
                       </Button>

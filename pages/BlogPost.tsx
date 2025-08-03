@@ -19,28 +19,29 @@ interface Post {
   image?: string;
 }
 
-// Helper function to check if URL is a gallery signed URL and refresh it
-const refreshImageUrl = async (imageUrl: string): Promise<string> => {
-  // Check if it's a gallery signed URL
+// Helper function to get public URL for gallery images
+const getPublicImageUrl = async (imageUrl: string): Promise<string> => {
+  // If it's already a public URL, return as is
+  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
+    return imageUrl;
+  }
+  
+  // If it's a signed URL, extract the file path and get public URL
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
-      // Extract file path from the signed URL
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        // Generate fresh signed URL
-        const { data, error } = await supabase.storage
+        const { data } = await supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 3600);
+          .getPublicUrl(urlParts);
         
-        if (!error && data?.signedUrl) {
-          return data.signedUrl;
-        }
+        return data?.publicUrl || imageUrl;
       }
     } catch (error) {
-      console.log('Could not refresh URL, using original:', error);
+      console.log('Could not get public URL, using original:', error);
     }
   }
-  // Return original URL if not a gallery URL or refresh failed
+  
   return imageUrl;
 };
 
@@ -76,9 +77,13 @@ export default function BlogPost() {
         }
       } else {
         setPost(data);
+        // Debug: Log image URL
+        if (data.image) {
+          console.log(`Post "${data.title}" has image:`, data.image);
+        }
         // If post has an image, try to refresh the URL
         if (data.image) {
-          refreshImageUrl(data.image).then(setRefreshedImageUrl);
+          getPublicImageUrl(data.image).then(setRefreshedImageUrl);
         }
       }
     } catch (error) {
@@ -251,11 +256,33 @@ export default function BlogPost() {
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
             {post.image && (
-              <div className="aspect-video overflow-hidden rounded-lg">
+              <div className="aspect-video overflow-hidden rounded-lg bg-gray-100">
                 <img
                   src={refreshedImageUrl || post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    console.error('Image failed to load:', target.src);
+                    target.style.display = 'none';
+                    // Show a placeholder instead of hiding the container
+                    const container = target.parentElement;
+                    if (container) {
+                      container.innerHTML = `
+                        <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                          <div class="text-center text-gray-500">
+                            <svg class="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            <p class="text-lg">Image non disponible</p>
+                          </div>
+                        </div>
+                      `;
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log('Image loaded successfully:', post.title);
+                  }}
                 />
               </div>
             )}
