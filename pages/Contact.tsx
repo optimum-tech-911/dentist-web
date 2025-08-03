@@ -25,7 +25,7 @@ export default function Contact() {
               <div className="flex items-center">
                 <Link to="/">
                   <img 
-                    src="/ufsbd-logo-new.jpg" 
+                    src="/fevicon.ico" 
                     alt="UFSBD Logo" 
                     className="h-12 md:h-16 w-auto hover:scale-105 transition-transform cursor-pointer" 
                   />
