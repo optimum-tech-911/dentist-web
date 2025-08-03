@@ -113,14 +113,14 @@ export default function PendingPosts() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Pending Posts</h1>
-        <p className="text-muted-foreground">Review and approve blog posts</p>
+        <h1 className="text-3xl font-bold">Articles en attente</h1>
+        <p className="text-muted-foreground">Examiner et approuver les articles de blog</p>
       </div>
 
       {posts.length === 0 ? (
         <Card>
           <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">No pending posts to review</p>
+            <p className="text-center text-muted-foreground">Aucun article en attente de révision</p>
           </CardContent>
         </Card>
       ) : (
