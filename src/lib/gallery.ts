@@ -33,10 +33,10 @@ export class GalleryService {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      // Get signed URL
+      // Get public URL instead of signed URL
       const { data: urlData } = await supabase.storage
         .from('gallery')
-        .createSignedUrl(filePath, 3600);
+        .getPublicUrl(filePath);
 
       // Save metadata to database
       const { data: dbData, error: dbError } = await supabase
@@ -60,7 +60,7 @@ export class GalleryService {
 
       return {
         ...dbData,
-        url: urlData?.signedUrl || ''
+        url: urlData?.publicUrl || ''
       };
     } catch (error) {
       console.error('Gallery upload error:', error);
@@ -80,16 +80,16 @@ export class GalleryService {
 
       if (error) throw error;
 
-      // Get signed URLs for all images
+      // Get public URLs for all images
       const imagesWithUrls = await Promise.all(
         data.map(async (image) => {
           const { data: urlData } = await supabase.storage
             .from('gallery')
-            .createSignedUrl(image.file_path, 3600); // 1 hour expiry
+            .getPublicUrl(image.file_path);
 
           return {
             ...image,
-            url: urlData?.signedUrl || ''
+            url: urlData?.publicUrl || ''
           };
         })
       );
