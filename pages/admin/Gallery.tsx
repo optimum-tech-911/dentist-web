@@ -24,10 +24,12 @@ export default function Gallery() {
   const fetchImages = async () => {
     try {
       setIsLoading(true);
+      console.log('🔍 Gallery: Starting to fetch images...');
       const images = await GalleryService.getImages();
+      console.log('✅ Gallery: Received images:', images.length, images);
       setImages(images);
     } catch (error) {
-      console.error('Error fetching images:', error);
+      console.error('❌ Gallery: Error fetching images:', error);
       toast({
         title: "Erreur",
         description: "Impossible de charger les images de la galerie.",
@@ -199,10 +201,18 @@ export default function Gallery() {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((img) => (
+              {images.map((img) => {
+                console.log('🖼️ Rendering image:', img.name, 'URL:', img.url?.substring(0, 50) + '...');
+                return (
                 <div key={img.id} className="relative group border rounded-lg overflow-hidden">
                   {img.file_type.startsWith('image/') ? (
-                    <img src={img.url} alt={img.name} className="w-full h-32 object-cover" />
+                    <img 
+                      src={img.url} 
+                      alt={img.name} 
+                      className="w-full h-32 object-cover"
+                      onLoad={() => console.log('✅ Image loaded:', img.name)}
+                      onError={(e) => console.error('❌ Image failed to load:', img.name, e)}
+                    />
                   ) : img.file_type.startsWith('video/') ? (
                     <video src={img.url} controls className="w-full h-32 object-cover bg-black" />
                   ) : null}
@@ -223,7 +233,8 @@ export default function Gallery() {
                       </Button>
                     </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </CardContent>
