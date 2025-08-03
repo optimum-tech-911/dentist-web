@@ -36,7 +36,7 @@ export class GalleryService {
       // Get signed URL
       const { data: urlData } = await supabase.storage
         .from('gallery')
-        .createSignedUrl(filePath, 3600);
+        .createSignedUrl(filePath, 86400); // 24 hours instead of 1 hour
 
       // Save metadata to database
       const { data: dbData, error: dbError } = await supabase
@@ -85,7 +85,7 @@ export class GalleryService {
         data.map(async (image) => {
           const { data: urlData } = await supabase.storage
             .from('gallery')
-            .createSignedUrl(image.file_path, 3600); // 1 hour expiry
+            .createSignedUrl(image.file_path, 86400); // 24 hours instead of 1 hour
 
           return {
             ...image,

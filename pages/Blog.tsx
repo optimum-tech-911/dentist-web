@@ -38,44 +38,21 @@ const testStorageAccess = async () => {
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
-  // Check if it's a file path (doesn't start with http)
-  if (!imageUrl.startsWith('http')) {
-    try {
-      console.log('Generating signed URL for file path:', imageUrl);
-      const { data, error } = await supabase.storage
-        .from('gallery')
-        .createSignedUrl(imageUrl, 3600);
-      
-      if (!error && data?.signedUrl) {
-        console.log('Successfully generated signed URL for:', imageUrl);
-        return data.signedUrl;
-      } else {
-        console.error('Error creating signed URL:', error);
-      }
-    } catch (error) {
-      console.error('Could not generate signed URL, using original:', error);
-    }
-  } else if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
-    // Handle legacy signed URLs (for backward compatibility)
+  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
         const { data, error } = await supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 3600);
+          .createSignedUrl(urlParts, 86400); // 24 hours instead of 1 hour
         
         if (!error && data?.signedUrl) {
-          console.log('Successfully refreshed legacy URL for:', urlParts);
           return data.signedUrl;
-        } else {
-          console.error('Error creating signed URL:', error);
         }
       }
     } catch (error) {
-      console.error('Could not refresh legacy URL, using original:', error);
+      console.log('Could not refresh URL, using original:', error);
     }
-  } else {
-    console.log('Not a gallery file path or signed URL, using as-is:', imageUrl);
   }
   return imageUrl;
 };
