@@ -36,24 +36,29 @@ const testStorageAccess = async () => {
   }
 };
 
-// Helper function to refresh gallery image URLs
-const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+// Helper function to get public URL for gallery images
+const getPublicImageUrl = async (imageUrl: string): Promise<string> => {
+  // If it's already a public URL, return as is
+  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
+    return imageUrl;
+  }
+  
+  // If it's a signed URL, extract the file path and get public URL
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        const { data, error } = await supabase.storage
+        const { data } = await supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 86400); // 24 hours instead of 1 hour
+          .getPublicUrl(urlParts);
         
-        if (!error && data?.signedUrl) {
-          return data.signedUrl;
-        }
+        return data?.publicUrl || imageUrl;
       }
     } catch (error) {
-      console.log('Could not refresh URL, using original:', error);
+      console.log('Could not get public URL, using original:', error);
     }
   }
+  
   return imageUrl;
 };
 
@@ -110,7 +115,7 @@ export default function Blog() {
         const urlPromises = data
           .filter(post => post.image)
           .map(async (post) => {
-            const refreshedUrl = await refreshImageUrl(post.image!);
+            const refreshedUrl = await getPublicImageUrl(post.image!);
             return { id: post.id, url: refreshedUrl };
           });
           
