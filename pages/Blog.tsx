@@ -10,9 +10,53 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 
+// Helper function to test storage access
+const testStorageAccess = async () => {
+  try {
+    console.log('Testing Supabase storage access...');
+    const { data, error } = await supabase.storage.listBuckets();
+    if (error) {
+      console.error('Error listing buckets:', error);
+    } else {
+      console.log('Available buckets:', data);
+    }
+    
+    // Test gallery bucket specifically
+    const { data: galleryData, error: galleryError } = await supabase.storage
+      .from('gallery')
+      .list('', { limit: 5 });
+    
+    if (galleryError) {
+      console.error('Error listing gallery files:', galleryError);
+    } else {
+      console.log('Gallery files:', galleryData);
+    }
+  } catch (error) {
+    console.error('Storage test failed:', error);
+  }
+};
+
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
-  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+  // Check if it's a file path (doesn't start with http)
+  if (!imageUrl.startsWith('http')) {
+    try {
+      console.log('Generating signed URL for file path:', imageUrl);
+      const { data, error } = await supabase.storage
+        .from('gallery')
+        .createSignedUrl(imageUrl, 3600);
+      
+      if (!error && data?.signedUrl) {
+        console.log('Successfully generated signed URL for:', imageUrl);
+        return data.signedUrl;
+      } else {
+        console.error('Error creating signed URL:', error);
+      }
+    } catch (error) {
+      console.error('Could not generate signed URL, using original:', error);
+    }
+  } else if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    // Handle legacy signed URLs (for backward compatibility)
     try {
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
@@ -21,12 +65,17 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
           .createSignedUrl(urlParts, 3600);
         
         if (!error && data?.signedUrl) {
+          console.log('Successfully refreshed legacy URL for:', urlParts);
           return data.signedUrl;
+        } else {
+          console.error('Error creating signed URL:', error);
         }
       }
     } catch (error) {
-      console.log('Could not refresh URL, using original:', error);
+      console.error('Could not refresh legacy URL, using original:', error);
     }
+  } else {
+    console.log('Not a gallery file path or signed URL, using as-is:', imageUrl);
   }
   return imageUrl;
 };
@@ -52,6 +101,8 @@ export default function Blog() {
 
   useEffect(() => {
     fetchApprovedPosts();
+    // Test storage access for debugging
+    testStorageAccess();
   }, []);
 
   const fetchApprovedPosts = async () => {
@@ -67,6 +118,15 @@ export default function Blog() {
 
       if (error) throw error;
       setPosts(data || []);
+      
+      // Debug: Log image URLs
+      if (data) {
+        data.forEach(post => {
+          if (post.image) {
+            console.log(`Post "${post.title}" has image:`, post.image);
+          }
+        });
+      }
       
       // Refresh image URLs for posts that have gallery images
       if (data) {
@@ -265,14 +325,32 @@ export default function Blog() {
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && (
-                      <div className="aspect-video overflow-hidden rounded-t-lg">
+                      <div className="aspect-video overflow-hidden rounded-t-lg bg-gray-100">
                         <img
                           src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             const target = e.target as HTMLImageElement;
+                            console.error('Image failed to load:', target.src);
                             target.style.display = 'none';
+                            // Show a placeholder instead of hiding the container
+                            const container = target.parentElement;
+                            if (container) {
+                              container.innerHTML = `
+                                <div class="w-full h-full flex items-center justify-center bg-gray-200">
+                                  <div class="text-center text-gray-500">
+                                    <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <p class="text-sm">Image non disponible</p>
+                                  </div>
+                                </div>
+                              `;
+                            }
+                          }}
+                          onLoad={() => {
+                            console.log('Image loaded successfully:', post.title);
                           }}
                         />
                       </div>

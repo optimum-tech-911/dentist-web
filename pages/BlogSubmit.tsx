@@ -17,6 +17,7 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 export default function BlogSubmit() {
   const { user, userRole } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string>('');
   const [formData, setFormData] = useState({
     title: '',
     category: '',
@@ -81,11 +82,27 @@ export default function BlogSubmit() {
   ];
 
   // Handle header image selection
-  const handleHeaderImageSelect = (image: GalleryImage) => {
+  const handleHeaderImageSelect = async (image: GalleryImage) => {
     setFormData(prev => ({
       ...prev,
-      headerImage: image.url
+      headerImage: image.file_path // Store file path instead of signed URL
     }));
+    
+    // Generate signed URL for preview
+    try {
+      const { data, error } = await supabase.storage
+        .from('gallery')
+        .createSignedUrl(image.file_path, 3600);
+      
+      if (!error && data?.signedUrl) {
+        setPreviewImageUrl(data.signedUrl);
+      } else {
+        setPreviewImageUrl(image.url); // Fallback to original URL
+      }
+    } catch (error) {
+      console.error('Error generating preview URL:', error);
+      setPreviewImageUrl(image.url); // Fallback to original URL
+    }
   };
 
   return (
@@ -159,7 +176,7 @@ export default function BlogSubmit() {
                   {formData.headerImage && (
                     <div className="relative">
                       <img
-                        src={formData.headerImage}
+                        src={previewImageUrl}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
                       />
@@ -168,7 +185,10 @@ export default function BlogSubmit() {
                         variant="destructive"
                         size="sm"
                         className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                        onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, headerImage: '' }));
+                          setPreviewImageUrl('');
+                        }}
                       >
                         ×
                       </Button>
