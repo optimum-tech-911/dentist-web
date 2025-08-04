@@ -170,9 +170,12 @@ export class GalleryService {
 
     // Find all img tags with gallery signed URLs
     const imgRegex = /<img[^>]+src="([^"]*\/storage\/v1\/object\/sign\/gallery\/[^"]*)"[^>]*>/g;
-    let match;
     let updatedContent = content;
+    let match;
 
+    // Reset regex state
+    imgRegex.lastIndex = 0;
+    
     while ((match = imgRegex.exec(content)) !== null) {
       const signedUrl = match[1];
       try {
