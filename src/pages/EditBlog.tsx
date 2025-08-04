@@ -74,14 +74,16 @@ export default function EditBlog() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user) return;
     setIsSubmitting(true);
     try {
+      // Convert any temporary URLs in the content to public URLs
+      const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
+      
       const { error } = await supabase
         .from('posts')
         .update({
           title: formData.title,
-          content: formData.content,
+          content: processedContent,
           category: formData.category,
           image: formData.headerImage || null
         })

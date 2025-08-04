@@ -163,6 +163,41 @@ export class GalleryService {
   }
 
   /**
+   * Convert temporary signed URLs to public URLs in article content
+   */
+  static async convertTemporaryUrlsInContent(content: string): Promise<string> {
+    if (!content) return content;
+
+    // Find all img tags with gallery signed URLs
+    const imgRegex = /<img[^>]+src="([^"]*\/storage\/v1\/object\/sign\/gallery\/[^"]*)"[^>]*>/g;
+    let match;
+    let updatedContent = content;
+
+    while ((match = imgRegex.exec(content)) !== null) {
+      const signedUrl = match[1];
+      try {
+        // Extract file path from the signed URL
+        const urlParts = signedUrl.split('/gallery/')[1]?.split('?')[0];
+        if (urlParts) {
+          // Convert to public URL
+          const { data } = supabase.storage
+            .from('gallery')
+            .getPublicUrl(urlParts);
+          
+          if (data?.publicUrl) {
+            // Replace the signed URL with public URL
+            updatedContent = updatedContent.replace(signedUrl, data.publicUrl);
+          }
+        }
+      } catch (error) {
+        console.log('Could not convert signed URL to public URL:', error);
+      }
+    }
+
+    return updatedContent;
+  }
+
+  /**
    * Validate file before upload
    */
   static validateFile(file: File): { isValid: boolean; error?: string } {
