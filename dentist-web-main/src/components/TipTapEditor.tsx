@@ -15,6 +15,33 @@ import { GallerySelector } from './GallerySelector';
 import { TableBuilder } from './TableBuilder';
 import { Play, Image as ImageIcon, Bold as BoldIcon, Italic as ItalicIcon, List, ListOrdered, Quote, Underline as UnderlineIcon, Youtube as YoutubeIcon, Table as TableIcon, PlusSquare, MinusSquare, Trash2, Merge, Split } from 'lucide-react';
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+
+// Helper function to ensure we always use public URLs
+const ensurePublicUrl = (url: string): string => {
+  // If it's already a public URL, return as-is
+  if (url.includes('/storage/v1/object/public/gallery/')) {
+    return url;
+  }
+  
+  // If it's a signed URL, convert to public URL
+  if (url.includes('/storage/v1/object/sign/gallery/')) {
+    try {
+      const urlParts = url.split('/gallery/')[1]?.split('?')[0];
+      if (urlParts) {
+        const { data } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(urlParts);
+        return data.publicUrl;
+      }
+    } catch (error) {
+      console.log('Could not convert to public URL:', error);
+    }
+  }
+  
+  // Return original URL if not a gallery URL
+  return url;
+};
 
 interface TipTapEditorProps {
   value: string;
@@ -117,12 +144,15 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
     if (!media) return;
     
     try {
+      // Always ensure we use public URLs to prevent expiry
+      const publicUrl = ensurePublicUrl(media.url);
+      
       if (media.file_type && media.file_type.startsWith('video/')) {
         if (editor) {
           const videoContent = {
             type: 'video',
             attrs: { 
-              src: media.url,
+              src: publicUrl,
               controls: true,
               preload: 'metadata'
             }
@@ -130,7 +160,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
           editor.chain().focus().insertContent(videoContent).run();
         }
       } else {
-        setImage(media.url);
+        setImage(publicUrl);
       }
     } catch (error) {
       console.error('Error inserting media:', error);
