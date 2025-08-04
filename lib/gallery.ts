@@ -33,10 +33,10 @@ export class GalleryService {
         throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
-      // Get signed URL
-      const { data: urlData } = await supabase.storage
+      // Get public URL (no expiry)
+      const { data: urlData } = supabase.storage
         .from('gallery')
-        .createSignedUrl(filePath, 3600);
+        .getPublicUrl(filePath);
 
       // Save metadata to database
       const { data: dbData, error: dbError } = await supabase
@@ -60,7 +60,7 @@ export class GalleryService {
 
       return {
         ...dbData,
-        url: urlData?.signedUrl || ''
+        url: urlData.publicUrl
       };
     } catch (error) {
       console.error('Gallery upload error:', error);
@@ -80,19 +80,17 @@ export class GalleryService {
 
       if (error) throw error;
 
-      // Get signed URLs for all images
-      const imagesWithUrls = await Promise.all(
-        data.map(async (image) => {
-          const { data: urlData } = await supabase.storage
-            .from('gallery')
-            .createSignedUrl(image.file_path, 3600); // 1 hour expiry
+      // Get public URLs for all images (no expiry)
+      const imagesWithUrls = data.map((image) => {
+        const { data: urlData } = supabase.storage
+          .from('gallery')
+          .getPublicUrl(image.file_path);
 
-          return {
-            ...image,
-            url: urlData?.signedUrl || ''
-          };
-        })
-      );
+        return {
+          ...image,
+          url: urlData.publicUrl
+        };
+      });
 
       return imagesWithUrls;
 
@@ -148,14 +146,14 @@ export class GalleryService {
 
       if (!data) return null;
 
-      // Get signed URL
-      const { data: urlData } = await supabase.storage
+      // Get public URL (no expiry)
+      const { data: urlData } = supabase.storage
         .from('gallery')
-        .createSignedUrl(data.file_path, 3600);
+        .getPublicUrl(data.file_path);
 
       return {
         ...data,
-        url: urlData?.signedUrl || ''
+        url: urlData.publicUrl
       };
 
     } catch (error) {

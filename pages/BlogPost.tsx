@@ -21,26 +21,26 @@ interface Post {
 
 // Helper function to check if URL is a gallery signed URL and refresh it
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
-  // Check if it's a gallery signed URL
+  // Check if it's a gallery signed URL (legacy support)
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
       // Extract file path from the signed URL
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        // Generate fresh signed URL
-        const { data, error } = await supabase.storage
+        // Convert to public URL (no expiry)
+        const { data } = supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 604800); // 7 days expiry
+          .getPublicUrl(urlParts);
         
-        if (!error && data?.signedUrl) {
-          return data.signedUrl;
+        if (data?.publicUrl) {
+          return data.publicUrl;
         }
       }
     } catch (error) {
-      console.log('Could not refresh URL, using original:', error);
+      console.log('Could not convert to public URL, using original:', error);
     }
   }
-  // Return original URL if not a gallery URL or refresh failed
+  // Return original URL if not a gallery URL or conversion failed
   return imageUrl;
 };
 

@@ -12,20 +12,22 @@ import { Footer } from '@/components/Footer';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+  // Check if it's a gallery signed URL (legacy support)
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        const { data, error } = await supabase.storage
+        // Convert to public URL (no expiry)
+        const { data } = supabase.storage
           .from('gallery')
-          .createSignedUrl(urlParts, 604800); // 7 days expiry
+          .getPublicUrl(urlParts);
         
-        if (!error && data?.signedUrl) {
-          return data.signedUrl;
+        if (data?.publicUrl) {
+          return data.publicUrl;
         }
       }
     } catch (error) {
-      console.log('Could not refresh URL, using original:', error);
+      console.log('Could not convert to public URL, using original:', error);
     }
   }
   return imageUrl;
