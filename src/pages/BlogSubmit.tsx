@@ -33,11 +33,14 @@ export default function BlogSubmit() {
     setLoading(true);
 
     try {
-              const { error } = await supabase
+      // Convert any temporary URLs in the content to public URLs
+      const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
+      
+      const { error } = await supabase
         .from('posts')
         .insert({
           title: formData.title,
-          content: formData.content,
+          content: processedContent,
           category: formData.category,
           image: formData.headerImage || null,
           author_email: user.email!,
