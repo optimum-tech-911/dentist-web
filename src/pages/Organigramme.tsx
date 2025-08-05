@@ -9,6 +9,7 @@ import { OrganigrammeCard } from '@/components/OrganigrammeCard';
 import { useAuth } from '@/hooks/useAuth';
 import { Tree } from '@minoru/react-dnd-treeview';
 import { Footer } from '@/components/Footer';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function Organigramme() {
   const [orgData, setOrgData] = useState<OrganigramMember[]>([]);
@@ -78,7 +79,7 @@ export default function Organigramme() {
           <div className="relative z-10 w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden border-2 border-white/30">
             {member.image?.url ? (
               <img 
-                src={member.image.url} 
+                src={convertToPublicUrl(member.image.url)} 
                 alt={member.name}
                 className="w-full h-full object-cover"
                 onError={(e) => {

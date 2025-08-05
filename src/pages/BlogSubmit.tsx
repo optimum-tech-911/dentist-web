@@ -13,6 +13,7 @@ import { PenTool, Image, ArrowLeft } from 'lucide-react';
 import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function BlogSubmit() {
   const { user, userRole } = useAuth();
@@ -87,8 +88,16 @@ export default function BlogSubmit() {
   const handleHeaderImageSelect = (image: GalleryImage) => {
     setFormData(prev => ({
       ...prev,
-      headerImage: image.url
+      headerImage: image.file_path // Store the stable file_path instead of url
     }));
+  };
+
+  // Convert file_path to public URL for display
+  const getImageUrl = (filePath: string) => {
+    const { data } = supabase.storage
+      .from('gallery')
+      .getPublicUrl(filePath);
+    return data?.publicUrl || '';
   };
 
   return (
@@ -166,7 +175,7 @@ export default function BlogSubmit() {
                   {formData.headerImage && (
                     <div className="relative">
                       <img
-                        src={formData.headerImage}
+                        src={getImageUrl(formData.headerImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
                       />

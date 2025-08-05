@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Image, Search, X, Check, Loader2 } from 'lucide-react';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
+import { convertToPublicUrl } from '@/lib/utils';
 
 interface GallerySelectorProps {
   onImageSelect: (media: GalleryImage | any) => void; // Will handle both images and videos
@@ -127,14 +128,14 @@ export function GallerySelector({
                       <div className="relative aspect-square overflow-hidden rounded-md bg-black">
                         {media.file_type.startsWith('image/') ? (
                           <img
-                            src={media.url}
+                            src={convertToPublicUrl(media.url)}
                             alt={media.name}
                             className="w-full h-full object-cover"
                             loading="lazy"
                           />
                         ) : media.file_type.startsWith('video/') ? (
                           <video
-                            src={media.url}
+                            src={convertToPublicUrl(media.url)}
                             className="w-full h-full object-cover"
                             controls
                           />

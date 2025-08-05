@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { OrganigramService, type OrganigramMember, type OrganigramRole } from '@/lib/organigram';
 import { ImageSelector } from '@/components/ImageSelector';
+import { supabase } from '@/integrations/supabase/client';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function OrganigrammeAdmin() {
   const { toast } = useToast();
@@ -525,7 +527,7 @@ export default function OrganigrammeAdmin() {
                       <div className="w-16 h-16 bg-muted rounded-lg overflow-hidden">
                         {member.image?.url ? (
                           <img
-                            src={member.image.url}
+                            src={convertToPublicUrl(member.image.url)}
                             alt={member.name}
                             className="w-full h-full object-cover"
                             onError={(e) => {

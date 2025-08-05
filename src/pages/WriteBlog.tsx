@@ -41,8 +41,16 @@ export default function WriteBlog() {
   const handleHeaderImageSelect = (image: GalleryImage) => {
     setFormData(prev => ({
       ...prev,
-      headerImage: image.url
+      headerImage: image.file_path // Store the stable file_path instead of url
     }));
+  };
+
+  // Convert file_path to public URL for display
+  const getImageUrl = (filePath: string) => {
+    const { data } = supabase.storage
+      .from('gallery')
+      .getPublicUrl(filePath);
+    return data?.publicUrl || '';
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -237,7 +245,7 @@ export default function WriteBlog() {
                   {formData.headerImage && (
                     <div className="relative">
                       <img
-                        src={formData.headerImage}
+                        src={getImageUrl(formData.headerImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
                       />

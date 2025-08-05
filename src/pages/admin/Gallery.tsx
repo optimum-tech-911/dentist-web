@@ -6,6 +6,7 @@ import { FolderOpen, Upload, Trash2, Eye, X, Check, Loader2 } from 'lucide-react
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -202,9 +203,9 @@ export default function Gallery() {
               {images.map((img) => (
                 <div key={img.id} className="relative group border rounded-lg overflow-hidden">
                   {img.file_type.startsWith('image/') ? (
-                    <img src={img.url} alt={img.name} className="w-full h-32 object-cover" />
+                    <img src={convertToPublicUrl(img.url)} alt={img.name} className="w-full h-32 object-cover" />
                   ) : img.file_type.startsWith('video/') ? (
-                    <video src={img.url} controls className="w-full h-32 object-cover bg-black" />
+                    <video src={convertToPublicUrl(img.url)} controls className="w-full h-32 object-cover bg-black" />
                   ) : null}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
                       <Button 
@@ -245,7 +246,7 @@ export default function Gallery() {
             </div>
             <div className="p-4">
               <img
-                src={selectedImage.url}
+                src={convertToPublicUrl(selectedImage.url)}
                 alt={selectedImage.name}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
                 onError={(e) => {
@@ -259,7 +260,7 @@ export default function Gallery() {
               </div>
               <div className="mt-4 flex space-x-2">
                 <Button
-                  onClick={() => copyImageUrl(selectedImage.url)}
+                  onClick={() => copyImageUrl(convertToPublicUrl(selectedImage.url))}
                   className="flex-1"
                 >
                   <Check className="h-4 w-4 mr-2" />
