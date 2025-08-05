@@ -49,7 +49,18 @@ export default function BlogPost() {
           console.error('Error fetching post:', error);
         }
       } else {
-        setPost(data);
+        // Convert image path to public URL if it exists
+        let postData = data;
+        if (data.image) {
+          const { data: urlData } = await supabase.storage
+            .from('gallery')
+            .getPublicUrl(data.image);
+          postData = {
+            ...data,
+            image: urlData?.publicUrl || data.image
+          };
+        }
+        setPost(postData);
       }
     } catch (error) {
       console.error('Error fetching post:', error);

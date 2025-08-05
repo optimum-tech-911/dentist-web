@@ -49,11 +49,21 @@ export default function EditBlog() {
         navigate('/admin/approved');
         return;
       }
+      
+      // Convert image path to public URL if it exists
+      let imageUrl = data.image || '';
+      if (data.image) {
+        const { data: urlData } = await supabase.storage
+          .from('gallery')
+          .getPublicUrl(data.image);
+        imageUrl = urlData?.publicUrl || data.image;
+      }
+      
       setFormData({
         title: data.title || '',
         content: data.content || '',
         category: data.category || '',
-        headerImage: data.image || ''
+        headerImage: imageUrl
       });
       setInitialLoaded(true);
     } catch (e) {
