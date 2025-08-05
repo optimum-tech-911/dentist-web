@@ -10,18 +10,17 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 // Helper function to convert signed URLs to public URLs
 const convertToPublicUrl = (imagePath: string): string => {
-  if (!imagePath) return '';
+  if (!imagePath) return '';
 
-  // If already a full URL, return as-is
-  if (imagePath.startsWith('http')) return imagePath;
+  // If already a full URL, return as-is
+  if (imagePath.startsWith('http')) return imagePath;
 
-  // Generate permanent public URL using Supabase
-  const { data } = supabase.storage
-    .from('gallery')
-    .getPublicUrl(imagePath);
+  // Generate permanent public URL from storage path
+  const result = supabase.storage.from('gallery').getPublicUrl(imagePath);
 
-  return data?.publicUrl || '';
+  return result.data?.publicUrl || '';
 };
+
 
 interface Post {
   id: string;
@@ -208,3 +207,4 @@ export default function PendingPosts() {
   );
 
 }
+
