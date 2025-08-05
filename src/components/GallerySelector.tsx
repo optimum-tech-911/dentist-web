@@ -132,12 +132,20 @@ export function GallerySelector({
                             alt={media.name}
                             className="w-full h-full object-cover"
                             loading="lazy"
+                            onError={(e) => {
+                              console.warn('Image failed to load:', e.currentTarget.src);
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
                           />
                         ) : media.file_type.startsWith('video/') ? (
                           <video
                             src={convertToPublicUrl(media.url)}
                             className="w-full h-full object-cover"
                             controls
+                            onError={(e) => {
+                              console.warn('Video failed to load:', e.currentTarget.src);
+                              e.currentTarget.src = '/placeholder.svg';
+                            }}
                           />
                         ) : null}
                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">

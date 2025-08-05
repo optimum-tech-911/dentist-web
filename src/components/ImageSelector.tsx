@@ -145,6 +145,7 @@ export function ImageSelector({
                     alt={selectedImage.name}
                     className="w-16 h-16 object-cover rounded-lg"
                     onError={(e) => {
+                      console.warn('Image failed to load:', e.currentTarget.src);
                       e.currentTarget.src = '/placeholder.svg';
                     }}
                   />
@@ -191,6 +192,7 @@ export function ImageSelector({
                         alt={image.name}
                         className="w-full h-full object-cover rounded-t-lg"
                         onError={(e) => {
+                          console.warn('Image failed to load:', e.currentTarget.src);
                           e.currentTarget.src = '/placeholder.svg';
                         }}
                       />

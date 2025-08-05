@@ -250,6 +250,7 @@ export default function Gallery() {
                 alt={selectedImage.name}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
                 onError={(e) => {
+                  console.warn('Image failed to load:', e.currentTarget.src);
                   e.currentTarget.src = '/placeholder.svg';
                 }}
               />

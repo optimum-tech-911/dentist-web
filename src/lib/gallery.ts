@@ -5,6 +5,17 @@ export type GalleryImage = Database['public']['Tables']['gallery_images']['Row']
   url: string;
 };
 
+// Environment-based bucket selection
+const getGalleryBucket = () => {
+  const isDev = import.meta.env.DEV;
+  const isStaging = import.meta.env.VITE_ENVIRONMENT === 'staging';
+  
+  if (isDev || isStaging) {
+    return 'gallery-staging';
+  }
+  return 'gallery';
+};
+
 export class GalleryService {
   /**
    * Upload an image to the gallery
@@ -18,14 +29,27 @@ export class GalleryService {
         if (authError || !authData?.user?.id) throw new Error('Utilisateur non authentifié.');
         uid = authData.user.id;
       }
+      
+      // Sanitize filename to avoid URL issues
+      const sanitizeFileName = (name: string) => {
+        return name
+          .replace(/\s+/g, '_') // Replace spaces with underscores
+          .toLowerCase() // Convert to lowercase
+          .replace(/[^a-z0-9._-]/g, '') // Remove special characters except dots, underscores, hyphens
+          .replace(/_{2,}/g, '_') // Replace multiple underscores with single
+          .replace(/\.{2,}/g, '.') // Replace multiple dots with single
+          .replace(/^\.+|\.+$/g, ''); // Remove leading/trailing dots
+      };
+      
       // Generate unique filename
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const sanitizedName = sanitizeFileName(file.name.replace(/\.[^/.]+$/, '')); // Remove extension first
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}-${sanitizedName}.${fileExt}`;
       const filePath = `${uid}/${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError } = await supabase.storage
-        .from('gallery')
+        .from(getGalleryBucket())
         .upload(filePath, file);
 
       if (uploadError) {
@@ -35,7 +59,7 @@ export class GalleryService {
 
       // Get public URL (no expiry)
       const { data: urlData } = supabase.storage
-        .from('gallery')
+        .from(getGalleryBucket())
         .getPublicUrl(filePath);
 
       // Save metadata to database
@@ -54,7 +78,7 @@ export class GalleryService {
       if (dbError) {
         console.error('Database error:', dbError);
         // Clean up uploaded file if database insert fails
-        await supabase.storage.from('gallery').remove([filePath]);
+        await supabase.storage.from(getGalleryBucket()).remove([filePath]);
         throw new Error(`Database error: ${dbError.message}`);
       }
 
@@ -83,7 +107,7 @@ export class GalleryService {
       // Get public URLs for all images (no expiry)
       const imagesWithUrls = data.map((image) => {
         const { data: urlData } = supabase.storage
-          .from('gallery')
+          .from(getGalleryBucket())
           .getPublicUrl(image.file_path);
 
         return {
@@ -107,7 +131,7 @@ export class GalleryService {
     try {
       // Delete from storage
       const { error: storageError } = await supabase.storage
-        .from('gallery')
+        .from(getGalleryBucket())
         .remove([filePath]);
 
       if (storageError) {
@@ -148,7 +172,7 @@ export class GalleryService {
 
       // Get public URL (no expiry)
       const { data: urlData } = supabase.storage
-        .from('gallery')
+        .from(getGalleryBucket())
         .getPublicUrl(data.file_path);
 
       return {
@@ -184,7 +208,7 @@ export class GalleryService {
         if (urlParts) {
           // Convert to public URL
           const { data } = supabase.storage
-            .from('gallery')
+            .from(getGalleryBucket())
             .getPublicUrl(urlParts);
           
           if (data?.publicUrl) {

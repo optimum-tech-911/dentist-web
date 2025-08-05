@@ -21,6 +21,7 @@ const Organigramme = lazy(() => import("./pages/Organigramme").catch(() => ({ de
 const WriteBlog = lazy(() => import("./pages/WriteBlog").catch(() => ({ default: () => <FallbackPage title="Write Blog" /> })));
 const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: () => <FallbackPage title="Edit Blog" /> })));
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
+const ImageTester = lazy(() => import("./pages/ImageTester").catch(() => ({ default: () => <FallbackPage title="Image Tester" /> })));
 const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(() => ({ default: () => <FallbackPage title="Password Reset" /> })));
 const OTPPasswordReset = lazy(() => import("./pages/OTPPasswordReset").catch(() => ({ default: () => <FallbackPage title="OTP Password Reset" /> })));
 const SimpleOTPReset = lazy(() => import("./pages/SimpleOTPReset").catch(() => ({ default: () => <FallbackPage title="Simple OTP Reset" /> })));
@@ -133,6 +134,7 @@ const App = () => {
                 <Route path="/contact" element={<SafeRoute><Contact /></SafeRoute>} />
                 <Route path="/organigramme" element={<SafeRoute><Organigramme /></SafeRoute>} />
                 <Route path="/test" element={<SafeRoute><TestPage /></SafeRoute>} />
+                <Route path="/dev/image-tester" element={<SafeRoute><ImageTester /></SafeRoute>} />
                 <Route path="/write-blog" element={<SafeRoute><WriteBlog /></SafeRoute>} />
                 <Route 
                   path="/submit" 

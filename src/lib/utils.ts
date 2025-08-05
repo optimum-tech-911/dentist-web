@@ -6,6 +6,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Environment-based bucket selection
+const getGalleryBucket = () => {
+  const isDev = import.meta.env.DEV;
+  const isStaging = import.meta.env.VITE_ENVIRONMENT === 'staging';
+  
+  if (isDev || isStaging) {
+    return 'gallery-staging';
+  }
+  return 'gallery';
+};
+
 /**
  * Convert a signed URL to a permanent public URL
  * @param url - The URL to convert (can be signed or already public)
@@ -19,13 +30,14 @@ export function convertToPublicUrl(url: string): string {
   
   // Check if it's a signed URL
   if (url.includes('/object/sign/')) {
+    console.warn('⚠️ Signed URL detected — converting to public URL:', url);
     try {
       // Extract the file path from the signed URL
       const urlParts = url.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
         // Convert to public URL
         const { data } = supabase.storage
-          .from('gallery')
+          .from(getGalleryBucket())
           .getPublicUrl(urlParts);
         
         return data?.publicUrl || url;
