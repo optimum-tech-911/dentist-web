@@ -8,19 +8,6 @@ import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
-const convertToPublicUrl = (imagePath: string): string => {
-  if (!imagePath) return '';
-  if (imagePath.startsWith('http')) return imagePath;
-
-  const { data } = supabase.storage
-    .from('gallery')
-    .getPublicUrl(imagePath);
-
-  return data?.publicUrl || '';
-};
-
-// Usage:
-<img src={convertToPublicUrl(post.image)} alt="gallery" />
 interface Post {
   id: string;
   title: string;
@@ -29,8 +16,16 @@ interface Post {
   author_email: string;
   status: string;
   created_at: string;
-  image?: string;
+  image?: string | null;
 }
+
+// Builds a permanent public URL from a raw storage path (or passes through if already a URL)
+const convertToPublicUrl = (imagePath?: string | null): string => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  const { data } = supabase.storage.from('gallery').getPublicUrl(imagePath);
+  return data?.publicUrl || '';
+};
 
 export default function PendingPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -41,34 +36,27 @@ export default function PendingPosts() {
     fetchPendingPosts();
   }, []);
 
-const fetchPendingPosts = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false });
+  const fetchPendingPosts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
 
-    if (error) throw error;
-
-    // ✅ Convert image filename to public URL
-    const processed = (data || []).map((post) => ({
-      ...post,
-      image: post.image ? convertToPublicUrl(post.image) : null,
-    }));
-
-    setPosts(processed);
-  } catch (error) {
-    console.error('Error fetching pending posts:', error);
-    toast({
-      title: "Erreur lors du chargement des articles",
-      description: "Failed to load pending posts",
-      variant: "destructive"
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      if (error) throw error;
+      setPosts(data || []);
+    } catch (error) {
+      console.error('Error fetching pending posts:', error);
+      toast({
+        title: "Erreur lors du chargement des articles",
+        description: "Failed to load pending posts",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const updatePostStatus = async (postId: string, status: 'approved' | 'rejected') => {
     try {
@@ -79,7 +67,7 @@ const fetchPendingPosts = async () => {
 
       if (error) throw error;
 
-      setPosts(posts.filter(p => p.id !== postId));
+      setPosts(prev => prev.filter(p => p.id !== postId));
       toast({
         title: `Post ${status}`,
         description: `The post has been ${status} successfully`
@@ -88,7 +76,7 @@ const fetchPendingPosts = async () => {
       console.error(`Error ${status} post:`, error);
       toast({
         title: "Erreur",
-        description: `Échec de ${status === 'approve' ? 'l\'approbation' : 'la rejection'} de l'article`,
+        description: `Échec de ${status === 'approved' ? "l'approbation" : 'la rejection'} de l'article`,
         variant: "destructive"
       });
     }
@@ -103,7 +91,7 @@ const fetchPendingPosts = async () => {
 
       if (error) throw error;
 
-      setPosts(posts.filter(p => p.id !== postId));
+      setPosts(prev => prev.filter(p => p.id !== postId));
       toast({
         title: "Post deleted",
         description: "The post has been deleted successfully"
@@ -117,71 +105,60 @@ const fetchPendingPosts = async () => {
       });
     }
   };
-const handleImageUpload = async (
-  event: React.ChangeEvent<HTMLInputElement>,
-  postId: string
-) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
 
-  const filePath = `${Date.now()}_${file.name}`;
+  const handleEditPost = (postId: string) => {
+    navigate(`/edit/${postId}`);
+  };
 
-  // Upload image to Supabase Storage
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from('gallery')
-    .upload(filePath, file);
+  const handleImageUpload = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    postId: string
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-  if (uploadError || !uploadData) {
-    console.error('Upload failed:', uploadError?.message);
+    const filePath = `${Date.now()}_${file.name}`;
+
+    // Upload image to Supabase storage
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from('gallery')
+      .upload(filePath, file);
+
+    if (uploadError || !uploadData) {
+      console.error('Upload failed:', uploadError?.message);
+      toast({
+        title: "Upload failed",
+        description: uploadError?.message || "No data returned from upload.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const rawImagePath = uploadData.path; // e.g. "1691332231_photo.jpg"
+
+    // Save only the raw path in the post row
+    const { error: updateError } = await supabase
+      .from('posts')
+      .update({ image: rawImagePath })
+      .eq('id', postId);
+
+    if (updateError) {
+      console.error('Post update error:', updateError.message);
+      toast({
+        title: "Update failed",
+        description: updateError.message,
+        variant: "destructive"
+      });
+      return;
+    }
+
     toast({
-      title: "Upload failed",
-      description: uploadError?.message || "No data returned from upload.",
-      variant: "destructive"
+      title: "Image Updated",
+      description: "Image uploaded and path saved.",
     });
-    return;
-  }
 
-  const rawImagePath = uploadData.path; // ✅ This should be like '1691332231_photo.jpg'
-  console.log('Uploaded image path:', rawImagePath);
-
-  // Save only the image path in the DB (NOT the public URL)
-  const { error: updateError } = await supabase
-    .from('posts')
-    .update({ image: rawImagePath })
-    .eq('id', postId);
-
-  if (updateError) {
-    console.error('Post update error:', updateError.message);
-    toast({
-      title: "Update failed",
-      description: updateError.message,
-      variant: "destructive"
-    });
-    return;
-  }
-
-  toast({
-    title: "Image Updated",
-    description: "Image uploaded and path saved.",
-  });
-
-  fetchPendingPosts(); // ⬅️ Refresh the post list
-};
-
-
-console.log("Upload data:", data); // 👈 Check this
-const imagePath = data?.fullPath || data?.path || data?.Key || '';
-  
-  const { error: updateError } = await supabase
-    .from('posts')
-    .update({ image: imagePath }) // ✅ Update the post
-    .eq('id', postId);
-
-  if (updateError) {
-    console.error('Post update error:', updateError.message);
-    return;
-  }
-
+    fetchPendingPosts();
+  };
 
   if (loading) {
     return (
@@ -202,21 +179,6 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">No pending posts to review</p>
-            <div className="flex items-center gap-2 mt-2">
-  <input
-    type="file"
-    accept="image/*"
-    id={`upload-${post.id}`}
-    onChange={(e) => handleImageUpload(e, post.id)}
-    className="hidden"
-  />
-  <label htmlFor={`upload-${post.id}`}>
-    <Button size="sm" variant="outline">
-      Upload Image
-    </Button>
-  </label>
-</div>
-
           </CardContent>
         </Card>
       ) : (
@@ -238,10 +200,9 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
                 <div className="space-y-4">
                   {post.image && (
                     <img 
-                      src={post.image}
+                      src={convertToPublicUrl(post.image)} 
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
-
                     />
                   )}
                   <div className="prose max-w-none">
@@ -271,6 +232,20 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
                       <Edit className="h-4 w-4" />
                       Edit
                     </Button>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        id={`upload-${post.id}`}
+                        onChange={(e) => handleImageUpload(e, post.id)}
+                        className="hidden"
+                      />
+                      <label htmlFor={`upload-${post.id}`}>
+                        <Button size="sm" variant="outline">
+                          Upload Image
+                        </Button>
+                      </label>
+                    </div>
                     <Button
                       variant="destructive"
                       onClick={() => deletePost(post.id)}
@@ -288,9 +263,7 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
       )}
     </div>
   );
-
 }
-
 
 
 
