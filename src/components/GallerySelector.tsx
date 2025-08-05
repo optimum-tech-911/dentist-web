@@ -7,6 +7,7 @@ import { Image, Search, X, Check, Loader2 } from 'lucide-react';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 import { convertToPublicUrl } from '@/lib/utils';
+import { SafeImage } from '@/components/SafeImage';
 
 interface GallerySelectorProps {
   onImageSelect: (media: GalleryImage | any) => void; // Will handle both images and videos
@@ -127,14 +128,14 @@ export function GallerySelector({
                     <CardContent className="p-2">
                       <div className="relative aspect-square overflow-hidden rounded-md bg-black">
                         {media.file_type.startsWith('image/') ? (
-                          <img
-                            src={convertToPublicUrl(media.url)}
+                          <SafeImage
+                            src={media.url}
                             alt={media.name}
                             className="w-full h-full object-cover"
+                            fallbackSrc="/placeholder.svg"
                             loading="lazy"
                             onError={(e) => {
                               console.warn('Image failed to load:', e.currentTarget.src);
-                              e.currentTarget.src = '/placeholder.svg';
                             }}
                           />
                         ) : media.file_type.startsWith('video/') ? (
@@ -144,7 +145,6 @@ export function GallerySelector({
                             controls
                             onError={(e) => {
                               console.warn('Video failed to load:', e.currentTarget.src);
-                              e.currentTarget.src = '/placeholder.svg';
                             }}
                           />
                         ) : null}

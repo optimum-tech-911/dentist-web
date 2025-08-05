@@ -49,3 +49,49 @@ export function convertToPublicUrl(url: string): string {
   
   return url;
 }
+
+/**
+ * Create a proxy URL for images to avoid CORS issues
+ * This can be used as a fallback when direct loading fails
+ */
+export function createImageProxyUrl(url: string): string {
+  // For now, return the original URL
+  // In production, you might want to set up a proxy endpoint
+  return url;
+}
+
+/**
+ * Enhanced image loading with fallback
+ * @param src - The image source URL
+ * @param onError - Error handler
+ * @param fallbackSrc - Fallback image source
+ */
+export function loadImageWithFallback(
+  src: string, 
+  onError: (event: Event) => void,
+  fallbackSrc: string = '/placeholder.svg'
+): void {
+  const img = new Image();
+  
+  img.onload = () => {
+    // Image loaded successfully
+    console.log('Image loaded successfully:', src);
+  };
+  
+  img.onerror = (event) => {
+    console.warn('Image failed to load:', src, event);
+    
+    // Try the fallback
+    if (src !== fallbackSrc) {
+      console.log('Trying fallback image:', fallbackSrc);
+      loadImageWithFallback(fallbackSrc, onError, '/placeholder.svg');
+    } else {
+      // Even fallback failed, call the error handler
+      onError(event);
+    }
+  };
+  
+  // Add crossOrigin attribute to handle CORS
+  img.crossOrigin = 'anonymous';
+  img.src = src;
+}

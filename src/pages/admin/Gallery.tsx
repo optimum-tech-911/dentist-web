@@ -1,12 +1,14 @@
-import { useState, useRef, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { FolderOpen, Upload, Trash2, Eye, X, Check, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Upload, FolderOpen, Eye, Trash2, X, Check, Copy, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { convertToPublicUrl } from '@/lib/utils';
+import { SafeImage } from '@/components/SafeImage';
 
 export default function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
@@ -203,7 +205,15 @@ export default function Gallery() {
               {images.map((img) => (
                 <div key={img.id} className="relative group border rounded-lg overflow-hidden">
                   {img.file_type.startsWith('image/') ? (
-                    <img src={convertToPublicUrl(img.url)} alt={img.name} className="w-full h-32 object-cover" />
+                    <SafeImage
+                      src={img.url}
+                      alt={img.name}
+                      className="w-full h-32 object-cover"
+                      fallbackSrc="/placeholder.svg"
+                      onError={(e) => {
+                        console.warn('Image failed to load:', e.currentTarget.src);
+                      }}
+                    />
                   ) : img.file_type.startsWith('video/') ? (
                     <video src={convertToPublicUrl(img.url)} controls className="w-full h-32 object-cover bg-black" />
                   ) : null}
@@ -245,13 +255,13 @@ export default function Gallery() {
               </Button>
             </div>
             <div className="p-4">
-              <img
-                src={convertToPublicUrl(selectedImage.url)}
+              <SafeImage
+                src={selectedImage.url}
                 alt={selectedImage.name}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
+                fallbackSrc="/placeholder.svg"
                 onError={(e) => {
                   console.warn('Image failed to load:', e.currentTarget.src);
-                  e.currentTarget.src = '/placeholder.svg';
                 }}
               />
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">

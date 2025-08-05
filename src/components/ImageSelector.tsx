@@ -8,6 +8,7 @@ import { Image, Search, Check, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { convertToPublicUrl } from '@/lib/utils';
+import { SafeImage } from '@/components/SafeImage';
 
 interface ImageSelectorProps {
   selectedImageId?: string | null;
@@ -140,13 +141,13 @@ export function ImageSelector({
               </CardHeader>
               <CardContent>
                 <div className="flex items-center space-x-3">
-                  <img
-                    src={convertToPublicUrl(selectedImage.url)}
+                  <SafeImage
+                    src={selectedImage.url}
                     alt={selectedImage.name}
                     className="w-16 h-16 object-cover rounded-lg"
+                    fallbackSrc="/placeholder.svg"
                     onError={(e) => {
                       console.warn('Image failed to load:', e.currentTarget.src);
-                      e.currentTarget.src = '/placeholder.svg';
                     }}
                   />
                   <div className="flex-1">
@@ -187,13 +188,13 @@ export function ImageSelector({
                     onClick={() => handleImageSelect(image)}
                   >
                     <div className="aspect-square relative">
-                      <img
-                        src={convertToPublicUrl(image.url)}
+                      <SafeImage
+                        src={image.url}
                         alt={image.name}
                         className="w-full h-full object-cover rounded-t-lg"
+                        fallbackSrc="/placeholder.svg"
                         onError={(e) => {
                           console.warn('Image failed to load:', e.currentTarget.src);
-                          e.currentTarget.src = '/placeholder.svg';
                         }}
                       />
                       {selectedImage?.id === image.id && (
