@@ -9,6 +9,7 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { DebugInfo } from "./components/DebugInfo";
+import { GlobalImageReplacer } from "./lib/global-image-replacer";
 
 // Lazy load components with error boundaries
 const Index = lazy(() => import("./pages/Index").catch(() => ({ default: () => <FallbackPage title="Home Page" /> })));
@@ -111,6 +112,21 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => {
+  // Initialize global image replacement
+  React.useEffect(() => {
+    GlobalImageReplacer.initialize();
+    
+    // Preload critical images
+    GlobalImageReplacer.preloadCriticalImages([
+      '/placeholder.svg',
+      '/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png'
+    ]);
+    
+    return () => {
+      GlobalImageReplacer.cleanup();
+    };
+  }, []);
+
   return (
     <ErrorBoundary fallback={<SimpleFallback error={new Error("Unknown error")} />}>
       <QueryClientProvider client={queryClient}>
