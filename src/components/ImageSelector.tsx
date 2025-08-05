@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Image, Search, Check, X, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
 
 interface ImageSelectorProps {
   selectedImageId?: string | null;
@@ -140,7 +141,7 @@ export function ImageSelector({
               <CardContent>
                 <div className="flex items-center space-x-3">
                   <img
-                    src={selectedImage.url}
+                    src={convertToPublicUrl(selectedImage.url)}
                     alt={selectedImage.name}
                     className="w-16 h-16 object-cover rounded-lg"
                     onError={(e) => {
@@ -186,7 +187,7 @@ export function ImageSelector({
                   >
                     <div className="aspect-square relative">
                       <img
-                        src={image.url}
+                        src={convertToPublicUrl(image.url)}
                         alt={image.name}
                         className="w-full h-full object-cover rounded-t-lg"
                         onError={(e) => {
