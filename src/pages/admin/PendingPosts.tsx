@@ -9,31 +9,18 @@ import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 // Helper function to convert signed URLs to public URLs
-const convertToPublicUrl = (imageUrl: string): string => {
-  if (!imageUrl) return imageUrl;
-  
-  // If it's already a public URL, return as-is
-  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
-    return imageUrl;
-  }
-  
-  // If it's a signed URL, convert to public URL
-  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
-    try {
-      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
-      if (urlParts) {
-        const { data } = supabase.storage
-          .from('gallery')
-          .getPublicUrl(urlParts);
-        return data.publicUrl;
-      }
-    } catch (error) {
-      console.log('Could not convert header image to public URL:', error);
-    }
-  }
-  
-  // Return original URL if not a gallery URL
-  return imageUrl;
+const convertToPublicUrl = (imagePath: string): string => {
+  if (!imagePath) return '';
+
+  // If already a full URL, return as-is
+  if (imagePath.startsWith('http')) return imagePath;
+
+  // Generate permanent public URL using Supabase
+  const { data } = supabase.storage
+    .from('gallery')
+    .getPublicUrl(imagePath);
+
+  return data?.publicUrl || '';
 };
 
 interface Post {
@@ -219,4 +206,5 @@ export default function PendingPosts() {
       )}
     </div>
   );
+
 }
