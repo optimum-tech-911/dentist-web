@@ -14,6 +14,7 @@ import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofArticleImage } from '@/components/BulletproofArticleImage';
 
 export default function BlogSubmit() {
   const { user, userRole } = useAuth();
@@ -168,41 +169,31 @@ export default function BlogSubmit() {
                   </Select>
                 </div>
 
-                              {/* Header Image Selection */}
-              <div className="space-y-2">
-                <Label>Image de couverture (optionnel)</Label>
-                <div className="flex items-center gap-4">
-                  {formData.headerImage && (
-                    <div className="relative">
-                      <img
-                        src={getImageUrl(formData.headerImage)}
+                {/* Header Image Preview */}
+                {formData.headerImage && (
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">Image de couverture</label>
+                    <div className="relative w-32 h-20 border rounded-md overflow-hidden">
+                      <BulletproofArticleImage
+                        imageId={formData.headerImage}
                         alt="Image de couverture"
-                        className="w-32 h-20 object-cover rounded-md border"
+                        className="w-full h-full object-cover"
+                        fallbackSrc="/placeholder.svg"
+                        onError={(error) => {
+                          console.warn('Header image failed to load:', error);
+                          toast({
+                            title: "Erreur d'image",
+                            description: "L'image de couverture n'a pas pu être chargée",
+                            variant: "destructive",
+                          });
+                        }}
+                        onLoad={() => {
+                          console.log('Header image loaded successfully');
+                        }}
                       />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                        onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
-                      >
-                        ×
-                      </Button>
                     </div>
-                  )}
-                  <GallerySelector
-                    onImageSelect={handleHeaderImageSelect}
-                    trigger={
-                      <Button type="button" variant="outline" className="flex items-center gap-2">
-                        <Image className="h-4 w-4" />
-                        {formData.headerImage ? 'Changer l\'image' : 'Sélectionner une image'}
-                      </Button>
-                    }
-                    title="Sélectionner une image de couverture"
-                    description="Choisissez une image depuis la galerie pour l'utiliser comme image de couverture de votre article"
-                  />
-                </div>
-              </div>
+                  </div>
+                )}
 
               {/* Rich Text Editor for Content */}
               <div className="space-y-2">
