@@ -141,11 +141,11 @@ export default function ApprovedPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <img 
-                      src={post.image} 
-                      alt={post.title}
-                      className="w-full h-48 object-cover rounded-md"
-                    />
+                   <img 
+                    src={convertToPublicUrl(post.image)} 
+                    alt={post.title}
+                    className="w-full h-48 object-cover rounded-md"
+                     />
                   )}
                   <div className="prose max-w-none">
                     <div className="line-clamp-3">
@@ -180,4 +180,5 @@ export default function ApprovedPosts() {
       )}
     </div>
   );
+
 }
