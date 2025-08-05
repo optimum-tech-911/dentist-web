@@ -8,20 +8,19 @@ import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
-// Helper function to convert signed URLs to public URLs
 const convertToPublicUrl = (imagePath: string): string => {
-  if (!imagePath) return '';
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
 
-  // If already a full URL, return as-is
-  if (imagePath.startsWith('http')) return imagePath;
+  const { data } = supabase.storage
+    .from('gallery')
+    .getPublicUrl(imagePath);
 
-  // Generate permanent public URL from storage path
-  const result = supabase.storage.from('gallery').getPublicUrl(imagePath);
-
-  return result.data?.publicUrl || '';
+  return data?.publicUrl || '';
 };
 
-
+// Usage:
+<img src={convertToPublicUrl(post.image)} alt="gallery" />
 interface Post {
   id: string;
   title: string;
@@ -111,10 +110,45 @@ export default function PendingPosts() {
       });
     }
   };
+const handleImageUpload = async (
+  event: React.ChangeEvent<HTMLInputElement>,
+  postId: string
+) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
 
-  const handleEditPost = (postId: string) => {
-    navigate(`/edit/${postId}`);
-  };
+  const filePath = `${Date.now()}_${file.name}`;
+
+  const { data, error } = await supabase.storage
+    .from('gallery')
+    .upload(filePath, file);
+
+  if (error) {
+    console.error('Upload error:', error.message);
+    return;
+  }
+
+  const imagePath = data?.path;
+
+  const { error: updateError } = await supabase
+    .from('posts')
+    .update({ image: imagePath }) // ✅ Update the post
+    .eq('id', postId);
+
+  if (updateError) {
+    console.error('Post update error:', updateError.message);
+    return;
+  }
+
+  toast({
+    title: "Image updated",
+    description: "Post image has been uploaded and saved.",
+  });
+
+  // Optional: refresh list after upload
+  fetchPendingPosts?.();
+};
+
 
   if (loading) {
     return (
@@ -207,4 +241,5 @@ export default function PendingPosts() {
   );
 
 }
+
 
