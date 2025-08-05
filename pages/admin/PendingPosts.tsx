@@ -16,8 +16,31 @@ interface Post {
   author_email: string;
   status: string;
   created_at: string;
-  image?: string;
+  image?: string | null;
 }
+
+// Helper: normalize stored image value to raw path if it's a signed/public URL
+const extractRawGalleryPath = (maybeUrl?: string | null): string | null => {
+  if (!maybeUrl) return null;
+  // If it's already a raw path like "gallery/foo.jpg", return as-is
+  if (!maybeUrl.includes('/storage/v1/object/')) {
+    return maybeUrl;
+  }
+  // regex to capture the gallery/... part from either public or signed URL
+  const match = maybeUrl.match(/\/(?:public|sign)\/gallery\/([^"?]+)/);
+  if (match && match[1]) {
+    return `gallery/${match[1]}`;
+  }
+  return null;
+};
+
+// Convert raw path (or full URL) into permanent URL
+const convertToPublicUrl = (imagePath: string | null | undefined): string => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  const { data } = supabase.storage.from('gallery').getPublicUrl(imagePath);
+  return data?.publicUrl || '';
+};
 
 export default function PendingPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -37,7 +60,16 @@ export default function PendingPosts() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+
+      const processed: Post[] = (data || []).map((post: Post) => {
+        const raw = extractRawGalleryPath(post.image);
+        return {
+          ...post,
+          image: raw, // keep raw path; UI will convert
+        };
+      });
+
+      setPosts(processed);
     } catch (error) {
       console.error('Error fetching pending posts:', error);
       toast({
@@ -59,7 +91,7 @@ export default function PendingPosts() {
 
       if (error) throw error;
 
-      setPosts(posts.filter(p => p.id !== postId));
+      setPosts(prev => prev.filter(p => p.id !== postId));
       toast({
         title: `Post ${status}`,
         description: `The post has been ${status} successfully`
@@ -83,7 +115,7 @@ export default function PendingPosts() {
 
       if (error) throw error;
 
-      setPosts(posts.filter(p => p.id !== postId));
+      setPosts(prev => prev.filter(p => p.id !== postId));
       toast({
         title: "Post deleted",
         description: "The post has been deleted successfully"
@@ -142,7 +174,7 @@ export default function PendingPosts() {
                 <div className="space-y-4">
                   {post.image && (
                     <img 
-                      src={post.image} 
+                      src={convertToPublicUrl(post.image)} 
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
                     />
