@@ -41,27 +41,34 @@ export default function PendingPosts() {
     fetchPendingPosts();
   }, []);
 
-  const fetchPendingPosts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
+const fetchPendingPosts = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('*')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching pending posts:', error);
-      toast({
-        title: "Erreur lors du chargement des articles",
-        description: "Failed to load pending posts",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    if (error) throw error;
+
+    // ✅ Convert image filename to public URL
+    const processed = (data || []).map((post) => ({
+      ...post,
+      image: post.image ? convertToPublicUrl(post.image) : null,
+    }));
+
+    setPosts(processed);
+  } catch (error) {
+    console.error('Error fetching pending posts:', error);
+    toast({
+      title: "Erreur lors du chargement des articles",
+      description: "Failed to load pending posts",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
 
   const updatePostStatus = async (postId: string, status: 'approved' | 'rejected') => {
     try {
@@ -169,6 +176,21 @@ const handleImageUpload = async (
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">No pending posts to review</p>
+            <div className="flex items-center gap-2 mt-2">
+  <input
+    type="file"
+    accept="image/*"
+    id={`upload-${post.id}`}
+    onChange={(e) => handleImageUpload(e, post.id)}
+    className="hidden"
+  />
+  <label htmlFor={`upload-${post.id}`}>
+    <Button size="sm" variant="outline">
+      Upload Image
+    </Button>
+  </label>
+</div>
+
           </CardContent>
         </Card>
       ) : (
@@ -241,5 +263,6 @@ const handleImageUpload = async (
   );
 
 }
+
 
 
