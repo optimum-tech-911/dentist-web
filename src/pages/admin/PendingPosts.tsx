@@ -212,9 +212,10 @@ const handleImageUpload = async (
                 <div className="space-y-4">
                   {post.image && (
                     <img 
-                      src={convertToPublicUrl(post.image)} 
+                      src={post.image}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+
                     />
                   )}
                   <div className="prose max-w-none">
@@ -263,6 +264,7 @@ const handleImageUpload = async (
   );
 
 }
+
 
 
 
