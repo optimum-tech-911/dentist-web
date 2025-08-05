@@ -163,8 +163,9 @@ const handleImageUpload = async (file: File, postId: string) => {
   });
 };
 
-  const imagePath = data?.path;
-
+console.log("Upload data:", data); // 👈 Check this
+const imagePath = data?.fullPath || data?.path || data?.Key || '';
+  
   const { error: updateError } = await supabase
     .from('posts')
     .update({ image: imagePath }) // ✅ Update the post
@@ -292,6 +293,7 @@ const handleImageUpload = async (file: File, postId: string) => {
   );
 
 }
+
 
 
 
