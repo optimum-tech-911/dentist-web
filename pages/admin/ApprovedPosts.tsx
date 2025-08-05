@@ -16,8 +16,31 @@ interface Post {
   author_email: string;
   status: string;
   created_at: string;
-  image?: string;
+  image?: string | null;
 }
+
+// Normalize any stored value to raw gallery path like "gallery/xxx.jpg"
+const extractRawGalleryPath = (maybeUrl?: string | null): string | null => {
+  if (!maybeUrl) return null;
+  // If already a raw path (no storage URL pattern), return it directly
+  if (!maybeUrl.includes('/storage/v1/object/')) {
+    return maybeUrl;
+  }
+  // Match either public or signed URL and extract the gallery/... part
+  const match = maybeUrl.match(/\/(?:public|sign)\/gallery\/([^"?]+)/);
+  if (match && match[1]) {
+    return `gallery/${match[1]}`;
+  }
+  return null;
+};
+
+// Convert raw path or full URL into stable public URL
+const convertToPublicUrl = (imagePath: string | null | undefined): string => {
+  if (!imagePath) return '';
+  if (imagePath.startsWith('http')) return imagePath;
+  const { data } = supabase.storage.from('gallery').getPublicUrl(imagePath);
+  return data?.publicUrl || '';
+};
 
 export default function ApprovedPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -37,7 +60,13 @@ export default function ApprovedPosts() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+
+      const processed: Post[] = (data || []).map((post: Post) => ({
+        ...post,
+        image: extractRawGalleryPath(post.image) || null,
+      }));
+
+      setPosts(processed);
     } catch (error) {
       console.error('Error fetching approved posts:', error);
       toast({
@@ -59,7 +88,7 @@ export default function ApprovedPosts() {
 
       if (error) throw error;
 
-      setPosts(posts.filter(p => p.id !== postId));
+      setPosts(prev => prev.filter(p => p.id !== postId));
       toast({
         title: "Post deleted",
         description: "The post has been deleted successfully"
@@ -114,7 +143,7 @@ export default function ApprovedPosts() {
                 <div className="space-y-4">
                   {post.image && (
                     <img 
-                      src={post.image} 
+                      src={convertToPublicUrl(post.image)} 
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
                     />
