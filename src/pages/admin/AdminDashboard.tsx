@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, CheckCircle, Clock, Users, PenTool, Home, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { FileText, CheckCircle, Clock, Users, PenTool, Home, Shield, Image, AlertTriangle } from 'lucide-react';
 import AdminAccessManager from '@/components/AdminAccessManager';
+import { quickHealthCheck } from '@/lib/gallery-health-check';
 
 
 interface DashboardStats {
@@ -12,6 +14,10 @@ interface DashboardStats {
   pendingPosts: number;
   approvedPosts: number;
   totalUsers: number;
+  galleryHealth: {
+    status: 'healthy' | 'warning' | 'error';
+    brokenCount: number;
+  } | null;
 }
 
 
@@ -21,7 +27,8 @@ export default function AdminDashboard() {
     totalPosts: 0,
     pendingPosts: 0,
     approvedPosts: 0,
-    totalUsers: 0
+    totalUsers: 0,
+    galleryHealth: null
   });
   const [loading, setLoading] = useState(true);
   const [contactSubmissions, setContactSubmissions] = useState<any[]>([]);
@@ -34,10 +41,11 @@ export default function AdminDashboard() {
 
   const fetchStats = async () => {
     try {
-      // Get posts stats
-      const [postsResult, usersResult] = await Promise.all([
+      // Get posts stats and gallery health
+      const [postsResult, usersResult, healthResult] = await Promise.all([
         supabase.from('posts').select('status'),
-        supabase.from('users').select('id', { count: 'exact' })
+        supabase.from('users').select('id', { count: 'exact' }),
+        quickHealthCheck()
       ]);
 
       if (postsResult.data) {
@@ -49,7 +57,8 @@ export default function AdminDashboard() {
           totalPosts,
           pendingPosts,
           approvedPosts,
-          totalUsers: usersResult.count || 0
+          totalUsers: usersResult.count || 0,
+          galleryHealth: healthResult
         });
       }
     } catch (error) {
@@ -110,8 +119,39 @@ export default function AdminDashboard() {
       value: stats.totalUsers,
       icon: Users,
       description: 'Utilisateurs enregistrés'
+    },
+    {
+      title: 'Galerie d\'Images',
+      value: stats.galleryHealth?.brokenCount || 0,
+      icon: Image,
+      description: 'Images cassées détectées',
+      health: stats.galleryHealth,
+      healthIcon: getHealthIcon(),
+      healthBadge: getHealthBadge()
     }
   ];
+
+  const getHealthIcon = () => {
+    if (!stats.galleryHealth) return <Image className="h-4 w-4" />;
+    
+    switch (stats.galleryHealth.status) {
+      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      default: return <Image className="h-4 w-4" />;
+    }
+  };
+
+  const getHealthBadge = () => {
+    if (!stats.galleryHealth) return <Badge variant="outline">Unknown</Badge>;
+    
+    switch (stats.galleryHealth.status) {
+      case 'healthy': return <Badge className="bg-green-100 text-green-800">Healthy</Badge>;
+      case 'warning': return <Badge className="bg-orange-100 text-orange-800">Warning</Badge>;
+      case 'error': return <Badge variant="destructive">Error</Badge>;
+      default: return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
@@ -155,13 +195,19 @@ export default function AdminDashboard() {
               <CardTitle className="text-sm font-medium">
                 {card.title}
               </CardTitle>
-              <card.icon className="h-4 w-4 text-muted-foreground" />
+              <div className="flex items-center gap-2">
+                {card.healthIcon && card.healthIcon}
+                <card.icon className="h-4 w-4 text-muted-foreground" />
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{card.value}</div>
-              <p className="text-xs text-muted-foreground">
-                {card.description}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-muted-foreground">
+                  {card.description}
+                </p>
+                {card.healthBadge && card.healthBadge}
+              </div>
             </CardContent>
           </Card>
         ))}

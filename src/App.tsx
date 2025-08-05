@@ -39,6 +39,7 @@ const Users = lazy(() => import("./pages/admin/Users").catch(() => ({ default: (
 const Gallery = lazy(() => import("./pages/admin/Gallery").catch(() => ({ default: () => <FallbackPage title="Gallery" /> })));
 const OrganigrammeAdmin = lazy(() => import("./pages/admin/OrganigrammeAdmin").catch(() => ({ default: () => <FallbackPage title="Organigramme Admin" /> })));
 const Calendar = lazy(() => import("./pages/admin/Calendar").catch(() => ({ default: () => <FallbackPage title="Calendar" /> })));
+const GalleryInspector = lazy(() => import("./pages/admin/GalleryInspector").catch(() => ({ default: () => <FallbackPage title="Gallery Inspector" /> })));
 const AdminAccessManager = lazy(() => import("./components/AdminAccessManager").catch(() => ({ default: () => <FallbackPage title="Admin Access Manager" /> })));
 
 const queryClient = new QueryClient({
@@ -163,6 +164,7 @@ const App = () => {
                   <Route path="gallery" element={<SafeRoute><Gallery /></SafeRoute>} />
                   <Route path="organigramme" element={<SafeRoute><OrganigrammeAdmin /></SafeRoute>} />
                   <Route path="calendar" element={<SafeRoute><Calendar /></SafeRoute>} />
+                  <Route path="debug/gallery-inspector" element={<SafeRoute><GalleryInspector /></SafeRoute>} />
                 </Route>
                 <Route path="/admin-access" element={<SafeRoute><AdminAccessManager /></SafeRoute>} />
                 {/* Service pages placeholders */}
