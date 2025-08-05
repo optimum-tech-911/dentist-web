@@ -117,51 +117,57 @@ const fetchPendingPosts = async () => {
       });
     }
   };
-const handleImageUpload = async (file: File, postId: string) => {
-  const fileExt = file.name.split('.').pop();
-  const fileName = `${Date.now()}.${fileExt}`;
-  const filePath = `articles/${fileName}`;
+const handleImageUpload = async (
+  event: React.ChangeEvent<HTMLInputElement>,
+  postId: string
+) => {
+  const file = event.target.files?.[0];
+  if (!file) return;
 
-  const { data, error: uploadError } = await supabase.storage
+  const filePath = `${Date.now()}_${file.name}`;
+
+  // Upload image to Supabase Storage
+  const { data: uploadData, error: uploadError } = await supabase.storage
     .from('gallery')
     .upload(filePath, file);
 
-  if (uploadError) {
-    console.error('Image upload error:', uploadError);
+  if (uploadError || !uploadData) {
+    console.error('Upload failed:', uploadError?.message);
     toast({
       title: "Upload failed",
-      description: "Could not upload image",
-      variant: "destructive",
+      description: uploadError?.message || "No data returned from upload.",
+      variant: "destructive"
     });
     return;
   }
 
-  // ✅ Get the public URL directly
-  const { data: publicData } = supabase.storage
-    .from('gallery')
-    .getPublicUrl(filePath);
+  const rawImagePath = uploadData.path; // ✅ This should be like '1691332231_photo.jpg'
+  console.log('Uploaded image path:', rawImagePath);
 
-  // ✅ Save public URL directly in posts table
+  // Save only the image path in the DB (NOT the public URL)
   const { error: updateError } = await supabase
     .from('posts')
-    .update({ image: publicData?.publicUrl }) // << store actual full URL
+    .update({ image: rawImagePath })
     .eq('id', postId);
 
   if (updateError) {
-    console.error('Error updating image URL:', updateError);
+    console.error('Post update error:', updateError.message);
     toast({
-      title: "Database update failed",
-      description: "Could not save image URL",
-      variant: "destructive",
+      title: "Update failed",
+      description: updateError.message,
+      variant: "destructive"
     });
     return;
   }
 
   toast({
-    title: "Image uploaded",
-    description: "Your image was successfully uploaded and saved.",
+    title: "Image Updated",
+    description: "Image uploaded and path saved.",
   });
+
+  fetchPendingPosts(); // ⬅️ Refresh the post list
 };
+
 
 console.log("Upload data:", data); // 👈 Check this
 const imagePath = data?.fullPath || data?.path || data?.Key || '';
@@ -175,15 +181,6 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
     console.error('Post update error:', updateError.message);
     return;
   }
-
-  toast({
-    title: "Image updated",
-    description: "Post image has been uploaded and saved.",
-  });
-
-  // Optional: refresh list after upload
-  fetchPendingPosts?.();
-};
 
 
   if (loading) {
@@ -293,6 +290,7 @@ const imagePath = data?.fullPath || data?.path || data?.Key || '';
   );
 
 }
+
 
 
 
