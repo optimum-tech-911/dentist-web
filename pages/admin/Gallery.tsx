@@ -2,15 +2,17 @@ import { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { FolderOpen, Upload, Trash2, Eye, X, Check, Loader2 } from 'lucide-react';
+import { FolderOpen, Upload, Trash2, Eye, X, Check, Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -22,6 +24,61 @@ export default function Gallery() {
   useEffect(() => {
     fetchImages();
   }, []);
+  
+  // Function to convert signed URL to public URL
+  const convertToPublicUrl = (url: string): string => {
+    // Check if it's already a public URL
+    if (url.includes('/object/public/')) {
+      return url;
+    }
+    
+    // Check if it's a signed URL
+    if (url.includes('/object/sign/')) {
+      try {
+        // Extract the file path from the signed URL
+        const urlParts = url.split('/gallery/')[1]?.split('?')[0];
+        if (urlParts) {
+          // Convert to public URL
+          const { data } = supabase.storage
+            .from('gallery')
+            .getPublicUrl(urlParts);
+          
+          return data?.publicUrl || url;
+        }
+      } catch (error) {
+        console.error('Error converting URL:', error);
+      }
+    }
+    
+    return url;
+  };
+  
+  // Function to refresh all image URLs
+  const refreshImageUrls = async () => {
+    setIsRefreshing(true);
+    try {
+      const refreshedImages = images.map(img => ({
+        ...img,
+        url: convertToPublicUrl(img.url)
+      }));
+      
+      setImages(refreshedImages);
+      
+      toast({
+        title: "URLs rafraîchies",
+        description: "Toutes les URLs d'images ont été converties en URLs publiques."
+      });
+    } catch (error) {
+      console.error('Error refreshing URLs:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors du rafraîchissement des URLs.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const fetchImages = async () => {
     try {
@@ -166,6 +223,19 @@ export default function Gallery() {
           <h1 className="text-3xl font-bold">Gestion de la Galerie</h1>
         </div>
         <div className="flex items-center space-x-2">
+          <Button
+            onClick={refreshImageUrls}
+            disabled={isRefreshing}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            {isRefreshing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+            <span>{isRefreshing ? 'Rafraîchissement...' : 'Rafraîchir les URLs'}</span>
+          </Button>
           <input
             ref={fileInputRef}
             type="file"
@@ -204,9 +274,35 @@ export default function Gallery() {
               {images.map((img) => (
                 <div key={img.id} className="relative group border rounded-lg overflow-hidden">
                   {img.file_type.startsWith('image/') ? (
-                    <img src={img.url} alt={img.name} className="w-full h-32 object-cover" />
+                    <img 
+                      src={convertToPublicUrl(img.url)} 
+                      alt={img.name} 
+                      className="w-full h-32 object-cover" 
+                      onError={(e) => {
+                        // If image fails to load, try to refresh the URL
+                        const target = e.currentTarget;
+                        const refreshedUrl = convertToPublicUrl(img.url);
+                        if (refreshedUrl !== target.src) {
+                          target.src = refreshedUrl;
+                        } else {
+                          target.src = '/placeholder.svg';
+                        }
+                      }}
+                    />
                   ) : img.file_type.startsWith('video/') ? (
-                    <video src={img.url} controls className="w-full h-32 object-cover bg-black" />
+                    <video 
+                      src={convertToPublicUrl(img.url)} 
+                      controls 
+                      className="w-full h-32 object-cover bg-black" 
+                      onError={(e) => {
+                        // If video fails to load, try to refresh the URL
+                        const target = e.currentTarget;
+                        const refreshedUrl = convertToPublicUrl(img.url);
+                        if (refreshedUrl !== target.src) {
+                          target.src = refreshedUrl;
+                        }
+                      }}
+                    />
                   ) : null}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
                       <Button 
@@ -247,11 +343,18 @@ export default function Gallery() {
             </div>
             <div className="p-4">
               <img
-                src={selectedImage.url}
+                src={convertToPublicUrl(selectedImage.url)}
                 alt={selectedImage.name}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
                 onError={(e) => {
-                  e.currentTarget.src = '/placeholder.svg';
+                  // If image fails to load, try to refresh the URL
+                  const target = e.currentTarget;
+                  const refreshedUrl = convertToPublicUrl(selectedImage.url);
+                  if (refreshedUrl !== target.src) {
+                    target.src = refreshedUrl;
+                  } else {
+                    target.src = '/placeholder.svg';
+                  }
                 }}
               />
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
@@ -261,7 +364,7 @@ export default function Gallery() {
               </div>
               <div className="mt-4 flex space-x-2">
                 <Button
-                  onClick={() => copyImageUrl(selectedImage.url)}
+                  onClick={() => copyImageUrl(convertToPublicUrl(selectedImage.url))}
                   className="flex-1"
                 >
                   <Check className="h-4 w-4 mr-2" />
