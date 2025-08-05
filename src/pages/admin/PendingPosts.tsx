@@ -117,23 +117,51 @@ const fetchPendingPosts = async () => {
       });
     }
   };
-const handleImageUpload = async (
-  event: React.ChangeEvent<HTMLInputElement>,
-  postId: string
-) => {
-  const file = event.target.files?.[0];
-  if (!file) return;
+const handleImageUpload = async (file: File, postId: string) => {
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `articles/${fileName}`;
 
-  const filePath = `${Date.now()}_${file.name}`;
-
-  const { data, error } = await supabase.storage
+  const { data, error: uploadError } = await supabase.storage
     .from('gallery')
     .upload(filePath, file);
 
-  if (error) {
-    console.error('Upload error:', error.message);
+  if (uploadError) {
+    console.error('Image upload error:', uploadError);
+    toast({
+      title: "Upload failed",
+      description: "Could not upload image",
+      variant: "destructive",
+    });
     return;
   }
+
+  // ✅ Get the public URL directly
+  const { data: publicData } = supabase.storage
+    .from('gallery')
+    .getPublicUrl(filePath);
+
+  // ✅ Save public URL directly in posts table
+  const { error: updateError } = await supabase
+    .from('posts')
+    .update({ image: publicData?.publicUrl }) // << store actual full URL
+    .eq('id', postId);
+
+  if (updateError) {
+    console.error('Error updating image URL:', updateError);
+    toast({
+      title: "Database update failed",
+      description: "Could not save image URL",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  toast({
+    title: "Image uploaded",
+    description: "Your image was successfully uploaded and saved.",
+  });
+};
 
   const imagePath = data?.path;
 
@@ -263,6 +291,7 @@ const handleImageUpload = async (
   );
 
 }
+
 
 
 
