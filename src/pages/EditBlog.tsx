@@ -86,10 +86,7 @@ export default function EditBlog() {
 
   // Convert file_path to public URL for display
   const getImageUrl = (filePath: string) => {
-    const { data } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-    return data?.publicUrl || '';
+    return convertToPublicUrl(filePath);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

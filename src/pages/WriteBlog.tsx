@@ -68,10 +68,7 @@ export default function WriteBlog() {
 
   // Convert file_path to public URL for display
   const getImageUrl = (filePath: string) => {
-    const { data } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-    return data?.publicUrl || '';
+    return convertToPublicUrl(filePath);
   };
 
   const handleInputChange = (field: string, value: string) => {
