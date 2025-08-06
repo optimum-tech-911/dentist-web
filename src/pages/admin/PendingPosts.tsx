@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { BulletproofImage } from '@/components/BulletproofImage';
+
 
 interface Post {
   id: string;
@@ -188,10 +188,14 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <BulletproofImage
+                    <img
                       src={post.image}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   )}
                   <div className="prose max-w-none">
