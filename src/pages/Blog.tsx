@@ -9,7 +9,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
-import { BulletproofImage } from '@/components/BulletproofImage';
+
 import { convertToPublicUrl } from '@/lib/utils';
 
 // Helper function to convert signed URLs to public URLs
@@ -256,13 +256,10 @@ export default function Blog() {
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <BulletproofImage
+                        <img
                           src={convertToPublicUrl(post.image)}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          fallbackSrc="/placeholder.svg"
-                          retryOnError={true}
-                          maxRetries={2}
                         />
                       </div>
                     )}

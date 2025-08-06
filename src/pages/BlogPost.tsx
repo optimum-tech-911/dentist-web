@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
-import { BulletproofImage } from '@/components/BulletproofImage';
+
 import { convertToPublicUrl } from '@/lib/utils';
 
 // Helper function to convert signed URLs to public URLs
@@ -252,13 +252,10 @@ export default function BlogPost() {
             </header>
             {post.image && (
               <div className="aspect-video overflow-hidden rounded-lg">
-                <BulletproofImage
+                <img
                   src={convertToPublicUrl(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover"
-                  fallbackSrc="/placeholder.svg"
-                  retryOnError={true}
-                  maxRetries={2}
                 />
               </div>
             )}
