@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { ErrorProofImage } from '@/components/ErrorProofImage';
-import { BulletproofImage } from '@/components/BulletproofImage';
+import { UltimateImage } from '@/components/UltimateImage';
 
 interface Post {
   id: string;
@@ -20,14 +19,6 @@ interface Post {
   created_at: string;
   image?: string | null;
 }
-
-// Builds a permanent public URL from a raw storage path (or passes through if already a URL)
-const convertToPublicUrl = (imagePath?: string | null): string => {
-  if (!imagePath) return '';
-  if (imagePath.startsWith('http')) return imagePath;
-  const { data } = supabase.storage.from('gallery').getPublicUrl(imagePath);
-  return data?.publicUrl || '';
-};
 
 export default function PendingPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -201,8 +192,8 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <BulletproofImage
-                      src={convertToPublicUrl(post.image)}
+                    <UltimateImage
+                      src={post.image}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
                       fallbackSrc="/placeholder.svg"
