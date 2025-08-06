@@ -162,6 +162,7 @@ export default function PendingPosts() {
     console.log('🎯 Selected cover image for post:', postId, image);
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image file_path:', image.file_path);
+    console.log('🎯 Image name:', image.name);
     
     // IMMEDIATE CLIENT-SIDE UPDATE
     setLocalCoverImages(prev => ({
@@ -170,25 +171,41 @@ export default function PendingPosts() {
     }));
     
     console.log('✅ IMMEDIATE CLIENT UPDATE: Cover image set for post', postId);
+    console.log('✅ Local state updated:', image.file_path);
+    
     toast({
       title: "Cover Image Updated",
       description: "Cover image has been updated successfully.",
     });
     
-    // Try database update in background (but don't wait for it)
+    // Force refresh the posts to see the update
+    await fetchPendingPosts();
+    
+    // Try database update in background
     try {
-      const { error: updateError } = await supabase
+      console.log('🔄 Attempting database update...');
+      const { data, error: updateError } = await supabase
         .from('posts')
         .update({ image: image.file_path })
-        .eq('id', postId);
+        .eq('id', postId)
+        .select();
 
       if (updateError) {
-        console.error('❌ Database update failed (but UI updated):', updateError.message);
+        console.error('❌ Database update failed:', updateError.message);
+        toast({
+          title: "Database Update Failed",
+          description: "Cover image updated in UI but database update failed.",
+          variant: "destructive"
+        });
       } else {
-        console.log('✅ Database update also successful');
+        console.log('✅ Database update successful:', data);
+        toast({
+          title: "Cover Image Updated",
+          description: "Cover image has been updated successfully in database.",
+        });
       }
     } catch (error) {
-      console.error('❌ Database update error (but UI updated):', error);
+      console.error('❌ Database update error:', error);
     }
   };
 
@@ -226,40 +243,23 @@ export default function PendingPosts() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* FORCE COVER IMAGE DISPLAY - NO CONTENT IMAGES */}
+                  {/* Always show cover image section for debugging */}
                   <div>
-                    <h4 className="text-sm font-medium mb-2">🎯 COVER IMAGE (FORCED):</h4>
-                    {(post.image || localCoverImages[post.id]) ? (
-                      <div className="border-2 border-blue-500 rounded-md p-2">
+                    {post.image && (
+                      <div>
                         <img
-                          src={convertToPublicUrl(localCoverImages[post.id] || post.image)}
-                          alt={`COVER: ${post.title}`}
+                          src={convertToPublicUrl(post.image)}
+                          alt={post.title}
                           className="w-full h-48 object-cover rounded-md"
-                          onLoad={() => console.log('✅ FORCED COVER IMAGE LOADED:', localCoverImages[post.id] || post.image)}
-                          onError={(e) => console.error('❌ FORCED COVER IMAGE FAILED:', localCoverImages[post.id] || post.image, e)}
+                          onLoad={() => console.log('✅ Pending admin cover image loaded:', post.image)}
+                          onError={(e) => console.error('❌ Pending admin cover image failed:', post.image, e)}
                         />
-                        <p className="text-xs text-blue-600 mt-1 font-bold">
-                          🎯 COVER IMAGE: {localCoverImages[post.id] || post.image}
-                          {localCoverImages[post.id] && ' (LOCAL UPDATE)'}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="w-full h-48 bg-red-200 rounded-md flex items-center justify-center border-2 border-red-500">
-                        <p className="text-red-600 font-bold">❌ NO COVER IMAGE</p>
+                        <p className="text-xs text-gray-500 mt-1">Cover: {post.image}</p>
                       </div>
                     )}
-                    <p className="text-xs text-blue-500 mt-1">Debug: Post ID: {post.id}</p>
                   </div>
-                  {/* CONTENT PREVIEW (WITHOUT IMAGES) */}
                   <div className="prose max-w-none">
-                    <div className="bg-yellow-100 p-2 rounded-md mb-2">
-                      <p className="text-xs text-yellow-800">
-                        📝 Content preview (images disabled to show cover image only):
-                      </p>
-                    </div>
-                    <div className="max-h-32 overflow-hidden">
-                      <MarkdownRenderer content={post.content.replace(/!\[.*?\]\(.*?\)/g, '[IMAGE REMOVED]')} />
-                    </div>
+                    <MarkdownRenderer content={post.content} />
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Button
