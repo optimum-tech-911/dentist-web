@@ -180,4 +180,3 @@ To run from source:
 # Go >= 1.22
 go run . help
 ```
-# Force deployment trigger
