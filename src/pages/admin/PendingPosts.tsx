@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { ClientImage } from '@/components/ClientImage';
+import { UltimateImage } from '@/components/UltimateImage';
 
 interface Post {
   id: string;
@@ -192,12 +192,12 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <ClientImage
+                    <UltimateImage
                       src={post.image}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
                       onError={(error) => {
-                        console.warn('Client image failed to load:', error);
+                        console.warn('Ultimate image failed to load:', error);
                         toast({
                           title: "Image Error",
                           description: "Post image failed to load - retrying automatically",
@@ -205,7 +205,7 @@ export default function PendingPosts() {
                         });
                       }}
                       onLoad={() => {
-                        console.log('Client image loaded successfully');
+                        console.log('Ultimate image loaded successfully');
                       }}
                     />
                   )}
