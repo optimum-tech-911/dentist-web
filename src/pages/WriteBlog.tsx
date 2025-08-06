@@ -25,7 +25,8 @@ export default function WriteBlog() {
     title: '',
     content: '',
     category: '',
-    headerImage: ''
+    headerImage: '',
+    headerImageUrl: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,10 +52,18 @@ export default function WriteBlog() {
 
   // Handle header image selection
   const handleHeaderImageSelect = (image: GalleryImage) => {
-    setFormData(prev => ({
-      ...prev,
-      headerImage: image.file_path // Store the stable file_path instead of url
+    console.log('🎯 Selected cover image for write:', image);
+    console.log('🎯 Image URL:', image.url);
+    console.log('🎯 Image file_path:', image.file_path);
+    
+    // Store the file_path for database, but use URL for immediate display
+    setFormData(prev => ({ 
+      ...prev, 
+      headerImage: image.file_path,
+      headerImageUrl: image.url // For immediate display
     }));
+    
+    console.log('✅ Cover image selected for write');
   };
 
   // Convert file_path to public URL for display
@@ -122,7 +131,8 @@ export default function WriteBlog() {
         title: '',
         content: '',
         category: '',
-        headerImage: ''
+        headerImage: '',
+        headerImageUrl: ''
       });
 
       setShowSubmitDialog(false);
@@ -254,22 +264,32 @@ export default function WriteBlog() {
               <div className="space-y-2">
                 <Label>Image de couverture (optionnel)</Label>
                 <div className="flex items-center gap-4">
-                  {formData.headerImage && (
+                  {(formData.headerImage || formData.headerImageUrl) && (
                     <div className="relative">
                       <img
-                        src={getImageUrl(formData.headerImage)}
+                        src={formData.headerImageUrl || getImageUrl(formData.headerImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
+                        onLoad={() => console.log('✅ Write cover image loaded:', formData.headerImageUrl || formData.headerImage)}
+                        onError={(e) => console.error('❌ Write cover image failed:', formData.headerImageUrl || formData.headerImage, e)}
                       />
                       <Button
                         type="button"
                         variant="destructive"
                         size="sm"
                         className="absolute -top-2 -right-2 h-6 w-6 p-0"
-                        onClick={() => setFormData(prev => ({ ...prev, headerImage: '' }))}
+                        onClick={() => setFormData(prev => ({ 
+                          ...prev, 
+                          headerImage: '',
+                          headerImageUrl: ''
+                        }))}
                       >
                         ×
                       </Button>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cover: {formData.headerImage}
+                        {formData.headerImageUrl && ' (IMMEDIATE UPDATE)'}
+                      </p>
                     </div>
                   )}
                   <GallerySelector
