@@ -55,10 +55,16 @@ export function convertToPublicUrl(url: string): string {
   if (!url.startsWith('http')) {
     console.log('🔄 Converting raw file path to public URL:', url);
     try {
+      // Remove gallery/ prefix if it exists to avoid double prefix
+      let cleanPath = url;
+      if (url.startsWith('gallery/')) {
+        cleanPath = url.substring(8); // Remove 'gallery/' prefix
+      }
+      
       // Convert raw path to public URL
       const { data } = supabase.storage
         .from(getGalleryBucket())
-        .getPublicUrl(url);
+        .getPublicUrl(cleanPath);
       
       if (data?.publicUrl) {
         console.log('✅ Converted to public URL:', data.publicUrl);
