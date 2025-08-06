@@ -74,15 +74,7 @@ export function CORSProxyImage({
     setCurrentSrc(retryUrl);
   };
 
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className={`${className} bg-gray-200 animate-pulse flex items-center justify-center`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-        <div className="ml-2 text-sm text-gray-600">Loading image...</div>
-      </div>
-    );
-  }
+
 
   // Error state
   if (hasError) {
@@ -112,10 +104,7 @@ export function CORSProxyImage({
         loading={loading}
         onLoad={handleImageLoad}
         onError={handleImageError}
-        style={{
-          opacity: isLoading ? 0.5 : 1,
-          transition: 'opacity 0.3s ease-in-out'
-        }}
+
       />
     </div>
   );

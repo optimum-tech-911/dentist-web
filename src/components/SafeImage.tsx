@@ -66,16 +66,9 @@ export function SafeImage({
         loading={loading}
         onLoad={handleLoad}
         onError={handleError}
-        style={{
-          opacity: isLoading ? 0.5 : 1,
-          transition: 'opacity 0.3s ease-in-out'
-        }}
+
       />
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-600"></div>
-        </div>
-      )}
+
       {hasError && currentSrc === fallbackSrc && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-500 text-xs">
           Image unavailable
