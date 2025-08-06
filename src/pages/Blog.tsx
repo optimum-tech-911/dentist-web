@@ -9,6 +9,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
+import { convertToPublicUrl } from '@/lib/utils';
 
 interface Post {
   id: string;
@@ -227,7 +228,7 @@ export default function Blog() {
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <img
-                          src={post.image}
+                          src={convertToPublicUrl(post.image)}
                           alt={post.title}
                           className="w-full h-full object-cover"
                           onError={(e) => {

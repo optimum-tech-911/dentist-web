@@ -46,7 +46,7 @@ export function CORSProxyImage({
 
     // If it's a relative path, try to convert to Supabase URL first
     if (!originalUrl.startsWith('http') && !originalUrl.startsWith('/api/')) {
-      const supabaseUrl = `https://supabase.co/storage/v1/object/public/gallery/${originalUrl}`;
+      const supabaseUrl = `https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/${originalUrl}`;
       return `/api/proxy-image?url=${encodeURIComponent(supabaseUrl)}`;
     }
 
