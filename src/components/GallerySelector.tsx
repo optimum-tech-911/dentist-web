@@ -103,14 +103,7 @@ export function GallerySelector({
 
           {/* Images Grid */}
           <div className="flex-1 overflow-y-auto">
-            {isLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                  <p>Chargement des images...</p>
-                </div>
-              </div>
-            ) : filteredImages.length === 0 ? (
+            {filteredImages.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Image className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>

@@ -206,13 +206,7 @@ export const TipTapEditor: React.FC<TipTapEditorProps> = ({ value, onChange, pla
   }, [editor]);
 
   if (!editor) {
-    return (
-      <div className="p-4 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-        <p className="text-gray-400">Chargement de l'éditeur…</p>
-        <p className="text-xs text-gray-300 mt-2">Si le chargement persiste, actualisez la page</p>
-      </div>
-    );
+    return null;
   }
 
   return (
