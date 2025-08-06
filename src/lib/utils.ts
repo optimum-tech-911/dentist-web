@@ -59,6 +59,7 @@ export function convertToPublicUrl(url: string): string {
       let cleanPath = url;
       if (url.startsWith('gallery/')) {
         cleanPath = url.substring(8); // Remove 'gallery/' prefix
+        console.log('🔄 Removed gallery/ prefix:', url, '→', cleanPath);
       }
       
       // Convert raw path to public URL
@@ -70,7 +71,7 @@ export function convertToPublicUrl(url: string): string {
         console.log('✅ Converted to public URL:', data.publicUrl);
         return data.publicUrl;
       } else {
-        console.error('❌ Failed to generate public URL for:', url);
+        console.error('❌ Failed to generate public URL for:', url, 'cleanPath:', cleanPath);
         return '';
       }
     } catch (error) {
