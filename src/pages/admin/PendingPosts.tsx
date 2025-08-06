@@ -7,34 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-
-// Helper function to convert signed URLs to public URLs
-const convertToPublicUrl = (imageUrl: string): string => {
-  if (!imageUrl) return imageUrl;
-  
-  // If it's already a public URL, return as-is
-  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
-    return imageUrl;
-  }
-  
-  // If it's a signed URL, convert to public URL
-  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
-    try {
-      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
-      if (urlParts) {
-        const { data } = supabase.storage
-          .from('gallery')
-          .getPublicUrl(urlParts);
-        return data.publicUrl;
-      }
-    } catch (error) {
-      console.log('Could not convert header image to public URL:', error);
-    }
-  }
-  
-  // Return original URL if not a gallery URL
-  return imageUrl;
-};
+import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 interface Post {
   id: string;
@@ -215,14 +189,13 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <img
+                    <BulletproofImage
                       src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
+                      fallbackSrc="/placeholder.svg"
+                      retryOnError={true}
+                      maxRetries={2}
                     />
                   )}
                   <div className="prose max-w-none">
