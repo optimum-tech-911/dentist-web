@@ -226,31 +226,40 @@ export default function PendingPosts() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {/* Always show cover image section for debugging */}
+                  {/* FORCE COVER IMAGE DISPLAY - NO CONTENT IMAGES */}
                   <div>
+                    <h4 className="text-sm font-medium mb-2">🎯 COVER IMAGE (FORCED):</h4>
                     {(post.image || localCoverImages[post.id]) ? (
-                      <div>
+                      <div className="border-2 border-blue-500 rounded-md p-2">
                         <img
                           src={convertToPublicUrl(localCoverImages[post.id] || post.image)}
-                          alt={post.title}
+                          alt={`COVER: ${post.title}`}
                           className="w-full h-48 object-cover rounded-md"
-                          onLoad={() => console.log('✅ Pending admin cover image loaded:', localCoverImages[post.id] || post.image)}
-                          onError={(e) => console.error('❌ Pending admin cover image failed:', localCoverImages[post.id] || post.image, e)}
+                          onLoad={() => console.log('✅ FORCED COVER IMAGE LOADED:', localCoverImages[post.id] || post.image)}
+                          onError={(e) => console.error('❌ FORCED COVER IMAGE FAILED:', localCoverImages[post.id] || post.image, e)}
                         />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Cover: {localCoverImages[post.id] || post.image}
+                        <p className="text-xs text-blue-600 mt-1 font-bold">
+                          🎯 COVER IMAGE: {localCoverImages[post.id] || post.image}
                           {localCoverImages[post.id] && ' (LOCAL UPDATE)'}
                         </p>
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
-                        <p className="text-gray-500">No cover image</p>
+                      <div className="w-full h-48 bg-red-200 rounded-md flex items-center justify-center border-2 border-red-500">
+                        <p className="text-red-600 font-bold">❌ NO COVER IMAGE</p>
                       </div>
                     )}
                     <p className="text-xs text-blue-500 mt-1">Debug: Post ID: {post.id}</p>
                   </div>
+                  {/* CONTENT PREVIEW (WITHOUT IMAGES) */}
                   <div className="prose max-w-none">
-                    <MarkdownRenderer content={post.content} />
+                    <div className="bg-yellow-100 p-2 rounded-md mb-2">
+                      <p className="text-xs text-yellow-800">
+                        📝 Content preview (images disabled to show cover image only):
+                      </p>
+                    </div>
+                    <div className="max-h-32 overflow-hidden">
+                      <MarkdownRenderer content={post.content.replace(/!\[.*?\]\(.*?\)/g, '[IMAGE REMOVED]')} />
+                    </div>
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <Button
