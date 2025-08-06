@@ -23,6 +23,7 @@ export function ClientImage({
   const [hasError, setHasError] = useState(false);
   const [attempts, setAttempts] = useState(0);
   const [forceMode, setForceMode] = useState(false);
+  const [workingUrls, setWorkingUrls] = useState<string[]>([]);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export function ClientImage({
       setHasError(false);
       setAttempts(0);
       setForceMode(false);
+      setWorkingUrls([]);
 
       console.log('🚨 CLIENT IMAGE - Starting force load for:', src);
 
@@ -42,38 +44,65 @@ export function ClientImage({
       const allUrls = await generateAllClientUrls(src);
       console.log('🚨 CLIENT IMAGE - Generated URLs:', allUrls);
 
-      // PHASE 2: Try each URL with ALL strategies
-      for (let attempt = 1; attempt <= 15; attempt++) {
-        setAttempts(attempt);
-        console.log(`🚨 CLIENT IMAGE - Attempt ${attempt}/15`);
+      // PHASE 2: PRE-TEST ALL URLs to find working ones
+      console.log('🚨 CLIENT IMAGE - Pre-testing all URLs...');
+      const testedUrls = await preTestAllUrls(allUrls);
+      setWorkingUrls(testedUrls);
+      console.log('🚨 CLIENT IMAGE - Working URLs found:', testedUrls);
+
+      if (testedUrls.length === 0) {
+        console.error('❌ CLIENT IMAGE - NO WORKING URLS FOUND!');
+        setHasError(true);
+        onError?.('No working URLs found - trying aggressive methods');
         
-        for (const url of allUrls) {
-          for (const strategy of getClientStrategies()) {
-            try {
-              console.log(`🚨 CLIENT IMAGE - Testing: ${url} with ${strategy.name}`);
-              
-              const isWorking = await strategy.test(url);
-              if (isWorking) {
-                console.log(`✅ CLIENT SUCCESS: ${url} works with ${strategy.name}`);
-                setCurrentSrc(url);
-                setIsLoading(false);
-                onLoad?.();
-                return;
-              }
-            } catch (error) {
-              console.warn(`❌ CLIENT FAILED: ${url} with ${strategy.name}:`, error);
+        // Try aggressive methods
+        setForceMode(true);
+        const aggressiveResult = await tryAggressiveClientLoading(src);
+        if (aggressiveResult) {
+          setCurrentSrc(aggressiveResult);
+          setIsLoading(false);
+          onLoad?.();
+          return;
+        }
+        
+        // Keep trying
+        setTimeout(() => {
+          forceLoadClientImage();
+        }, 5000);
+        return;
+      }
+
+      // PHASE 3: Use ONLY working URLs
+      console.log('🚨 CLIENT IMAGE - Using only working URLs');
+      for (let attempt = 1; attempt <= 10; attempt++) {
+        setAttempts(attempt);
+        console.log(`🚨 CLIENT IMAGE - Attempt ${attempt}/10 with working URLs`);
+        
+        for (const workingUrl of testedUrls) {
+          try {
+            console.log(`🚨 CLIENT IMAGE - Testing working URL: ${workingUrl}`);
+            
+            const isWorking = await testUrlWithMultipleStrategies(workingUrl);
+            if (isWorking) {
+              console.log(`✅ CLIENT SUCCESS: ${workingUrl} works!`);
+              setCurrentSrc(workingUrl);
+              setIsLoading(false);
+              onLoad?.();
+              return;
             }
+          } catch (error) {
+            console.warn(`❌ CLIENT FAILED: ${workingUrl}:`, error);
           }
         }
 
         // Wait before next attempt
-        if (attempt < 15) {
-          await sleep(200 * attempt);
+        if (attempt < 10) {
+          await sleep(500 * attempt);
         }
       }
 
-      // PHASE 3: If still failing, try aggressive methods
-      console.log('🚨 CLIENT IMAGE - Trying aggressive methods');
+      // PHASE 4: If working URLs fail, try aggressive methods
+      console.log('🚨 CLIENT IMAGE - Working URLs failed, trying aggressive methods');
       setForceMode(true);
       
       const aggressiveResult = await tryAggressiveClientLoading(src);
@@ -84,7 +113,7 @@ export function ClientImage({
         return;
       }
 
-      // PHASE 4: Last resort - create image from data
+      // PHASE 5: Last resort - create image from data
       console.log('🚨 CLIENT IMAGE - Trying last resort methods');
       const lastResortResult = await tryLastResortClientLoading(src);
       if (lastResortResult) {
@@ -94,7 +123,7 @@ export function ClientImage({
         return;
       }
 
-      // PHASE 5: If everything fails, show error but keep trying
+      // PHASE 6: If everything fails, show error but keep trying
       console.error('❌ CLIENT IMAGE - ALL methods failed for:', src);
       setHasError(true);
       onError?.('All loading methods failed - but we will keep trying');
@@ -116,6 +145,82 @@ export function ClientImage({
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const preTestAllUrls = async (urls: string[]): Promise<string[]> => {
+    const workingUrls: string[] = [];
+    
+    console.log('🚨 CLIENT IMAGE - Pre-testing', urls.length, 'URLs...');
+    
+    for (const url of urls) {
+      try {
+        // Test with HEAD request first (fastest)
+        const response = await fetch(url, { 
+          method: 'HEAD',
+          mode: 'no-cors'
+        });
+        
+        if (response.ok || response.type === 'opaque') {
+          // Double-check with image load test
+          const imageTest = await testImageLoad(url);
+          if (imageTest) {
+            workingUrls.push(url);
+            console.log(`✅ CLIENT - Working URL found: ${url}`);
+          }
+        }
+      } catch (error) {
+        console.warn(`❌ CLIENT - URL failed pre-test: ${url}`);
+      }
+    }
+    
+    console.log(`🚨 CLIENT IMAGE - Found ${workingUrls.length} working URLs out of ${urls.length}`);
+    return workingUrls;
+  };
+
+  const testImageLoad = async (url: string): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const timeoutId = setTimeout(() => {
+        img.src = '';
+        resolve(false);
+      }, 5000);
+
+      img.onload = () => {
+        clearTimeout(timeoutId);
+        resolve(true);
+      };
+
+      img.onerror = () => {
+        clearTimeout(timeoutId);
+        resolve(false);
+      };
+
+      img.crossOrigin = 'anonymous';
+      img.src = url;
+    });
+  };
+
+  const testUrlWithMultipleStrategies = async (url: string): Promise<boolean> => {
+    const strategies = [
+      testWithCORS,
+      testWithoutCORS,
+      testWithFetch,
+      testWithImage,
+      testWithHead
+    ];
+
+    for (const strategy of strategies) {
+      try {
+        const result = await strategy(url, 10000);
+        if (result) {
+          return true;
+        }
+      } catch (error) {
+        console.warn(`Strategy failed for ${url}:`, error);
+      }
+    }
+
+    return false;
   };
 
   const tryAggressiveClientLoading = async (imagePath: string): Promise<string | null> => {
@@ -233,7 +338,7 @@ export function ClientImage({
     setHasError(true);
     onError?.('Image failed to load');
     
-    // Retry immediately
+    // Retry immediately with working URLs
     setTimeout(() => {
       forceLoadClientImage();
     }, 1000);
@@ -256,6 +361,7 @@ export function ClientImage({
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
         <div className="ml-2 text-sm text-gray-600">
           {forceMode ? 'Force loading image...' : 'Loading image...'}
+          {workingUrls.length > 0 && ` (${workingUrls.length} working URLs found)`}
         </div>
       </div>
     );
@@ -268,6 +374,11 @@ export function ClientImage({
         <div className="text-center">
           <div className="mb-2">Loading image...</div>
           <div className="text-xs text-gray-500">Retrying automatically...</div>
+          {workingUrls.length > 0 && (
+            <div className="text-xs text-green-600 mt-1">
+              {workingUrls.length} working URLs available
+            </div>
+          )}
           <button
             onClick={handleRetry}
             className="text-xs text-blue-600 hover:text-blue-800 underline mt-2"
@@ -299,6 +410,7 @@ export function ClientImage({
       {import.meta.env.DEV && (
         <div className="absolute top-0 left-0 bg-black bg-opacity-75 text-white text-xs p-1">
           {attempts > 0 && `Attempts: ${attempts}`}
+          {workingUrls.length > 0 && `Working: ${workingUrls.length}`}
           {forceMode && 'FORCE MODE'}
           {hasError && 'ERROR'}
         </div>
@@ -376,44 +488,6 @@ async function generateAllClientUrls(imagePath: string): Promise<string[]> {
 
   // Remove duplicates and filter empty
   return [...new Set(urls)].filter(url => url && url.length > 0);
-}
-
-/**
- * Get ALL client loading strategies
- */
-function getClientStrategies() {
-  return [
-    // Strategy 1: CORS with aggressive timeout
-    {
-      name: 'cors-aggressive',
-      test: async (url: string) => testWithCORS(url, 15000)
-    },
-    // Strategy 2: No CORS with aggressive timeout
-    {
-      name: 'no-cors-aggressive',
-      test: async (url: string) => testWithoutCORS(url, 15000)
-    },
-    // Strategy 3: Fetch with aggressive timeout
-    {
-      name: 'fetch-aggressive',
-      test: async (url: string) => testWithFetch(url, 15000)
-    },
-    // Strategy 4: Image with aggressive timeout
-    {
-      name: 'image-aggressive',
-      test: async (url: string) => testWithImage(url, 15000)
-    },
-    // Strategy 5: Head request with aggressive timeout
-    {
-      name: 'head-aggressive',
-      test: async (url: string) => testWithHead(url, 15000)
-    },
-    // Strategy 6: Retry with backoff
-    {
-      name: 'retry-aggressive',
-      test: async (url: string) => testWithRetry(url)
-    }
-  ];
 }
 
 /**
@@ -531,22 +605,6 @@ async function testWithHead(url: string, timeout: number): Promise<boolean> {
   } catch (error) {
     return false;
   }
-}
-
-/**
- * Test URL with retry (aggressive)
- */
-async function testWithRetry(url: string): Promise<boolean> {
-  for (let i = 0; i < 10; i++) {
-    try {
-      const result = await testWithCORS(url, 5000);
-      if (result) return true;
-    } catch (error) {
-      if (i === 9) return false;
-      await sleep(500 * (i + 1));
-    }
-  }
-  return false;
 }
 
 /**
