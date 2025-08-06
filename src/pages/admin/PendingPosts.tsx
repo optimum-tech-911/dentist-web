@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
-import { CORSProxyImage } from '@/components/CORSProxyImage';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 interface Post {
   id: string;
@@ -188,21 +188,10 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <CORSProxyImage
+                    <BulletproofImage
                       src={post.image}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
-                      onError={(error) => {
-                        console.warn('CORS Proxy image failed to load:', error);
-                        toast({
-                          title: "Image Error",
-                          description: "Post image failed to load - CORS issue detected",
-                          variant: "destructive",
-                        });
-                      }}
-                      onLoad={() => {
-                        console.log('CORS Proxy image loaded successfully');
-                      }}
                     />
                   )}
                   <div className="prose max-w-none">

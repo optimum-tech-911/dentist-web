@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 // Helper function to convert signed URLs to public URLs
 const convertToPublicUrl = (imageUrl: string): string => {
@@ -141,11 +142,11 @@ export default function ApprovedPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                   <img 
-                    src={convertToPublicUrl(post.image)} 
-                    alt={post.title}
-                    className="w-full h-48 object-cover rounded-md"
-                     />
+                    <BulletproofImage
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-48 object-cover rounded-md"
+                    />
                   )}
                   <div className="prose max-w-none">
                     <div className="line-clamp-3">
