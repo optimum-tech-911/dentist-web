@@ -271,7 +271,7 @@ export default function Gallery() {
                         src={img.url || ''}
                         alt={img.name || 'Image'}
                         className="w-full h-32 object-cover"
-                        fallbackSrc="/placeholder.svg"
+
                         onError={(e) => {
                           console.warn('Image failed to load:', e.currentTarget.src);
                         }}
@@ -333,7 +333,7 @@ export default function Gallery() {
                 src={selectedImage.url || ''}
                 alt={selectedImage.name || 'Image'}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
-                fallbackSrc="/placeholder.svg"
+
                 onError={(e) => {
                   console.warn('Image failed to load:', e.currentTarget.src);
                 }}

@@ -16,7 +16,7 @@ export function SafeImage({
   src,
   alt,
   className = '',
-  fallbackSrc = '/placeholder.svg',
+  fallbackSrc = '',
   onError,
   onLoad,
   crossOrigin = 'anonymous',
@@ -77,7 +77,7 @@ export function SafeImage({
 /**
  * Hook for handling image loading with retry logic
  */
-export function useImageLoader(src: string, fallbackSrc: string = '/placeholder.svg') {
+export function useImageLoader(src: string, fallbackSrc: string = '') {
   const [imageSrc, setImageSrc] = useState<string>(convertToPublicUrl(src));
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);

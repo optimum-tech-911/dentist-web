@@ -24,7 +24,7 @@ const getGalleryBucket = () => {
  */
 export function convertToPublicUrl(url: string): string {
   if (!url) {
-    return '/placeholder.svg';
+    return '';
   }
 
   // Check if it's already a public URL
@@ -65,11 +65,11 @@ export function convertToPublicUrl(url: string): string {
         return data.publicUrl;
       } else {
         console.error('❌ Failed to generate public URL for:', url);
-        return '/placeholder.svg';
+        return '';
       }
     } catch (error) {
       console.error('Error converting raw path:', error);
-      return '/placeholder.svg';
+      return '';
     }
   }
   
@@ -78,9 +78,9 @@ export function convertToPublicUrl(url: string): string {
     return url;
   }
 
-  // Fallback to placeholder
-  console.warn('⚠️ Unknown URL format, using placeholder:', url);
-  return '/placeholder.svg';
+  // Fallback to empty
+  console.warn('⚠️ Unknown URL format, returning empty:', url);
+  return '';
 }
 
 /**
@@ -102,7 +102,7 @@ export function createImageProxyUrl(url: string): string {
 export function loadImageWithFallback(
   src: string, 
   onError: (event: Event) => void,
-  fallbackSrc: string = '/placeholder.svg'
+  fallbackSrc: string = ''
 ): void {
   const img = new Image();
   
