@@ -169,6 +169,16 @@ export default function BlogSubmit() {
                   </Select>
                 </div>
 
+                {/* Header Image Selection */}
+                <div className="space-y-2">
+                  <Label>Image de couverture (optionnel)</Label>
+                  <GallerySelector
+                    onImageSelect={handleHeaderImageSelect}
+                    selectedImageId={formData.headerImage}
+                    placeholder="Sélectionner une image"
+                  />
+                </div>
+
                 {/* Header Image Preview */}
                 {formData.headerImage && (
                   <div className="mb-4">
