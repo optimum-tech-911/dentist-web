@@ -25,8 +25,8 @@ export default function EditBlog() {
     title: '',
     content: '',
     category: '',
-    headerImage: '',
-    headerImageUrl: ''
+    coverImage: '', // Changed from headerImage to coverImage
+    coverImageUrl: '' // Changed from headerImageUrl to coverImageUrl
   });
   const [initialLoaded, setInitialLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -55,7 +55,7 @@ export default function EditBlog() {
         title: data.title || '',
         content: data.content || '',
         category: data.category || '',
-        headerImage: data.image || ''
+        coverImage: data.image || '' // Changed from headerImage to coverImage
       });
       setInitialLoaded(true);
     } catch (e) {
@@ -70,7 +70,7 @@ export default function EditBlog() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleHeaderImageSelect = (image: GalleryImage) => {
+  const handleCoverImageSelect = (image: GalleryImage) => {
     console.log('🎯 Selected cover image for edit:', image);
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image file_path:', image.file_path);
@@ -79,8 +79,8 @@ export default function EditBlog() {
     setFormData(prev => {
       const newData = { 
         ...prev, 
-        headerImage: image.file_path,
-        headerImageUrl: image.url // For immediate display
+        coverImage: image.file_path, // Changed from headerImage to coverImage
+        coverImageUrl: image.url // Changed from headerImageUrl to coverImageUrl
       };
       console.log('🔄 Updated formData:', newData);
       return newData;
@@ -97,23 +97,37 @@ export default function EditBlog() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    
+    console.log('🚀 Submitting form with cover image:', formData.coverImage);
+    
     try {
       // Convert any temporary URLs in the content to public URLs
       const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
       
+      const updateData = {
+        title: formData.title,
+        content: processedContent,
+        category: formData.category,
+        image: formData.coverImage || null
+      };
+      
+      console.log('💾 Updating post with data:', updateData);
+      
       const { error } = await supabase
         .from('posts')
-        .update({
-          title: formData.title,
-          content: processedContent,
-          category: formData.category,
-          image: formData.headerImage || null
-        })
+        .update(updateData)
         .eq('id', id);
-      if (error) throw error;
+        
+      if (error) {
+        console.error('❌ Database update error:', error);
+        throw error;
+      }
+      
+      console.log('✅ Post updated successfully with cover image:', formData.coverImage);
       toast({ title: 'Article mis à jour !', description: 'Les modifications ont été enregistrées.' });
       navigate('/admin/approved');
     } catch (error) {
+      console.error('❌ Error updating post:', error);
       toast({ title: 'Erreur', description: "Une erreur est survenue lors de la mise à jour.", variant: 'destructive' });
     } finally {
       setIsSubmitting(false);
@@ -198,17 +212,17 @@ export default function EditBlog() {
               <div className="space-y-2">
                 <Label>Image de couverture (optionnel)</Label>
                 <div className="flex items-center gap-4">
-                  {(formData.headerImage || formData.headerImageUrl) && (
+                  {(formData.coverImage || formData.coverImageUrl) && (
                     <div className="relative">
                       <img
-                        src={formData.headerImageUrl || getImageUrl(formData.headerImage)}
+                        src={formData.coverImageUrl || getImageUrl(formData.coverImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
-                        onLoad={() => console.log('✅ Edit cover image loaded:', formData.headerImageUrl || formData.headerImage)}
-                        onError={(e) => console.error('❌ Edit cover image failed:', formData.headerImageUrl || formData.headerImage, e)}
+                        onLoad={() => console.log('✅ Edit cover image loaded:', formData.coverImageUrl || formData.coverImage)}
+                        onError={(e) => console.error('❌ Edit cover image failed:', formData.coverImageUrl || formData.coverImage, e)}
                       />
                       <p className="text-xs text-blue-500 mt-1">
-                        Debug: headerImageUrl={formData.headerImageUrl}, headerImage={formData.headerImage}
+                        Debug: coverImageUrl={formData.coverImageUrl}, coverImage={formData.coverImage}
                       </p>
                       <Button
                         type="button"
@@ -216,20 +230,20 @@ export default function EditBlog() {
                         size="sm"
                         className="absolute -top-2 -right-2 h-6 w-6 p-0"
                         onClick={() => {
-                          handleInputChange('headerImage', '');
-                          handleInputChange('headerImageUrl', '');
+                          handleInputChange('coverImage', '');
+                          handleInputChange('coverImageUrl', '');
                         }}
                       >
                         ×
                       </Button>
                       <p className="text-xs text-gray-500 mt-1">
-                        Cover: {formData.headerImage}
-                        {formData.headerImageUrl && ' (IMMEDIATE UPDATE)'}
+                        Cover: {formData.coverImage}
+                        {formData.coverImageUrl && ' (IMMEDIATE UPDATE)'}
                       </p>
                     </div>
                   )}
                   <GallerySelector 
-                    onImageSelect={handleHeaderImageSelect}
+                    onImageSelect={handleCoverImageSelect}
                     title="Sélectionner une image de couverture"
                     description="Choisissez une image pour la couverture de cet article"
                   />
