@@ -40,7 +40,7 @@ export function BulletproofImage({
   const imgRef = useRef<HTMLImageElement>(null);
 
   // Use the universal image loader
-  const { url, isLoading, hasError: loaderError, retryCount: loaderRetryCount, retry } = useUniversalImageLoader(src, {
+  const { url, isLoading: loaderIsLoading, hasError: loaderError, retryCount: loaderRetryCount, retry } = useUniversalImageLoader(src, {
     maxRetries,
     timeout,
     fallbackUrls: [fallbackSrc]
@@ -48,10 +48,10 @@ export function BulletproofImage({
 
   useEffect(() => {
     setCurrentSrc(url);
-    setIsLoading(isLoading);
+    setIsLoading(loaderIsLoading);
     setHasError(loaderError);
     setRetryCount(loaderRetryCount);
-  }, [url, isLoading, loaderError, loaderRetryCount]);
+  }, [url, loaderIsLoading, loaderError, loaderRetryCount]);
 
   const handleLoad = (event: Event) => {
     setIsLoading(false);
