@@ -8,21 +8,7 @@ import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
-
-// Simple image component for admin pages
-const SafeImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
-  return (
-    <img
-      src={convertToPublicUrl(src)}
-      alt={alt}
-      className={className}
-      onError={(e) => {
-        const target = e.target as HTMLImageElement;
-        target.src = '/placeholder.svg';
-      }}
-    />
-  );
-};
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 interface Post {
   id: string;
@@ -129,10 +115,13 @@ export default function ApprovedPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <SafeImage
-                      src={post.image}
+                    <BulletproofImage
+                      src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+                      fallbackSrc="/placeholder.svg"
+                      retryOnError={true}
+                      maxRetries={2}
                     />
                   )}
                   <div className="prose max-w-none">
