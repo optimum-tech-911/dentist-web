@@ -63,6 +63,20 @@
     <meta name="msapplication-TileColor" content="#667eea" />
     <meta name="application-name" content="UFSBD Hérault" />
     
+    <!-- Firefox fallback for theme-color -->
+    <style>
+      @media (prefers-color-scheme: light) {
+        :root {
+          --theme-color: #667eea;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --theme-color: #667eea;
+        }
+      }
+    </style>
+    
     <!-- Structured Data -->
     <script type="application/ld+json">
     {

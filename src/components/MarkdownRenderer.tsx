@@ -120,6 +120,14 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
         images.forEach((img) => {
           img.classList.add('w-full', 'h-auto', 'rounded-lg', 'shadow-md', 'my-4');
           
+          // Ensure images have alt text for accessibility
+          if (!img.hasAttribute('alt') || img.getAttribute('alt') === '') {
+            // Extract filename from src as fallback alt text
+            const src = img.getAttribute('src') || '';
+            const filename = src.split('/').pop()?.split('?')[0] || 'Image';
+            img.setAttribute('alt', `Image: ${filename}`);
+          }
+          
           // Add error handling for broken images
           img.addEventListener('error', () => {
             console.log('Image failed to load:', img.src);
