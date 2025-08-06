@@ -18,6 +18,8 @@ export default function WriteBlog() {
   const { user, userRole } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -36,6 +38,16 @@ export default function WriteBlog() {
     { value: 'formation', label: '🎓 Formation', description: 'Éducation et apprentissage' },
     { value: 'conseils', label: '💡 Conseils', description: 'Recommandations pratiques' }
   ];
+
+  // Initialize component
+  useEffect(() => {
+    try {
+      setIsLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur lors du chargement de la page');
+      setIsLoading(false);
+    }
+  }, []);
 
   // Handle header image selection
   const handleHeaderImageSelect = (image: GalleryImage) => {
