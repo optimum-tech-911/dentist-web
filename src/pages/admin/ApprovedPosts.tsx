@@ -119,6 +119,8 @@ export default function ApprovedPosts() {
                       src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+                      onLoad={() => console.log('✅ Approved admin cover image loaded:', post.image)}
+                      onError={(e) => console.error('❌ Approved admin cover image failed:', post.image, e)}
                     />
                   )}
                   <div className="prose max-w-none">

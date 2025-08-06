@@ -193,6 +193,8 @@ export default function PendingPosts() {
                       src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+                      onLoad={() => console.log('✅ Pending admin cover image loaded:', post.image)}
+                      onError={(e) => console.error('❌ Pending admin cover image failed:', post.image, e)}
                     />
                   )}
                   <div className="prose max-w-none">
