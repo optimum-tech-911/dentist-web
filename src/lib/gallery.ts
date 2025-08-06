@@ -102,25 +102,46 @@ export class GalleryService {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      // Ensure data is an array
+      if (!data || !Array.isArray(data)) {
+        console.warn('No data returned from gallery_images table');
+        return [];
+      }
 
       // Get public URLs for all images (no expiry)
-      const imagesWithUrls = data.map((image) => {
-        const { data: urlData } = supabase.storage
-          .from(getGalleryBucket())
-          .getPublicUrl(image.file_path);
+      const imagesWithUrls = data
+        .filter(image => image && image.file_path) // Filter out invalid images
+        .map((image) => {
+          try {
+            const { data: urlData } = supabase.storage
+              .from(getGalleryBucket())
+              .getPublicUrl(image.file_path);
 
-        return {
-          ...image,
-          url: urlData.publicUrl
-        };
-      });
+            return {
+              ...image,
+              url: urlData?.publicUrl || ''
+            };
+          } catch (urlError) {
+            console.warn('Error getting URL for image:', image.file_path, urlError);
+            return {
+              ...image,
+              url: ''
+            };
+          }
+        })
+        .filter(image => image && image.id); // Filter out images without ID
 
       return imagesWithUrls;
 
     } catch (error) {
       console.error('Gallery fetch error:', error);
-      throw error;
+      // Return empty array instead of throwing to prevent page crash
+      return [];
     }
   }
 
@@ -228,12 +249,24 @@ export class GalleryService {
    * Validate file before upload
    */
   static validateFile(file: File): { isValid: boolean; error?: string } {
+    // Check if file exists
+    if (!file) {
+      return { isValid: false, error: 'Aucun fichier sélectionné.' };
+    }
+
+    // Check if file has required properties
+    if (!file.name || !file.type || file.size === undefined) {
+      return { isValid: false, error: 'Fichier invalide.' };
+    }
+
     // Allow images and videos
     const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg'];
+    
     if (!allowedImageTypes.includes(file.type) && !allowedVideoTypes.includes(file.type)) {
       return { isValid: false, error: `${file.name} n'est pas un fichier image ou vidéo valide.` };
     }
+    
     // Check file size (max 20MB for video, 5MB for image)
     if (allowedImageTypes.includes(file.type) && file.size > 5 * 1024 * 1024) {
       return { isValid: false, error: `${file.name} est trop volumineux (max 5MB pour les images).` };
@@ -248,10 +281,15 @@ export class GalleryService {
    * Format file size for display
    */
   static formatFileSize(bytes: number): string {
+    if (!bytes || isNaN(bytes) || bytes < 0) return '0 Bytes';
     if (bytes === 0) return '0 Bytes';
+    
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    
+    // Ensure i is within bounds
+    const sizeIndex = Math.min(i, sizes.length - 1);
+    return parseFloat((bytes / Math.pow(k, sizeIndex)).toFixed(2)) + ' ' + sizes[sizeIndex];
   }
 } 
