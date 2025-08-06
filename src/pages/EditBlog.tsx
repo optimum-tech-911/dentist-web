@@ -116,6 +116,7 @@ export default function EditBlog() {
       };
       
       console.log('💾 Updating post with data:', updateData);
+      console.log('💾 Post ID:', id);
       
       const { data, error } = await supabase
         .from('posts')
@@ -125,10 +126,12 @@ export default function EditBlog() {
         
       if (error) {
         console.error('❌ Database update error:', error);
+        console.error('❌ Error details:', error);
         throw error;
       }
       
       console.log('✅ Post updated successfully:', data);
+      console.log('✅ Updated post data:', data);
       console.log('✅ Cover image saved:', coverImageForDB);
       toast({ title: 'Article mis à jour !', description: 'Les modifications ont été enregistrées.' });
       navigate('/admin/approved');

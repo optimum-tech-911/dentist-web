@@ -185,6 +185,9 @@ export default function PendingPosts() {
     // Try database update in background
     try {
       console.log('🔄 Attempting database update...');
+      console.log('🔄 Updating post ID:', postId);
+      console.log('🔄 New image path:', image.file_path);
+      
       const { data, error: updateError } = await supabase
         .from('posts')
         .update({ image: image.file_path })
@@ -193,6 +196,7 @@ export default function PendingPosts() {
 
       if (updateError) {
         console.error('❌ Database update failed:', updateError.message);
+        console.error('❌ Error details:', updateError);
         toast({
           title: "Database Update Failed",
           description: "Cover image updated in UI but database update failed.",
@@ -200,6 +204,7 @@ export default function PendingPosts() {
         });
       } else {
         console.log('✅ Database update successful:', data);
+        console.log('✅ Updated post data:', data);
         toast({
           title: "Cover Image Updated",
           description: "Cover image has been updated successfully in database.",
