@@ -13,6 +13,8 @@ import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users, Image } from 'l
 import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 export default function WriteBlog() {
   const { user, userRole } = useAuth();
@@ -57,13 +59,7 @@ export default function WriteBlog() {
     }));
   };
 
-  // Convert file_path to public URL for display
-  const getImageUrl = (filePath: string) => {
-    const { data } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-    return data?.publicUrl || '';
-  };
+
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -256,10 +252,13 @@ export default function WriteBlog() {
                 <div className="flex items-center gap-4">
                   {formData.headerImage && (
                     <div className="relative">
-                      <img
-                        src={getImageUrl(formData.headerImage)}
+                      <BulletproofImage
+                        src={convertToPublicUrl(formData.headerImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
+                        fallbackSrc="/placeholder.svg"
+                        retryOnError={true}
+                        maxRetries={2}
                       />
                       <Button
                         type="button"

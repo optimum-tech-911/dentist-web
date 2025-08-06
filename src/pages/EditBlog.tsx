@@ -13,6 +13,8 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 import { PenTool, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>();
@@ -72,13 +74,7 @@ export default function EditBlog() {
     setFormData(prev => ({ ...prev, headerImage: image.file_path })); // Store the stable file_path instead of url
   };
 
-  // Convert file_path to public URL for display
-  const getImageUrl = (filePath: string) => {
-    const { data } = supabase.storage
-      .from('gallery')
-      .getPublicUrl(filePath);
-    return data?.publicUrl || '';
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -186,10 +182,13 @@ export default function EditBlog() {
                 <div className="flex items-center gap-4">
                   {formData.headerImage && (
                     <div className="relative">
-                      <img
-                        src={getImageUrl(formData.headerImage)}
+                      <BulletproofImage
+                        src={convertToPublicUrl(formData.headerImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
+                        fallbackSrc="/placeholder.svg"
+                        retryOnError={true}
+                        maxRetries={2}
                       />
                       <Button
                         type="button"
