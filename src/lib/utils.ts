@@ -18,11 +18,15 @@ const getGalleryBucket = () => {
 };
 
 /**
- * Convert a signed URL to a permanent public URL
- * @param url - The URL to convert (can be signed or already public)
+ * Convert any URL or file path to a permanent public URL
+ * @param url - The URL or file path to convert
  * @returns A permanent public URL
  */
 export function convertToPublicUrl(url: string): string {
+  if (!url) {
+    return '/placeholder.svg';
+  }
+
   // Check if it's already a public URL
   if (url.includes('/object/public/')) {
     return url;
@@ -43,11 +47,40 @@ export function convertToPublicUrl(url: string): string {
         return data?.publicUrl || url;
       }
     } catch (error) {
-      console.error('Error converting URL:', error);
+      console.error('Error converting signed URL:', error);
+    }
+  }
+
+  // Check if it's a raw file path (doesn't start with http)
+  if (!url.startsWith('http')) {
+    console.log('🔄 Converting raw file path to public URL:', url);
+    try {
+      // Convert raw path to public URL
+      const { data } = supabase.storage
+        .from(getGalleryBucket())
+        .getPublicUrl(url);
+      
+      if (data?.publicUrl) {
+        console.log('✅ Converted to public URL:', data.publicUrl);
+        return data.publicUrl;
+      } else {
+        console.error('❌ Failed to generate public URL for:', url);
+        return '/placeholder.svg';
+      }
+    } catch (error) {
+      console.error('Error converting raw path:', error);
+      return '/placeholder.svg';
     }
   }
   
-  return url;
+  // If it's already a full URL, return as-is
+  if (url.startsWith('http')) {
+    return url;
+  }
+
+  // Fallback to placeholder
+  console.warn('⚠️ Unknown URL format, using placeholder:', url);
+  return '/placeholder.svg';
 }
 
 /**
