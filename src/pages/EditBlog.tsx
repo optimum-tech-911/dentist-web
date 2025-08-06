@@ -76,11 +76,15 @@ export default function EditBlog() {
     console.log('🎯 Image file_path:', image.file_path);
     
     // Store the file_path for database, but use URL for immediate display
-    setFormData(prev => ({ 
-      ...prev, 
-      headerImage: image.file_path,
-      headerImageUrl: image.url // For immediate display
-    }));
+    setFormData(prev => {
+      const newData = { 
+        ...prev, 
+        headerImage: image.file_path,
+        headerImageUrl: image.url // For immediate display
+      };
+      console.log('🔄 Updated formData:', newData);
+      return newData;
+    });
     
     console.log('✅ Cover image selected for edit');
   };
@@ -203,6 +207,9 @@ export default function EditBlog() {
                         onLoad={() => console.log('✅ Edit cover image loaded:', formData.headerImageUrl || formData.headerImage)}
                         onError={(e) => console.error('❌ Edit cover image failed:', formData.headerImageUrl || formData.headerImage, e)}
                       />
+                      <p className="text-xs text-blue-500 mt-1">
+                        Debug: headerImageUrl={formData.headerImageUrl}, headerImage={formData.headerImage}
+                      </p>
                       <Button
                         type="button"
                         variant="destructive"
@@ -221,7 +228,11 @@ export default function EditBlog() {
                       </p>
                     </div>
                   )}
-                  <GallerySelector onImageSelect={handleHeaderImageSelect} />
+                  <GallerySelector 
+                    onImageSelect={handleHeaderImageSelect}
+                    title="Sélectionner une image de couverture"
+                    description="Choisissez une image pour la couverture de cet article"
+                  />
                 </div>
               </div>
               <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-black !text-black" style={{ color: 'black' }} disabled={isSubmitting}>
