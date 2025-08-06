@@ -76,23 +76,7 @@ export function CORSProxyImage({
 
 
 
-  // Error state
-  if (hasError) {
-    return (
-      <div className={`${className} bg-red-100 flex items-center justify-center text-red-500 text-sm`}>
-        <div className="text-center">
-          <div className="mb-2">Image unavailable</div>
-          <div className="text-xs text-gray-500">CORS issue detected</div>
-          <button
-            onClick={handleRetry}
-            className="text-xs text-blue-600 hover:text-blue-800 underline mt-2"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+
 
   return (
     <div className={`relative ${className}`}>
