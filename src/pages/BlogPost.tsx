@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
+import { ErrorProofImage } from '@/components/ErrorProofImage';
 
 interface Post {
   id: string;
@@ -222,8 +223,8 @@ export default function BlogPost() {
             </header>
             {post.image && (
               <div className="aspect-video overflow-hidden rounded-lg">
-                <img
-                  src={post.image}
+                <ErrorProofImage
+                  imageId={post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"
                 />
