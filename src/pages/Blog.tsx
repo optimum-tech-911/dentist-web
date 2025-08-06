@@ -260,6 +260,8 @@ export default function Blog() {
                           src={convertToPublicUrl(post.image)}
                           alt={post.title}
                           className="w-full h-full object-cover"
+                          onLoad={() => console.log('✅ Blog cover image loaded:', post.image)}
+                          onError={(e) => console.error('❌ Blog cover image failed:', post.image, e)}
                         />
                       </div>
                     )}

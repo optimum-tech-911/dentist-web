@@ -256,6 +256,8 @@ export default function BlogPost() {
                   src={convertToPublicUrl(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover"
+                  onLoad={() => console.log('✅ Cover image loaded successfully:', post.image)}
+                  onError={(e) => console.error('❌ Cover image failed to load:', post.image, e)}
                 />
               </div>
             )}
