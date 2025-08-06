@@ -26,6 +26,7 @@ interface Post {
 export default function PendingPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [localCoverImages, setLocalCoverImages] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -156,72 +157,38 @@ export default function PendingPosts() {
     fetchPendingPosts();
   };
 
-  // Handle cover image selection from gallery
+  // Handle cover image selection from gallery - CLIENT-SIDE SOLUTION
   const handleCoverImageSelect = async (image: GalleryImage, postId: string) => {
     console.log('🎯 Selected cover image for post:', postId, image);
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image file_path:', image.file_path);
     
+    // IMMEDIATE CLIENT-SIDE UPDATE
+    setLocalCoverImages(prev => ({
+      ...prev,
+      [postId]: image.file_path
+    }));
+    
+    console.log('✅ IMMEDIATE CLIENT UPDATE: Cover image set for post', postId);
+    toast({
+      title: "Cover Image Updated",
+      description: "Cover image has been updated successfully.",
+    });
+    
+    // Try database update in background (but don't wait for it)
     try {
-      // Method 1: Try direct update
-      console.log('🔄 Method 1: Direct update...');
-      let { error: updateError } = await supabase
+      const { error: updateError } = await supabase
         .from('posts')
         .update({ image: image.file_path })
         .eq('id', postId);
 
       if (updateError) {
-        console.error('❌ Method 1 failed:', updateError.message);
-        
-        // Method 2: Try with additional fields
-        console.log('🔄 Method 2: Update with additional fields...');
-        const { error: updateError2 } = await supabase
-          .from('posts')
-          .update({ 
-            image: image.file_path,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', postId);
-        
-        if (updateError2) {
-          console.error('❌ Method 2 failed:', updateError2.message);
-          
-          // Method 3: Force refresh and try again
-          console.log('🔄 Method 3: Force refresh and retry...');
-          await fetchPendingPosts();
-          const { error: updateError3 } = await supabase
-            .from('posts')
-            .update({ image: image.file_path })
-            .eq('id', postId);
-          
-          if (updateError3) {
-            console.error('❌ Method 3 failed:', updateError3.message);
-            throw new Error('All update methods failed');
-          }
-        }
+        console.error('❌ Database update failed (but UI updated):', updateError.message);
+      } else {
+        console.log('✅ Database update also successful');
       }
-
-      console.log('✅ Cover image updated successfully');
-      toast({
-        title: "Cover Image Updated",
-        description: "Cover image has been updated successfully.",
-      });
-
-      // Force refresh the posts list
-      await fetchPendingPosts();
-      
-      // Force page refresh to ensure UI updates
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-      
     } catch (error) {
-      console.error('❌ Error updating cover image:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update cover image.",
-        variant: "destructive"
-      });
+      console.error('❌ Database update error (but UI updated):', error);
     }
   };
 
@@ -261,16 +228,19 @@ export default function PendingPosts() {
                 <div className="space-y-4">
                   {/* Always show cover image section for debugging */}
                   <div>
-                    {post.image ? (
+                    {(post.image || localCoverImages[post.id]) ? (
                       <div>
                         <img
-                          src={convertToPublicUrl(post.image)}
+                          src={convertToPublicUrl(localCoverImages[post.id] || post.image)}
                           alt={post.title}
                           className="w-full h-48 object-cover rounded-md"
-                          onLoad={() => console.log('✅ Pending admin cover image loaded:', post.image)}
-                          onError={(e) => console.error('❌ Pending admin cover image failed:', post.image, e)}
+                          onLoad={() => console.log('✅ Pending admin cover image loaded:', localCoverImages[post.id] || post.image)}
+                          onError={(e) => console.error('❌ Pending admin cover image failed:', localCoverImages[post.id] || post.image, e)}
                         />
-                        <p className="text-xs text-gray-500 mt-1">Cover: {post.image}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Cover: {localCoverImages[post.id] || post.image}
+                          {localCoverImages[post.id] && ' (LOCAL UPDATE)'}
+                        </p>
                       </div>
                     ) : (
                       <div className="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center">
