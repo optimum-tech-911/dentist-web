@@ -87,10 +87,14 @@ export default function BlogSubmit() {
 
   // Handle header image selection
   const handleHeaderImageSelect = (image: GalleryImage) => {
+    console.log('🎯 Selected cover image:', image);
+    console.log('🎯 Image URL:', image.url);
+    console.log('🎯 Image name:', image.name);
     setFormData(prev => ({
       ...prev,
       headerImage: image.url // Store the full URL for cover images
     }));
+    console.log('🎯 Updated formData.headerImage:', image.url);
   };
 
   // Convert file_path to public URL for display
@@ -189,7 +193,7 @@ export default function BlogSubmit() {
                         alt="Image de couverture"
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          console.warn('Header image failed to load:', e);
+                          console.warn('❌ Header image failed to load:', formData.headerImage, e);
                           toast({
                             title: "Erreur d'image",
                             description: "L'image de couverture n'a pas pu être chargée",
@@ -197,10 +201,11 @@ export default function BlogSubmit() {
                           });
                         }}
                         onLoad={() => {
-                          console.log('Header image loaded successfully');
+                          console.log('✅ Header image loaded successfully:', formData.headerImage);
                         }}
                       />
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">Preview URL: {formData.headerImage}</p>
                   </div>
                 )}
 
