@@ -8,6 +8,8 @@ import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
+import { GallerySelector } from '@/components/GallerySelector';
+import { GalleryService, type GalleryImage } from '@/lib/gallery';
 
 
 interface Post {
@@ -154,6 +156,47 @@ export default function PendingPosts() {
     fetchPendingPosts();
   };
 
+  // Handle cover image selection from gallery
+  const handleCoverImageSelect = async (image: GalleryImage, postId: string) => {
+    console.log('🎯 Selected cover image for post:', postId, image);
+    console.log('🎯 Image URL:', image.url);
+    console.log('🎯 Image file_path:', image.file_path);
+    
+    try {
+      // Update the post with the selected image
+      const { error: updateError } = await supabase
+        .from('posts')
+        .update({ image: image.file_path })
+        .eq('id', postId);
+
+      if (updateError) {
+        console.error('❌ Post update error:', updateError.message);
+        toast({
+          title: "Update failed",
+          description: updateError.message,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      console.log('✅ Cover image updated successfully');
+      toast({
+        title: "Cover Image Updated",
+        description: "Cover image has been updated successfully.",
+      });
+
+      // Refresh the posts list
+      fetchPendingPosts();
+    } catch (error) {
+      console.error('❌ Error updating cover image:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update cover image.",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return null;
   }
@@ -237,6 +280,16 @@ export default function PendingPosts() {
                           Upload Image
                         </Button>
                       </label>
+                      <GallerySelector
+                        onImageSelect={(image) => handleCoverImageSelect(image, post.id)}
+                        title="Sélectionner une image de couverture"
+                        description="Choisissez une image pour la couverture de cet article"
+                        trigger={
+                          <Button size="sm" variant="outline">
+                            Select from Gallery
+                          </Button>
+                        }
+                      />
                     </div>
                     <Button
                       variant="destructive"
