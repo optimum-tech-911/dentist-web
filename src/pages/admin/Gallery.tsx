@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Upload, FolderOpen, Eye, Trash2, X, Check, Copy, RefreshCw } from 'lucide-react';
+import { Upload, FolderOpen, Eye, Trash2, X, Check, Copy, RefreshCw, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
@@ -14,6 +14,7 @@ export default function Gallery() {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const [selectedImage, setSelectedImage] = useState<GalleryImage | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -27,10 +28,14 @@ export default function Gallery() {
   const fetchImages = async () => {
     try {
       setIsLoading(true);
+      setHasError(false);
       const images = await GalleryService.getImages();
-      setImages(images);
+      // Ensure images is an array and filter out any null/undefined items
+      setImages(Array.isArray(images) ? images.filter(img => img && img.id) : []);
     } catch (error) {
       console.error('Error fetching images:', error);
+      setHasError(true);
+      setImages([]); // Set empty array to prevent crashes
       toast({
         title: "Erreur",
         description: "Impossible de charger les images de la galerie.",
@@ -100,11 +105,16 @@ export default function Gallery() {
   };
 
   const handleDeleteImage = async (imageId: string, filePath: string) => {
+    if (!imageId || !filePath) {
+      console.error('Invalid image data for deletion');
+      return;
+    }
+
     try {
       await GalleryService.deleteImage(imageId, filePath);
 
       // Remove from local state
-      setImages(prev => prev.filter(img => img.id !== imageId));
+      setImages(prev => prev.filter(img => img && img.id !== imageId));
       
       toast({
         title: "Image supprimée",
@@ -127,15 +137,34 @@ export default function Gallery() {
   };
 
   const formatFileSize = (bytes: number) => {
+    if (!bytes || isNaN(bytes)) return '0 B';
     return GalleryService.formatFileSize(bytes);
   };
 
   const copyImageUrl = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast({
-      title: "URL copiée",
-      description: "L'URL de l'image a été copiée dans le presse-papiers."
-    });
+    if (!url) {
+      toast({
+        title: "Erreur",
+        description: "URL invalide",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      navigator.clipboard.writeText(url);
+      toast({
+        title: "URL copiée",
+        description: "L'URL de l'image a été copiée dans le presse-papiers."
+      });
+    } catch (error) {
+      console.error('Error copying URL:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de copier l'URL",
+        variant: "destructive"
+      });
+    }
   };
 
   if (isLoading) {
@@ -152,6 +181,32 @@ export default function Gallery() {
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
               <p>Chargement de la galerie...</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Error state
+  if (hasError) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <FolderOpen className="h-6 w-6" />
+            <h1 className="text-3xl font-bold">Gestion de la Galerie</h1>
+          </div>
+        </div>
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p className="text-muted-foreground mb-4">Erreur lors du chargement de la galerie</p>
+              <Button onClick={fetchImages} variant="outline">
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Réessayer
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -195,46 +250,65 @@ export default function Gallery() {
           <CardTitle>Galerie d'Images ({images.length} image(s))</CardTitle>
         </CardHeader>
         <CardContent>
-          {images.length === 0 ? (
+          {!images || images.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <FolderOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>Aucune image ou vidéo téléchargée. Cliquez sur "Télécharger des fichiers" pour commencer.</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((img) => (
-                <div key={img.id} className="relative group border rounded-lg overflow-hidden">
-                  {img.file_type.startsWith('image/') ? (
-                    <SafeImage
-                      src={img.url}
-                      alt={img.name}
-                      className="w-full h-32 object-cover"
-                      fallbackSrc="/placeholder.svg"
-                      onError={(e) => {
-                        console.warn('Image failed to load:', e.currentTarget.src);
-                      }}
-                    />
-                  ) : img.file_type.startsWith('video/') ? (
-                    <video src={convertToPublicUrl(img.url)} controls className="w-full h-32 object-cover bg-black" />
-                  ) : null}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                      <Button 
-                        size="sm" 
-                        variant="secondary"
-                        onClick={() => setSelectedImage(img)}
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="destructive"
-                        onClick={() => handleDeleteImage(img.id, img.file_path)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                </div>
-              ))}
+              {images.map((img) => {
+                // Skip invalid images
+                if (!img || !img.id || !img.name) {
+                  console.warn('Skipping invalid image:', img);
+                  return null;
+                }
+
+                return (
+                  <div key={img.id} className="relative group border rounded-lg overflow-hidden">
+                    {img.file_type && img.file_type.startsWith('image/') ? (
+                      <SafeImage
+                        src={img.url || ''}
+                        alt={img.name || 'Image'}
+                        className="w-full h-32 object-cover"
+                        fallbackSrc="/placeholder.svg"
+                        onError={(e) => {
+                          console.warn('Image failed to load:', e.currentTarget.src);
+                        }}
+                      />
+                    ) : img.file_type && img.file_type.startsWith('video/') ? (
+                      <video 
+                        src={img.url ? convertToPublicUrl(img.url) : ''} 
+                        controls 
+                        className="w-full h-32 object-cover bg-black"
+                        onError={(e) => {
+                          console.warn('Video failed to load:', e.currentTarget.src);
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-32 bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-500 text-sm">Type non supporté</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
+                        <Button 
+                          size="sm" 
+                          variant="secondary"
+                          onClick={() => setSelectedImage(img)}
+                        >
+                          <Eye className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => handleDeleteImage(img.id, img.file_path)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </CardContent>
@@ -256,8 +330,8 @@ export default function Gallery() {
             </div>
             <div className="p-4">
               <SafeImage
-                src={selectedImage.url}
-                alt={selectedImage.name}
+                src={selectedImage.url || ''}
+                alt={selectedImage.name || 'Image'}
                 className="max-w-full max-h-[60vh] object-contain mx-auto"
                 fallbackSrc="/placeholder.svg"
                 onError={(e) => {
@@ -266,7 +340,7 @@ export default function Gallery() {
               />
               <div className="mt-4 space-y-2 text-sm text-muted-foreground">
                 <p><strong>Taille:</strong> {formatFileSize(selectedImage.file_size)}</p>
-                <p><strong>Type:</strong> {selectedImage.file_type}</p>
+                <p><strong>Type:</strong> {selectedImage.file_type || 'Inconnu'}</p>
                 <p><strong>Date:</strong> {selectedImage.created_at ? new Date(selectedImage.created_at).toLocaleDateString() : 'N/A'}</p>
               </div>
               <div className="mt-4 flex space-x-2">
