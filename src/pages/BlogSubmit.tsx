@@ -32,25 +32,39 @@ export default function BlogSubmit() {
     e.preventDefault();
     if (!user) return;
 
+    console.log('🚀 Starting form submission...');
+    console.log('📝 Form data:', formData);
+    console.log('🖼️ Cover image URL:', formData.headerImage);
+
     setLoading(true);
 
     try {
       // Convert any temporary URLs in the content to public URLs
       const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
       
-      const { error } = await supabase
+      const postData = {
+        title: formData.title,
+        content: processedContent,
+        category: formData.category,
+        image: formData.headerImage || null,
+        author_email: user.email!,
+        author_id: user.id,
+        status: 'pending'
+      };
+      
+      console.log('💾 Saving post data:', postData);
+      
+      const { data, error } = await supabase
         .from('posts')
-        .insert({
-          title: formData.title,
-          content: processedContent,
-          category: formData.category,
-          image: formData.headerImage || null,
-          author_email: user.email!,
-          author_id: user.id,
-          status: 'pending'
-        });
+        .insert(postData)
+        .select();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Database error:', error);
+        throw error;
+      }
+
+      console.log('✅ Post saved successfully:', data);
 
       toast({
         title: "Article soumis !",
@@ -66,7 +80,7 @@ export default function BlogSubmit() {
       });
 
     } catch (error) {
-      console.error('Error submitting post:', error);
+      console.error('❌ Error submitting post:', error);
       toast({
         title: "Erreur",
         description: "Une erreur est survenue lors de l'envoi de votre article.",
@@ -90,11 +104,16 @@ export default function BlogSubmit() {
     console.log('🎯 Selected cover image:', image);
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image name:', image.name);
+    console.log('🎯 Image file_path:', image.file_path);
+    
+    // Store the full URL for cover images
     setFormData(prev => ({
       ...prev,
-      headerImage: image.url // Store the full URL for cover images
+      headerImage: image.url
     }));
+    
     console.log('🎯 Updated formData.headerImage:', image.url);
+    console.log('🎯 Form data after update:', { ...formData, headerImage: image.url });
   };
 
   // Convert file_path to public URL for display
