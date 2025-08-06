@@ -89,7 +89,7 @@ export default function BlogSubmit() {
   const handleHeaderImageSelect = (image: GalleryImage) => {
     setFormData(prev => ({
       ...prev,
-      headerImage: image.file_path // Store the stable file_path instead of url
+      headerImage: image.url // Store the full URL for cover images
     }));
   };
 
