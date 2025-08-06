@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { GalleryService, type GalleryImage } from './gallery';
-import { convertToPublicUrl } from './utils';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export interface HealthCheckResult {
   totalImages: number;
