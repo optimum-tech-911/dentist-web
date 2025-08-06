@@ -24,11 +24,46 @@ export function ClientImage({
   const [attempts, setAttempts] = useState(0);
   const [forceMode, setForceMode] = useState(false);
   const [workingUrls, setWorkingUrls] = useState<string[]>([]);
+  const [monitoringInterval, setMonitoringInterval] = useState<NodeJS.Timeout | null>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     forceLoadClientImage();
+    
+    // Start continuous monitoring
+    const interval = setInterval(() => {
+      monitorCurrentImage();
+    }, 30000); // Check every 30 seconds
+    
+    setMonitoringInterval(interval);
+    
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [src]);
+
+  const monitorCurrentImage = async () => {
+    if (!currentSrc || currentSrc.startsWith('blob:') || currentSrc.startsWith('data:')) {
+      return; // Don't monitor blob or data URLs
+    }
+    
+    try {
+      console.log('🔍 CLIENT IMAGE - Monitoring current image:', currentSrc);
+      
+      // Test if current image is still working
+      const isStillWorking = await testImageLoad(currentSrc);
+      
+      if (!isStillWorking) {
+        console.warn('⚠️ CLIENT IMAGE - Current image stopped working, reloading...');
+        forceLoadClientImage();
+      }
+    } catch (error) {
+      console.warn('⚠️ CLIENT IMAGE - Monitoring failed, reloading...');
+      forceLoadClientImage();
+    }
+  };
 
   const forceLoadClientImage = async () => {
     try {
@@ -154,14 +189,30 @@ export function ClientImage({
     
     for (const url of urls) {
       try {
-        // Test with HEAD request first (fastest)
-        const response = await fetch(url, { 
-          method: 'HEAD',
-          mode: 'no-cors'
-        });
+        // Test 1: HEAD request with CORS
+        let isWorking = false;
         
-        if (response.ok || response.type === 'opaque') {
-          // Double-check with image load test
+        try {
+          const response = await fetch(url, { 
+            method: 'HEAD',
+            mode: 'cors'
+          });
+          isWorking = response.ok;
+        } catch (error) {
+          // If CORS fails, try without CORS
+          try {
+            const response = await fetch(url, { 
+              method: 'HEAD',
+              mode: 'no-cors'
+            });
+            isWorking = response.type === 'opaque' || response.ok;
+          } catch (innerError) {
+            isWorking = false;
+          }
+        }
+        
+        if (isWorking) {
+          // Test 2: Double-check with image load test
           const imageTest = await testImageLoad(url);
           if (imageTest) {
             workingUrls.push(url);
@@ -183,7 +234,7 @@ export function ClientImage({
       const timeoutId = setTimeout(() => {
         img.src = '';
         resolve(false);
-      }, 5000);
+      }, 10000); // Increased timeout to 10 seconds
 
       img.onload = () => {
         clearTimeout(timeoutId);
@@ -211,7 +262,7 @@ export function ClientImage({
 
     for (const strategy of strategies) {
       try {
-        const result = await strategy(url, 10000);
+        const result = await strategy(url, 15000); // Increased timeout to 15 seconds
         if (result) {
           return true;
         }
@@ -224,64 +275,88 @@ export function ClientImage({
   };
 
   const tryAggressiveClientLoading = async (imagePath: string): Promise<string | null> => {
-    // Method 1: Try to download and create blob
-    try {
-      const response = await fetch(`/api/client-proxy?url=${encodeURIComponent(imagePath)}`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'image/*',
-          'Cache-Control': 'no-cache'
+    // Method 1: Try to download and create blob with multiple URLs
+    const blobUrls = [
+      `/api/client-proxy?url=${encodeURIComponent(imagePath)}`,
+      `/api/image-proxy?url=${encodeURIComponent(imagePath)}`,
+      `/api/proxy-image?url=${encodeURIComponent(imagePath)}`
+    ];
+
+    for (const blobUrl of blobUrls) {
+      try {
+        const response = await fetch(blobUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'image/*',
+            'Cache-Control': 'no-cache'
+          }
+        });
+
+        if (response.ok) {
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          console.log('✅ CLIENT - Blob URL created:', objectUrl);
+          return objectUrl;
         }
-      });
-
-      if (response.ok) {
-        const blob = await response.blob();
-        const blobUrl = URL.createObjectURL(blob);
-        console.log('✅ CLIENT - Blob URL created:', blobUrl);
-        return blobUrl;
+      } catch (error) {
+        console.warn('CLIENT - Blob method failed for:', blobUrl, error);
       }
-    } catch (error) {
-      console.warn('CLIENT - Blob method failed:', error);
     }
 
-    // Method 2: Try canvas approach
-    try {
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      
-      img.crossOrigin = 'anonymous';
-      img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx?.drawImage(img, 0, 0);
+    // Method 2: Try canvas approach with multiple URLs
+    const canvasUrls = [
+      imagePath,
+      `https://supabase.co/storage/v1/object/public/gallery/${imagePath}`,
+      `https://supabase.com/storage/v1/object/public/gallery/${imagePath}`
+    ];
+
+    for (const canvasUrl of canvasUrls) {
+      try {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = new Image();
         
-        const dataUrl = canvas.toDataURL('image/jpeg');
-        console.log('✅ CLIENT - Canvas data URL created');
-        return dataUrl;
-      };
-      
-      img.src = imagePath;
-    } catch (error) {
-      console.warn('CLIENT - Canvas method failed:', error);
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx?.drawImage(img, 0, 0);
+          
+          const dataUrl = canvas.toDataURL('image/jpeg');
+          console.log('✅ CLIENT - Canvas data URL created');
+          return dataUrl;
+        };
+        
+        img.src = canvasUrl;
+      } catch (error) {
+        console.warn('CLIENT - Canvas method failed for:', canvasUrl, error);
+      }
     }
 
-    // Method 3: Try base64 encoding
-    try {
-      const response = await fetch(imagePath);
-      const blob = await response.blob();
-      const reader = new FileReader();
-      
-      return new Promise((resolve) => {
-        reader.onload = () => {
-          const base64 = reader.result as string;
-          console.log('✅ CLIENT - Base64 created');
-          resolve(base64);
-        };
-        reader.readAsDataURL(blob);
-      });
-    } catch (error) {
-      console.warn('CLIENT - Base64 method failed:', error);
+    // Method 3: Try base64 encoding with multiple URLs
+    const base64Urls = [
+      imagePath,
+      `https://supabase.co/storage/v1/object/public/gallery/${imagePath}`,
+      `https://supabase.com/storage/v1/object/public/gallery/${imagePath}`
+    ];
+
+    for (const base64Url of base64Urls) {
+      try {
+        const response = await fetch(base64Url);
+        const blob = await response.blob();
+        const reader = new FileReader();
+        
+        return new Promise((resolve) => {
+          reader.onload = () => {
+            const base64 = reader.result as string;
+            console.log('✅ CLIENT - Base64 created');
+            resolve(base64);
+          };
+          reader.readAsDataURL(blob);
+        });
+      } catch (error) {
+        console.warn('CLIENT - Base64 method failed for:', base64Url, error);
+      }
     }
 
     return null;
@@ -338,19 +413,25 @@ export function ClientImage({
     setHasError(true);
     onError?.('Image failed to load');
     
-    // Retry immediately with working URLs
+    // Immediate retry with exponential backoff
+    const retryDelay = Math.min(1000 * Math.pow(2, attempts), 30000); // Max 30 seconds
     setTimeout(() => {
+      console.log(`🔄 CLIENT IMAGE - Retrying after ${retryDelay}ms...`);
       forceLoadClientImage();
-    }, 1000);
+    }, retryDelay);
   };
 
   const handleImageLoad = () => {
     setIsLoading(false);
     setHasError(false);
     onLoad?.();
+    
+    // Reset attempts on successful load
+    setAttempts(0);
   };
 
   const handleRetry = () => {
+    setAttempts(0); // Reset attempts for manual retry
     forceLoadClientImage();
   };
 
@@ -485,6 +566,26 @@ async function generateAllClientUrls(imagePath: string): Promise<string[]> {
   // 8. Try with different paths
   urls.push(`https://supabase.co/storage/v1/object/public/gallery-staging/${baseName}.jpg`);
   urls.push(`https://supabase.com/storage/v1/object/public/gallery-staging/${baseName}.jpg`);
+
+  // 9. Try with different Supabase project configurations
+  const projectConfigs = [
+    'https://supabase.co/storage/v1/object/public/gallery/',
+    'https://supabase.com/storage/v1/object/public/gallery/',
+    'https://xyz.supabase.co/storage/v1/object/public/gallery/',
+    'https://supabase.co/storage/v1/object/sign/gallery/',
+    'https://supabase.com/storage/v1/object/sign/gallery/',
+    'https://supabase.co/storage/v1/object/public/gallery-staging/',
+    'https://supabase.com/storage/v1/object/public/gallery-staging/',
+    'https://xyz.supabase.co/storage/v1/object/public/gallery-staging/'
+  ];
+
+  for (const config of projectConfigs) {
+    urls.push(`${config}${imagePath}`);
+  }
+
+  // 10. Try with different URL encodings
+  urls.push(`https://supabase.co/storage/v1/object/public/gallery/${encodeURIComponent(imagePath)}`);
+  urls.push(`https://supabase.com/storage/v1/object/public/gallery/${encodeURIComponent(imagePath)}`);
 
   // Remove duplicates and filter empty
   return [...new Set(urls)].filter(url => url && url.length > 0);
