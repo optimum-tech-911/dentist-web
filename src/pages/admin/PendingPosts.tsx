@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { ErrorProofImage } from '@/components/ErrorProofImage';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 interface Post {
   id: string;
@@ -199,10 +201,22 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <img 
-                      src={convertToPublicUrl(post.image)} 
+                    <BulletproofImage
+                      src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
+                      fallbackSrc="/placeholder.svg"
+                      onError={(error) => {
+                        console.warn('Pending post image failed to load:', error);
+                        toast({
+                          title: "Image Error",
+                          description: "Post image failed to load",
+                          variant: "destructive",
+                        });
+                      }}
+                      onLoad={() => {
+                        console.log('Pending post image loaded successfully');
+                      }}
                     />
                   )}
                   <div className="prose max-w-none">
