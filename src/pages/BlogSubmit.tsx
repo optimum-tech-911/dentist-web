@@ -174,8 +174,8 @@ export default function BlogSubmit() {
                   <Label>Image de couverture (optionnel)</Label>
                   <GallerySelector
                     onImageSelect={handleHeaderImageSelect}
-                    selectedImageId={formData.headerImage}
-                    placeholder="Sélectionner une image"
+                    title="Sélectionner une image de couverture"
+                    description="Choisissez une image pour la couverture de votre article"
                   />
                 </div>
 
@@ -184,13 +184,12 @@ export default function BlogSubmit() {
                   <div className="mb-4">
                     <label className="block text-sm font-medium mb-2">Image de couverture</label>
                     <div className="relative w-32 h-20 border rounded-md overflow-hidden">
-                      <BulletproofArticleImage
-                        imageId={formData.headerImage}
+                      <img
+                        src={formData.headerImage}
                         alt="Image de couverture"
                         className="w-full h-full object-cover"
-                        fallbackSrc="/placeholder.svg"
-                        onError={(error) => {
-                          console.warn('Header image failed to load:', error);
+                        onError={(e) => {
+                          console.warn('Header image failed to load:', e);
                           toast({
                             title: "Erreur d'image",
                             description: "L'image de couverture n'a pas pu être chargée",
