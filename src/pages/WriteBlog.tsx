@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -13,6 +13,7 @@ import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users, Image } from 'l
 import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function WriteBlog() {
   const { user, userRole } = useAuth();

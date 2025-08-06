@@ -13,6 +13,7 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 import { PenTool, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>();
