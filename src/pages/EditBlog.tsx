@@ -79,8 +79,8 @@ export default function EditBlog() {
     setFormData(prev => {
       const newData = { 
         ...prev, 
-        coverImage: image.file_path, // Changed from headerImage to coverImage
-        coverImageUrl: image.url // Changed from headerImageUrl to coverImageUrl
+        coverImage: image.file_path,
+        coverImageUrl: image.url
       };
       console.log('🔄 Updated formData:', newData);
       return newData;
@@ -99,31 +99,37 @@ export default function EditBlog() {
     setIsSubmitting(true);
     
     console.log('🚀 Submitting form with cover image:', formData.coverImage);
+    console.log('🚀 FormData state:', formData);
     
     try {
       // Convert any temporary URLs in the content to public URLs
       const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
       
+      // Ensure cover image is properly formatted for database
+      const coverImageForDB = formData.coverImage ? formData.coverImage : null;
+      
       const updateData = {
         title: formData.title,
         content: processedContent,
         category: formData.category,
-        image: formData.coverImage || null
+        image: coverImageForDB
       };
       
       console.log('💾 Updating post with data:', updateData);
       
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('posts')
         .update(updateData)
-        .eq('id', id);
+        .eq('id', id)
+        .select();
         
       if (error) {
         console.error('❌ Database update error:', error);
         throw error;
       }
       
-      console.log('✅ Post updated successfully with cover image:', formData.coverImage);
+      console.log('✅ Post updated successfully:', data);
+      console.log('✅ Cover image saved:', coverImageForDB);
       toast({ title: 'Article mis à jour !', description: 'Les modifications ont été enregistrées.' });
       navigate('/admin/approved');
     } catch (error) {
@@ -212,6 +218,7 @@ export default function EditBlog() {
               <div className="space-y-2">
                 <Label>Image de couverture (optionnel)</Label>
                 <div className="flex items-center gap-4">
+                  {/* Always show preview if there's a cover image */}
                   {(formData.coverImage || formData.coverImageUrl) && (
                     <div className="relative">
                       <img
@@ -240,6 +247,12 @@ export default function EditBlog() {
                         Cover: {formData.coverImage}
                         {formData.coverImageUrl && ' (IMMEDIATE UPDATE)'}
                       </p>
+                    </div>
+                  )}
+                  {/* Show placeholder if no cover image */}
+                  {!formData.coverImage && !formData.coverImageUrl && (
+                    <div className="w-32 h-20 bg-gray-100 border-2 border-dashed border-gray-300 rounded-md flex items-center justify-center">
+                      <p className="text-xs text-gray-500">No cover image</p>
                     </div>
                   )}
                   <GallerySelector 
