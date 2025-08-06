@@ -78,6 +78,11 @@ export function CORSProxyImage({
 
 
 
+  // Don't render anything if there's an error or no src
+  if (hasError || !currentSrc) {
+    return null;
+  }
+
   return (
     <div className={`relative ${className}`}>
       <img
@@ -88,7 +93,6 @@ export function CORSProxyImage({
         loading={loading}
         onLoad={handleImageLoad}
         onError={handleImageError}
-
       />
     </div>
   );

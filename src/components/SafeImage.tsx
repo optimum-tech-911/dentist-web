@@ -55,6 +55,11 @@ export function SafeImage({
     }
   };
 
+  // Don't render anything if there's an error or no src
+  if (hasError || !currentSrc) {
+    return null;
+  }
+
   return (
     <div className={`relative ${className}`}>
       <img
@@ -66,10 +71,7 @@ export function SafeImage({
         loading={loading}
         onLoad={handleLoad}
         onError={handleError}
-
       />
-
-
     </div>
   );
 }
