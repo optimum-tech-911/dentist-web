@@ -115,13 +115,16 @@ export default function ApprovedPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <img
-                      src={convertToPublicUrl(post.image)}
-                      alt={post.title}
-                      className="w-full h-48 object-cover rounded-md"
-                      onLoad={() => console.log('✅ Approved admin cover image loaded:', post.image)}
-                      onError={(e) => console.error('❌ Approved admin cover image failed:', post.image, e)}
-                    />
+                    <div>
+                      <img
+                        src={convertToPublicUrl(post.image)}
+                        alt={post.title}
+                        className="w-full h-48 object-cover rounded-md"
+                        onLoad={() => console.log('✅ Approved admin cover image loaded:', post.image)}
+                        onError={(e) => console.error('❌ Approved admin cover image failed:', post.image, e)}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Cover: {post.image}</p>
+                    </div>
                   )}
                   <div className="prose max-w-none">
                     <div className="line-clamp-3">
