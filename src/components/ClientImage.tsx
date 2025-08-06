@@ -189,21 +189,34 @@ export function ClientImage({
     
     for (const url of urls) {
       try {
-        // Test 1: HEAD request with CORS
+        // Test 1: HEAD request with Cloudflare bypass headers
         let isWorking = false;
         
         try {
           const response = await fetch(url, { 
             method: 'HEAD',
-            mode: 'cors'
+            mode: 'cors',
+            headers: {
+              'Accept': 'image/*',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+              'Referer': 'https://ufsbd34.fr/',
+              'Origin': 'https://ufsbd34.fr',
+              'Cache-Control': 'no-cache'
+            }
           });
           isWorking = response.ok;
         } catch (error) {
-          // If CORS fails, try without CORS
+          // If CORS fails, try without CORS but with headers
           try {
             const response = await fetch(url, { 
               method: 'HEAD',
-              mode: 'no-cors'
+              mode: 'no-cors',
+              headers: {
+                'Accept': 'image/*',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                'Referer': 'https://ufsbd34.fr/',
+                'Origin': 'https://ufsbd34.fr'
+              }
             });
             isWorking = response.type === 'opaque' || response.ok;
           } catch (innerError) {
@@ -247,6 +260,8 @@ export function ClientImage({
       };
 
       img.crossOrigin = 'anonymous';
+      // Add Cloudflare bypass headers via data attributes
+      img.setAttribute('referrerpolicy', 'no-referrer');
       img.src = url;
     });
   };
@@ -275,7 +290,7 @@ export function ClientImage({
   };
 
   const tryAggressiveClientLoading = async (imagePath: string): Promise<string | null> => {
-    // Method 1: Try to download and create blob with multiple URLs
+    // Method 1: Try to download and create blob with Cloudflare bypass
     const blobUrls = [
       `/api/client-proxy?url=${encodeURIComponent(imagePath)}`,
       `/api/image-proxy?url=${encodeURIComponent(imagePath)}`,
@@ -288,7 +303,10 @@ export function ClientImage({
           method: 'GET',
           headers: {
             'Accept': 'image/*',
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://ufsbd34.fr/',
+            'Origin': 'https://ufsbd34.fr'
           }
         });
 
@@ -303,7 +321,7 @@ export function ClientImage({
       }
     }
 
-    // Method 2: Try canvas approach with multiple URLs
+    // Method 2: Try canvas approach with Cloudflare bypass
     const canvasUrls = [
       imagePath,
       `https://supabase.co/storage/v1/object/public/gallery/${imagePath}`,
@@ -317,6 +335,7 @@ export function ClientImage({
         const img = new Image();
         
         img.crossOrigin = 'anonymous';
+        img.setAttribute('referrerpolicy', 'no-referrer');
         img.onload = () => {
           canvas.width = img.width;
           canvas.height = img.height;
@@ -333,7 +352,7 @@ export function ClientImage({
       }
     }
 
-    // Method 3: Try base64 encoding with multiple URLs
+    // Method 3: Try base64 encoding with Cloudflare bypass
     const base64Urls = [
       imagePath,
       `https://supabase.co/storage/v1/object/public/gallery/${imagePath}`,
@@ -342,7 +361,15 @@ export function ClientImage({
 
     for (const base64Url of base64Urls) {
       try {
-        const response = await fetch(base64Url);
+        const response = await fetch(base64Url, {
+          headers: {
+            'Accept': 'image/*',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Referer': 'https://ufsbd34.fr/',
+            'Origin': 'https://ufsbd34.fr',
+            'Cache-Control': 'no-cache'
+          }
+        });
         const blob = await response.blob();
         const reader = new FileReader();
         
@@ -357,6 +384,34 @@ export function ClientImage({
       } catch (error) {
         console.warn('CLIENT - Base64 method failed for:', base64Url, error);
       }
+    }
+
+    // Method 4: Try Cloudflare-specific bypass
+    try {
+      const cloudflareBypassUrl = `https://supabase.co/storage/v1/object/public/gallery/${imagePath}?bypass=cloudflare`;
+      const response = await fetch(cloudflareBypassUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'image/*',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+          'Referer': 'https://ufsbd34.fr/',
+          'Origin': 'https://ufsbd34.fr',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache',
+          'Sec-Fetch-Dest': 'image',
+          'Sec-Fetch-Mode': 'cors',
+          'Sec-Fetch-Site': 'cross-site'
+        }
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        console.log('✅ CLIENT - Cloudflare bypass successful:', objectUrl);
+        return objectUrl;
+      }
+    } catch (error) {
+      console.warn('CLIENT - Cloudflare bypass failed:', error);
     }
 
     return null;
@@ -613,6 +668,7 @@ async function testWithCORS(url: string, timeout: number): Promise<boolean> {
     };
 
     img.crossOrigin = 'anonymous';
+    img.setAttribute('referrerpolicy', 'no-referrer');
     img.src = url;
   });
 }
@@ -638,6 +694,7 @@ async function testWithoutCORS(url: string, timeout: number): Promise<boolean> {
       resolve(false);
     };
 
+    img.setAttribute('referrerpolicy', 'no-referrer');
     img.src = url;
   });
 }
@@ -653,7 +710,14 @@ async function testWithFetch(url: string, timeout: number): Promise<boolean> {
     const response = await fetch(url, {
       method: 'HEAD',
       signal: controller.signal,
-      mode: 'cors'
+      mode: 'cors',
+      headers: {
+        'Accept': 'image/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://ufsbd34.fr/',
+        'Origin': 'https://ufsbd34.fr',
+        'Cache-Control': 'no-cache'
+      }
     });
 
     clearTimeout(timeoutId);
@@ -684,6 +748,8 @@ async function testWithImage(url: string, timeout: number): Promise<boolean> {
       resolve(false);
     };
 
+    img.crossOrigin = 'anonymous';
+    img.setAttribute('referrerpolicy', 'no-referrer');
     img.src = url;
   });
 }
@@ -698,7 +764,14 @@ async function testWithHead(url: string, timeout: number): Promise<boolean> {
 
     const response = await fetch(url, {
       method: 'HEAD',
-      signal: controller.signal
+      signal: controller.signal,
+      headers: {
+        'Accept': 'image/*',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://ufsbd34.fr/',
+        'Origin': 'https://ufsbd34.fr',
+        'Cache-Control': 'no-cache'
+      }
     });
 
     clearTimeout(timeoutId);
