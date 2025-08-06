@@ -8,7 +8,7 @@ import { CheckCircle, XCircle, Trash2, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
-import { BulletproofImage } from '@/components/BulletproofImage';
+
 
 interface Post {
   id: string;
@@ -189,13 +189,10 @@ export default function PendingPosts() {
               <CardContent>
                 <div className="space-y-4">
                   {post.image && (
-                    <BulletproofImage
+                    <img
                       src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
-                      fallbackSrc="/placeholder.svg"
-                      retryOnError={true}
-                      maxRetries={2}
                     />
                   )}
                   <div className="prose max-w-none">
