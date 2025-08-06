@@ -165,10 +165,14 @@ export default function PendingPosts() {
     console.log('🎯 Image name:', image.name);
     
     // IMMEDIATE CLIENT-SIDE UPDATE
-    setLocalCoverImages(prev => ({
-      ...prev,
-      [postId]: image.file_path
-    }));
+    setLocalCoverImages(prev => {
+      const newState = {
+        ...prev,
+        [postId]: image.file_path
+      };
+      console.log('🔄 Updated localCoverImages:', newState);
+      return newState;
+    });
     
     console.log('✅ IMMEDIATE CLIENT UPDATE: Cover image set for post', postId);
     console.log('✅ Local state updated:', image.file_path);
@@ -177,9 +181,6 @@ export default function PendingPosts() {
       title: "Cover Image Updated",
       description: "Cover image has been updated successfully.",
     });
-    
-    // Force refresh the posts to see the update
-    await fetchPendingPosts();
     
     // Try database update in background
     try {
@@ -203,6 +204,9 @@ export default function PendingPosts() {
           title: "Cover Image Updated",
           description: "Cover image has been updated successfully in database.",
         });
+        
+        // Refresh posts after successful database update
+        await fetchPendingPosts();
       }
     } catch (error) {
       console.error('❌ Database update error:', error);
@@ -245,16 +249,19 @@ export default function PendingPosts() {
                 <div className="space-y-4">
                   {/* Always show cover image section for debugging */}
                   <div>
-                    {post.image && (
+                    {(post.image || localCoverImages[post.id]) && (
                       <div>
                         <img
-                          src={convertToPublicUrl(post.image)}
+                          src={convertToPublicUrl(localCoverImages[post.id] || post.image)}
                           alt={post.title}
                           className="w-full h-48 object-cover rounded-md"
-                          onLoad={() => console.log('✅ Pending admin cover image loaded:', post.image)}
-                          onError={(e) => console.error('❌ Pending admin cover image failed:', post.image, e)}
+                          onLoad={() => console.log('✅ Pending admin cover image loaded:', localCoverImages[post.id] || post.image)}
+                          onError={(e) => console.error('❌ Pending admin cover image failed:', localCoverImages[post.id] || post.image, e)}
                         />
-                        <p className="text-xs text-gray-500 mt-1">Cover: {post.image}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Cover: {localCoverImages[post.id] || post.image}
+                          {localCoverImages[post.id] && ' (LOCAL UPDATE)'}
+                        </p>
                       </div>
                     )}
                   </div>
