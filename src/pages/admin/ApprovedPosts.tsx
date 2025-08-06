@@ -143,7 +143,7 @@ export default function ApprovedPosts() {
                 <div className="space-y-4">
                   {post.image && (
                     <img
-                      src={post.image}
+                      src={convertToPublicUrl(post.image)}
                       alt={post.title}
                       className="w-full h-48 object-cover rounded-md"
                       onError={(e) => {
