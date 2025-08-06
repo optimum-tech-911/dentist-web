@@ -95,6 +95,28 @@ export default function AdminDashboard() {
     );
   }
 
+  const getHealthIcon = () => {
+    if (!stats.galleryHealth) return <Image className="h-4 w-4" />;
+    
+    switch (stats.galleryHealth.status) {
+      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
+      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      default: return <Image className="h-4 w-4" />;
+    }
+  };
+
+  const getHealthBadge = () => {
+    if (!stats.galleryHealth) return <Badge variant="outline">Unknown</Badge>;
+    
+    switch (stats.galleryHealth.status) {
+      case 'healthy': return <Badge className="bg-green-100 text-green-800">Healthy</Badge>;
+      case 'warning': return <Badge className="bg-orange-100 text-orange-800">Warning</Badge>;
+      case 'error': return <Badge variant="destructive">Error</Badge>;
+      default: return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+
   const statCards = [
     {
       title: 'Total Articles',
@@ -130,28 +152,6 @@ export default function AdminDashboard() {
       healthBadge: getHealthBadge()
     }
   ];
-
-  const getHealthIcon = () => {
-    if (!stats.galleryHealth) return <Image className="h-4 w-4" />;
-    
-    switch (stats.galleryHealth.status) {
-      case 'healthy': return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'warning': return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      case 'error': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default: return <Image className="h-4 w-4" />;
-    }
-  };
-
-  const getHealthBadge = () => {
-    if (!stats.galleryHealth) return <Badge variant="outline">Unknown</Badge>;
-    
-    switch (stats.galleryHealth.status) {
-      case 'healthy': return <Badge className="bg-green-100 text-green-800">Healthy</Badge>;
-      case 'warning': return <Badge className="bg-orange-100 text-orange-800">Warning</Badge>;
-      case 'error': return <Badge variant="destructive">Error</Badge>;
-      default: return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
 
   return (
     <div className="space-y-6 bg-white min-h-screen">
