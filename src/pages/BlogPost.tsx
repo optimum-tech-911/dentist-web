@@ -11,34 +11,6 @@ import { Helmet } from 'react-helmet';
 
 import { convertToPublicUrl } from '@/lib/utils';
 
-// Helper function to convert signed URLs to public URLs
-const convertToPublicUrl = (imageUrl: string): string => {
-  if (!imageUrl) return imageUrl;
-  
-  // If it's already a public URL, return as-is
-  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
-    return imageUrl;
-  }
-  
-  // If it's a signed URL, convert to public URL
-  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
-    try {
-      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
-      if (urlParts) {
-        const { data } = supabase.storage
-          .from('gallery')
-          .getPublicUrl(urlParts);
-        return data.publicUrl;
-      }
-    } catch (error) {
-      console.log('Could not convert header image to public URL:', error);
-    }
-  }
-  
-  // Return original URL if not a gallery URL
-  return imageUrl;
-};
-
 interface Post {
   id: string;
   title: string;
