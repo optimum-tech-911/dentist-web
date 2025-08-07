@@ -222,7 +222,8 @@ export default function BlogPost() {
               </div>
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
-            {post.image && (
+            {/* Cover image display removed - only show content */}
+            {/* {post.image && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
                   src={convertToPublicUrl(post.image)}
@@ -232,7 +233,7 @@ export default function BlogPost() {
                   onError={(e) => console.error('❌ Cover image failed to load:', post.image, e)}
                 />
               </div>
-            )}
+            )} */}
             <div className="prose prose-lg max-w-none">
               <MarkdownRenderer content={post.content} />
             </div>

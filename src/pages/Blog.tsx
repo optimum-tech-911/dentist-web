@@ -254,7 +254,8 @@ export default function Blog() {
               {posts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
-                    {post.image && (
+                    {/* Cover image display removed - only show content */}
+                    {/* {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <img
                           src={convertToPublicUrl(post.image)}
@@ -264,7 +265,7 @@ export default function Blog() {
                           onError={(e) => console.error('❌ Blog cover image failed:', post.image, e)}
                         />
                       </div>
-                    )}
+                    )} */}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="secondary">{post.category}</Badge>
