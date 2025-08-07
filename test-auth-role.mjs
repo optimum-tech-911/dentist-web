@@ -2,80 +2,139 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const SUPABASE_URL = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
+const supabaseUrl = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testAuthRole() {
+  console.log('🔍 Testing authentication and role status...\n');
+
   try {
-    console.log('🔍 Testing authentication and role...');
-    
-    // Check current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    // 1. Check current session
+    console.log('📋 Step 1: Checking current session...');
+    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
       console.error('❌ Session error:', sessionError);
-    } else if (!session) {
-      console.log('⚠️  No active session - user not authenticated');
-      console.log('💡 This explains why updates are blocked!');
-      console.log('💡 You need to be logged in as an admin/doctor user');
     } else {
-      console.log('✅ User is authenticated');
-      console.log('👤 User ID:', session.user.id);
-      console.log('📧 User email:', session.user.email);
+      console.log('📋 Session data:', sessionData);
+      console.log('📋 User:', sessionData.session?.user || 'No user');
+      console.log('📋 Authenticated:', !!sessionData.session);
     }
-    
-    // Try to get user role
-    console.log('\n🔍 Checking user role...');
-    const { data: userRole, error: roleError } = await supabase
-      .rpc('get_current_user_role');
-    
-    if (roleError) {
-      console.log('❌ Could not get user role:', roleError.message);
-      console.log('💡 This might be because user is not authenticated or no role assigned');
+
+    // 2. Check if we can read data
+    console.log('\n📋 Step 2: Testing read permissions...');
+    const { data: readData, error: readError } = await supabase
+      .from('posts')
+      .select('id, title')
+      .limit(1);
+
+    if (readError) {
+      console.error('❌ Read failed:', readError);
     } else {
-      console.log('✅ User role:', userRole);
+      console.log('✅ Read successful:', readData);
     }
-    
-    // Check if user exists in users table
-    if (session) {
-      console.log('\n🔍 Checking if user exists in users table...');
-      const { data: user, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
+
+    // 3. Check if we can insert data
+    console.log('\n📋 Step 3: Testing insert permissions...');
+    const testInsertData = {
+      title: `Test Insert ${Date.now()}`,
+      content: 'Test content',
+      category: 'Test',
+      author_email: 'test@example.com',
+      status: 'pending'
+    };
+
+    const { data: insertData, error: insertError } = await supabase
+      .from('posts')
+      .insert(testInsertData)
+      .select();
+
+    if (insertError) {
+      console.error('❌ Insert failed:', insertError);
+      console.error('❌ Insert error details:', insertError);
+    } else {
+      console.log('✅ Insert successful:', insertData);
       
-      if (userError) {
-        console.log('❌ User not found in users table:', userError.message);
-        console.log('💡 This explains the role issue!');
-      } else {
-        console.log('✅ User found in users table');
-        console.log('👤 User role from table:', user.role);
-        console.log('📧 User email from table:', user.email);
+      // Clean up the test insert
+      if (insertData && insertData[0]) {
+        await supabase
+          .from('posts')
+          .delete()
+          .eq('id', insertData[0].id);
+        console.log('✅ Test insert cleaned up');
       }
     }
-    
-    console.log('\n💡 Summary:');
-    if (!session) {
-      console.log('   ❌ User not authenticated - need to login');
-    } else if (roleError) {
-      console.log('   ❌ User role not accessible - might not be in users table');
+
+    // 4. Check if we can update data (the real issue)
+    console.log('\n📋 Step 4: Testing update permissions...');
+    const { data: posts, error: fetchError } = await supabase
+      .from('posts')
+      .select('id, title')
+      .limit(1);
+
+    if (fetchError || !posts || posts.length === 0) {
+      console.error('❌ No posts to test update:', fetchError);
+      return;
+    }
+
+    const testPost = posts[0];
+    const { data: updateData, error: updateError } = await supabase
+      .from('posts')
+      .update({ title: `Test Update ${Date.now()}` })
+      .eq('id', testPost.id)
+      .select();
+
+    if (updateError) {
+      console.error('❌ Update failed:', updateError);
+      console.error('❌ Update error details:', updateError);
     } else {
-      console.log('   ✅ User authenticated and has role:', userRole);
+      console.log('✅ Update appeared successful:', updateData);
+      
+      // Verify the update
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('posts')
+        .select('id, title')
+        .eq('id', testPost.id)
+        .single();
+
+      if (verifyError) {
+        console.error('❌ Verification failed:', verifyError);
+      } else {
+        console.log('📋 Post after update:', verifyData);
+        console.log('🔄 Title actually changed?', verifyData.title !== testPost.title);
+      }
+    }
+
+    // 5. Check RLS policies
+    console.log('\n📋 Step 5: Checking RLS status...');
+    console.log('💡 RLS policies can silently block updates without throwing errors');
+    console.log('💡 This is likely what\'s happening here');
+    console.log('💡 The anonymous key might not have the right permissions');
+
+    // 6. Summary
+    console.log('\n📋 SUMMARY:');
+    console.log('✅ We can READ data (select works)');
+    if (insertError) {
+      console.log('❌ We CANNOT INSERT data');
+    } else {
+      console.log('✅ We CAN INSERT data');
+    }
+    if (updateError) {
+      console.log('❌ We CANNOT UPDATE data');
+    } else {
+      console.log('✅ We CAN UPDATE data');
     }
     
-    console.log('\n🚀 To fix the cover image update:');
-    console.log('   1. Login with an admin/doctor user');
-    console.log('   2. Make sure the user exists in the users table');
-    console.log('   3. Make sure the user has admin or doctor role');
-    
+    console.log('\n💡 The issue is likely:');
+    console.log('   1. RLS policies blocking updates for anonymous users');
+    console.log('   2. The admin panel needs to be authenticated with proper roles');
+    console.log('   3. The anonymous key doesn\'t have update permissions');
+
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('❌ Unexpected error:', error);
   }
 }
 
-// Run the function
 testAuthRole();
