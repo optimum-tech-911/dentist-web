@@ -27,11 +27,28 @@ async function testUpdateCover() {
       console.log(`   ${index + 1}. "${post.title}" (ID: ${post.id}) - Status: ${post.status} - Cover: "${post.image || 'null'}"`);
     });
     
-    // Get the first post
-    const { data: posts, error: postsError } = await supabase
+    // Get a pending post (or create one if none exists)
+    let { data: posts, error: postsError } = await supabase
       .from('posts')
       .select('*')
+      .eq('status', 'pending')
       .limit(1);
+    
+    if (postsError || !posts || posts.length === 0) {
+      console.log('📝 No pending posts found, trying to get any post...');
+      const { data: anyPosts, error: anyPostsError } = await supabase
+        .from('posts')
+        .select('*')
+        .limit(1);
+      
+      if (anyPostsError || !anyPosts || anyPosts.length === 0) {
+        console.error('❌ No posts found at all');
+        return;
+      }
+      
+      posts = anyPosts;
+      console.log('⚠️  Using non-pending post for testing...');
+    }
     
     if (postsError || !posts || posts.length === 0) {
       console.error('❌ No posts found');
