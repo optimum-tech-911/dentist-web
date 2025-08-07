@@ -12,6 +12,21 @@ async function testUpdateCover() {
   try {
     console.log('🧪 Testing cover image update...');
     
+    // First, let's check what posts exist and their status
+    const { data: allPosts, error: allPostsError } = await supabase
+      .from('posts')
+      .select('*');
+    
+    if (allPostsError) {
+      console.error('❌ Error fetching posts:', allPostsError);
+      return;
+    }
+    
+    console.log('📋 All posts:');
+    allPosts.forEach((post, index) => {
+      console.log(`   ${index + 1}. "${post.title}" (ID: ${post.id}) - Status: ${post.status} - Cover: "${post.image || 'null'}"`);
+    });
+    
     // Get the first post
     const { data: posts, error: postsError } = await supabase
       .from('posts')
