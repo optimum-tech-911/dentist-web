@@ -59,12 +59,20 @@ export default function EditBlog() {
         navigate('/admin/approved');
         return;
       }
+      console.log('🔍 DEBUG - Loading post data:');
+      console.log('🔍 Post ID:', data.id);
+      console.log('🔍 Post title:', data.title);
+      console.log('🔍 Post image field:', data.image);
+      console.log('🔍 Post content length:', data.content?.length);
+      
       setFormData({
         title: data.title || '',
         content: data.content || '',
         category: data.category || '',
-        coverImage: data.image || '' // Changed from headerImage to coverImage
+        coverImage: data.image || '' // ← This is the COVER image from database
       });
+      
+      console.log('🔍 DEBUG - FormData set with cover image:', data.image);
       setInitialLoaded(true);
     } catch (e) {
       toast({ title: 'Erreur', description: "Impossible de charger l'article.", variant: 'destructive' });
@@ -82,15 +90,18 @@ export default function EditBlog() {
     console.log('🎯 Selected cover image for edit:', image);
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image file_path:', image.file_path);
+    console.log('🎯 Image name:', image.name);
     
     // Store the file_path for database, but use URL for immediate display
     setFormData(prev => {
       const newData = { 
         ...prev, 
-        coverImage: image.file_path,
-        coverImageUrl: image.url
+        coverImage: image.file_path,    // ← Database path for cover image
+        coverImageUrl: image.url        // ← Public URL for immediate display
       };
       console.log('🔄 Updated formData:', newData);
+      console.log('🔄 Cover image path set to:', image.file_path);
+      console.log('🔄 Cover image URL set to:', image.url);
       return newData;
     });
     
@@ -110,21 +121,28 @@ export default function EditBlog() {
     console.log('🚀 FormData state:', formData);
     
     try {
-      // Convert any temporary URLs in the content to public URLs
+      // Convert any temporary URLs in the content to public URLs (ONLY for content images)
       const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
       
       // Ensure cover image is properly formatted for database
       const coverImageForDB = formData.coverImage ? formData.coverImage : null;
       
+      console.log('🔍 DEBUG - Cover vs Content separation:');
+      console.log('🔍 Cover image path:', formData.coverImage);
+      console.log('🔍 Cover image URL:', formData.coverImageUrl);
+      console.log('🔍 Content length:', formData.content?.length);
+      console.log('🔍 Processed content length:', processedContent?.length);
+      
       const updateData = {
         title: formData.title,
         content: processedContent,
         category: formData.category,
-        image: coverImageForDB
+        image: coverImageForDB  // ← This is the COVER image field
       };
       
       console.log('💾 Updating post with data:', updateData);
       console.log('💾 Post ID:', id);
+      console.log('💾 Cover image being saved:', coverImageForDB);
       
       const { data, error } = await supabase
         .from('posts')
@@ -141,6 +159,7 @@ export default function EditBlog() {
       console.log('✅ Post updated successfully:', data);
       console.log('✅ Updated post data:', data);
       console.log('✅ Cover image saved:', coverImageForDB);
+      console.log('✅ Final post image field:', data?.[0]?.image);
       toast({ title: 'Article mis à jour !', description: 'Les modifications ont été enregistrées.' });
       navigate('/admin/approved');
     } catch (error) {
@@ -236,8 +255,16 @@ export default function EditBlog() {
                         src={formData.coverImageUrl || convertToPublicUrl(formData.coverImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
-                        onLoad={() => console.log('✅ Edit cover image loaded:', formData.coverImageUrl || formData.coverImage)}
-                        onError={(e) => console.error('❌ Edit cover image failed:', formData.coverImageUrl || formData.coverImage, e)}
+                        onLoad={() => {
+                          console.log('✅ Edit cover image loaded successfully');
+                          console.log('✅ Image src used:', formData.coverImageUrl || convertToPublicUrl(formData.coverImage));
+                          console.log('✅ Cover image URL:', formData.coverImageUrl);
+                          console.log('✅ Cover image path:', formData.coverImage);
+                        }}
+                        onError={(e) => {
+                          console.error('❌ Edit cover image failed:', formData.coverImageUrl || formData.coverImage, e);
+                          console.error('❌ Failed image src:', formData.coverImageUrl || convertToPublicUrl(formData.coverImage));
+                        }}
                       />
                       <p className="text-xs text-blue-500 mt-1">
                         Debug: coverImageUrl={formData.coverImageUrl}, coverImage={formData.coverImage}
