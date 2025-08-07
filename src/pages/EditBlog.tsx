@@ -130,8 +130,12 @@ export default function EditBlog() {
     console.log('🚀 FormData state:', formData);
     
     try {
+      // CRITICAL: FREEZE cover image IMMEDIATELY to prevent overwrite
+      const lockedCoverImage = formData.coverImage;
+      console.log('🔒 LOCKED cover image IMMEDIATELY:', lockedCoverImage);
+      
       // CRITICAL: Store cover image BEFORE content processing
-      const coverImageForDB = formData.coverImage ? formData.coverImage : null;
+      const coverImageForDB = lockedCoverImage ? lockedCoverImage : null;
       console.log('🔒 LOCKED cover image before content processing:', coverImageForDB);
       
       // Convert any temporary URLs in the content to public URLs (ONLY for content images)
@@ -142,7 +146,14 @@ export default function EditBlog() {
       
       // VERIFY: Cover image wasn't affected by content processing
       console.log('🔒 Cover image after content processing:', coverImageForDB);
-      console.log('🔒 Cover image still matches?', coverImageForDB === formData.coverImage);
+      console.log('🔒 Cover image still matches?', coverImageForDB === lockedCoverImage);
+      console.log('🔒 formData.coverImage changed?', formData.coverImage !== lockedCoverImage);
+      
+      if (formData.coverImage !== lockedCoverImage) {
+        console.error('❌ CRITICAL BUG: formData.coverImage was overwritten!');
+        console.error('❌ Original:', lockedCoverImage);
+        console.error('❌ Current:', formData.coverImage);
+      }
       
       console.log('🔍 DEBUG - Cover vs Content separation:');
       console.log('🔍 Cover image path:', formData.coverImage);
@@ -161,7 +172,8 @@ export default function EditBlog() {
       
       // CRITICAL: Log exactly what we're saving
       console.log('💾 SAVING POST DATA:');
-      console.log('💾 Cover image to save:', formData.coverImage);
+      console.log('💾 Cover image to save (LOCKED):', lockedCoverImage);
+      console.log('💾 Cover image to save (current):', formData.coverImage);
       console.log('💾 Content to save:', processedContent);
       console.log('💾 Title to save:', formData.title);
       console.log('💾 Category to save:', formData.category);
@@ -170,7 +182,7 @@ export default function EditBlog() {
         title: formData.title,
         content: processedContent,
         category: formData.category,
-        image: coverImageForDB  // ← This is the COVER image field
+        image: lockedCoverImage  // ← Use LOCKED cover image to prevent overwrite
       };
       
       console.log('💾 Final updateData object:', updateData);
