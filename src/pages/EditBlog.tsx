@@ -56,6 +56,15 @@ export default function EditBlog() {
     }
   }, [formData.coverImage, formData.coverImageUrl]);
 
+  // Debug formData changes
+  useEffect(() => {
+    console.log('🔄 formData changed:', {
+      coverImage: formData.coverImage,
+      coverImageUrl: formData.coverImageUrl,
+      title: formData.title
+    });
+  }, [formData.coverImage, formData.coverImageUrl, formData.title]);
+
   const fetchPost = async (postId: string) => {
     setLoading(true);
     try {
@@ -123,6 +132,12 @@ export default function EditBlog() {
       console.log('🔄 Cover image path set to:', image.file_path);
       console.log('🔄 Cover image URL set to:', image.url);
       return newData;
+    });
+    
+    // Show immediate feedback
+    toast({
+      title: "Image de couverture mise à jour",
+      description: "L'image de couverture a été sélectionnée avec succès.",
     });
     
     console.log('✅ Cover image selected for edit');
