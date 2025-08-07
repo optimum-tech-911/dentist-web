@@ -130,11 +130,19 @@ export default function EditBlog() {
     console.log('🚀 FormData state:', formData);
     
     try {
-      // Convert any temporary URLs in the content to public URLs (ONLY for content images)
-      const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
-      
-      // Ensure cover image is properly formatted for database
+      // CRITICAL: Store cover image BEFORE content processing
       const coverImageForDB = formData.coverImage ? formData.coverImage : null;
+      console.log('🔒 LOCKED cover image before content processing:', coverImageForDB);
+      
+      // Convert any temporary URLs in the content to public URLs (ONLY for content images)
+      console.log('🔄 Before content processing - formData.coverImage:', formData.coverImage);
+      const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
+      console.log('🔄 After content processing - formData.coverImage:', formData.coverImage);
+      console.log('🔄 Content processing changed formData.coverImage?', formData.coverImage !== coverImageForDB);
+      
+      // VERIFY: Cover image wasn't affected by content processing
+      console.log('🔒 Cover image after content processing:', coverImageForDB);
+      console.log('🔒 Cover image still matches?', coverImageForDB === formData.coverImage);
       
       console.log('🔍 DEBUG - Cover vs Content separation:');
       console.log('🔍 Cover image path:', formData.coverImage);
@@ -151,12 +159,21 @@ export default function EditBlog() {
         }
       }
       
+      // CRITICAL: Log exactly what we're saving
+      console.log('💾 SAVING POST DATA:');
+      console.log('💾 Cover image to save:', formData.coverImage);
+      console.log('💾 Content to save:', processedContent);
+      console.log('💾 Title to save:', formData.title);
+      console.log('💾 Category to save:', formData.category);
+      
       const updateData = {
         title: formData.title,
         content: processedContent,
         category: formData.category,
         image: coverImageForDB  // ← This is the COVER image field
       };
+      
+      console.log('💾 Final updateData object:', updateData);
       
       console.log('💾 Updating post with data:', updateData);
       console.log('💾 Post ID:', id);
