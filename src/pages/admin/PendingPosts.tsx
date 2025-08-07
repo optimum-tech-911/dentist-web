@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,14 +25,18 @@ interface Post {
 }
 
 export default function PendingPosts() {
+  const { user, userRole } = useAuth();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [localCoverImages, setLocalCoverImages] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('🔍 PendingPosts: User authenticated:', !!user);
+    console.log('🔍 PendingPosts: User role:', userRole);
+    console.log('🔍 PendingPosts: User ID:', user?.id);
     fetchPendingPosts();
-  }, []);
+  }, [user, userRole]);
 
   const fetchPendingPosts = async () => {
     try {
@@ -163,6 +168,9 @@ export default function PendingPosts() {
     console.log('🎯 Image URL:', image.url);
     console.log('🎯 Image file_path:', image.file_path);
     console.log('🎯 Image name:', image.name);
+    console.log('🔍 User authenticated for update:', !!user);
+    console.log('🔍 User role for update:', userRole);
+    console.log('🔍 User ID for update:', user?.id);
     
     // IMMEDIATE CLIENT-SIDE UPDATE
     setLocalCoverImages(prev => {

@@ -25,8 +25,8 @@ export default function EditBlog() {
     title: '',
     content: '',
     category: '',
-    coverImage: '', // Changed from headerImage to coverImage
-    coverImageUrl: '' // Changed from headerImageUrl to coverImageUrl
+    coverImage: '', // Database path for cover image
+    coverImageUrl: '' // Public URL for display
   });
   const [lockedCoverImage, setLockedCoverImage] = useState<string | null>(null);
   const [initialLoaded, setInitialLoaded] = useState(false);
@@ -39,22 +39,21 @@ export default function EditBlog() {
     // eslint-disable-next-line
   }, [id]);
 
-  // Fix cover image display by converting raw path to public URL
+  // Initialize cover image URL only once when post is loaded
   useEffect(() => {
-    console.log('🔄 useEffect triggered - coverImage conversion check:');
-    console.log('🔄 formData.coverImageUrl:', formData.coverImageUrl);
-    console.log('🔄 formData.coverImage:', formData.coverImage);
-    console.log('🔄 Should convert?', !formData.coverImageUrl && formData.coverImage);
-    
-    if (!formData.coverImageUrl && formData.coverImage) {
-      console.log('✅ Converting cover image path to public URL...');
+    if (initialLoaded && formData.coverImage && !formData.coverImageUrl) {
+      console.log('🔄 Initializing cover image URL from database path...');
+      console.log('🔄 Database path:', formData.coverImage);
+      
       const url = convertToPublicUrl(formData.coverImage);
-      console.log('✅ Converted URL:', url);
-      setFormData(prev => ({ ...prev, coverImageUrl: url }));
-    } else {
-      console.log('⏭️ Skipping conversion - conditions not met');
+      console.log('✅ Converted to public URL:', url);
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        coverImageUrl: url 
+      }));
     }
-  }, [formData.coverImage, formData.coverImageUrl]);
+  }, [initialLoaded, formData.coverImage, formData.coverImageUrl]);
 
   // Debug formData changes
   useEffect(() => {
@@ -84,18 +83,19 @@ export default function EditBlog() {
       console.log('🔍 Post image field:', data.image);
       console.log('🔍 Post content length:', data.content?.length);
       
-      setFormData({
-        title: data.title || '',
-        content: data.content || '',
-        category: data.category || '',
-        coverImage: data.image || '' // ← This is the COVER image from database
-      });
-      
-      // 🔒 LOCK the cover image when loading from database
+      // 🔒 LOCK the cover image immediately when loading from database
       if (data.image) {
         setLockedCoverImage(data.image);
         console.log('🔒 LOCKED cover image from database:', data.image);
       }
+      
+      setFormData({
+        title: data.title || '',
+        content: data.content || '',
+        category: data.category || '',
+        coverImage: data.image || '', // Database path for cover image
+        coverImageUrl: '' // Will be set by useEffect after initial load
+      });
       
       console.log('🔍 DEBUG - FormData set with cover image:', data.image);
       setInitialLoaded(true);
@@ -125,8 +125,8 @@ export default function EditBlog() {
     setFormData(prev => {
       const newData = { 
         ...prev, 
-        coverImage: image.file_path,    // ← Database path for cover image
-        coverImageUrl: image.url        // ← Public URL for immediate display
+        coverImage: image.file_path,    // Database path for cover image
+        coverImageUrl: image.url        // Public URL for immediate display
       };
       console.log('🔄 Updated formData:', newData);
       console.log('🔄 Cover image path set to:', image.file_path);
@@ -154,37 +154,28 @@ export default function EditBlog() {
     
     console.log('🚀 Submitting form with cover image:', formData.coverImage);
     console.log('🚀 FormData state:', formData);
+    console.log('🚀 Locked cover image:', lockedCoverImage);
     
     try {
-      // 🔒 FREEZE the cover image IMMEDIATELY to prevent any overwriting
-      const lockedCoverImage = formData.coverImage;
-      console.log('🔒 LOCKED cover image IMMEDIATELY:', lockedCoverImage);
+      // 🔒 Use the current formData.coverImage directly (it's already the correct value)
+      const finalCoverImage = formData.coverImage || null;
+      console.log('🔒 Using cover image for submission:', finalCoverImage);
       
       // Convert any temporary URLs in the content to public URLs (ONLY for content images)
-      console.log('🔄 Before content processing - formData.coverImage:', formData.coverImage);
+      console.log('🔄 Before content processing - cover image:', finalCoverImage);
       const processedContent = await GalleryService.convertTemporaryUrlsInContent(formData.content);
-      console.log('🔄 After content processing - formData.coverImage:', formData.coverImage);
+      console.log('🔄 After content processing - cover image unchanged:', finalCoverImage);
       
-      // 🔍 CRITICAL CHECK: Did content processing overwrite the cover image?
-      const coverImageChanged = formData.coverImage !== lockedCoverImage;
-      console.log('🔒 formData.coverImage changed?', coverImageChanged);
-      if (coverImageChanged) {
-        console.error('❌ CRITICAL BUG: formData.coverImage was overwritten!');
-        console.error('❌ Original:', lockedCoverImage);
-        console.error('❌ Current:', formData.coverImage);
-      } else {
-        console.log('✅ formData.coverImage was NOT overwritten');
-      }
-      
+      // 🔍 CRITICAL CHECK: Ensure cover image wasn't affected by content processing
       console.log('🔍 DEBUG - Cover vs Content separation:');
-      console.log('🔍 Cover image path:', formData.coverImage);
+      console.log('🔍 Cover image path (LOCKED):', finalCoverImage);
       console.log('🔍 Cover image URL:', formData.coverImageUrl);
       console.log('🔍 Content length:', formData.content?.length);
       console.log('🔍 Processed content length:', processedContent?.length);
       
       // Verify content doesn't contain cover image path
-      if (processedContent && formData.coverImage) {
-        const coverImageInContent = processedContent.includes(formData.coverImage);
+      if (processedContent && finalCoverImage) {
+        const coverImageInContent = processedContent.includes(finalCoverImage);
         console.log('🔍 Cover image found in content?', coverImageInContent);
         if (coverImageInContent) {
           console.warn('⚠️ WARNING: Cover image path found in content!');
@@ -193,28 +184,19 @@ export default function EditBlog() {
       
       // CRITICAL: Log exactly what we're saving
       console.log('💾 SAVING POST DATA:');
-      console.log('💾 Cover image to save (LOCKED):', lockedCoverImage);
-      console.log('💾 Cover image to save (current):', formData.coverImage);
+      console.log('💾 Cover image to save (LOCKED):', finalCoverImage);
       console.log('💾 Content to save:', processedContent);
       console.log('💾 Title to save:', formData.title);
       console.log('💾 Category to save:', formData.category);
-      
-      // 💾 FORCE the locked cover image - don't use formData.coverImage here!
-      const finalCoverImage = lockedCoverImage || null; // Ensure null if empty
-      console.log('💾 Final cover image for database:', finalCoverImage);
       
       const updateData = {
         title: formData.title,
         content: processedContent,
         category: formData.category,
-        image: finalCoverImage  // 🚨 Use LOCKED cover image, not formData.coverImage!
+        image: finalCoverImage  // Use LOCKED cover image
       };
       
       console.log('💾 Final updateData object:', updateData);
-      
-      console.log('💾 Updating post with data:', updateData);
-      console.log('💾 Post ID:', id);
-      console.log('💾 Cover image being saved (LOCKED):', lockedCoverImage);
       
       const { data, error } = await supabase
         .from('posts')
@@ -230,9 +212,10 @@ export default function EditBlog() {
       
       console.log('✅ Post updated successfully:', data);
       console.log('✅ Updated post data:', data);
-      console.log('✅ Cover image saved (LOCKED):', lockedCoverImage);
+      console.log('✅ Cover image saved (LOCKED):', finalCoverImage);
       console.log('✅ Final post image field:', data?.[0]?.image);
-      console.log('✅ Cover image matches?', data?.[0]?.image === lockedCoverImage);
+      console.log('✅ Cover image matches?', data?.[0]?.image === finalCoverImage);
+      
       toast({ title: 'Article mis à jour !', description: 'Les modifications ont été enregistrées.' });
       navigate('/admin/approved');
     } catch (error) {
@@ -333,6 +316,7 @@ export default function EditBlog() {
                           console.log('✅ Image src used:', formData.coverImageUrl || convertToPublicUrl(formData.coverImage));
                           console.log('✅ Cover image URL:', formData.coverImageUrl);
                           console.log('✅ Cover image path:', formData.coverImage);
+                          console.log('✅ Locked cover image:', lockedCoverImage);
                         }}
                         onError={(e) => {
                           console.error('❌ Edit cover image failed:', formData.coverImageUrl || formData.coverImage, e);
@@ -340,7 +324,7 @@ export default function EditBlog() {
                         }}
                       />
                       <p className="text-xs text-blue-500 mt-1">
-                        Debug: coverImageUrl={formData.coverImageUrl}, coverImage={formData.coverImage}
+                        Debug: coverImageUrl={formData.coverImageUrl}, coverImage={formData.coverImage}, locked={lockedCoverImage}
                       </p>
                       <Button
                         type="button"
@@ -348,15 +332,19 @@ export default function EditBlog() {
                         size="sm"
                         className="absolute -top-2 -right-2 h-6 w-6 p-0"
                         onClick={() => {
+                          console.log('🗑️ Removing cover image...');
+                          setLockedCoverImage(null); // Clear the locked image
                           handleInputChange('coverImage', '');
                           handleInputChange('coverImageUrl', '');
+                          console.log('✅ Cover image removed');
                         }}
                       >
                         ×
                       </Button>
                       <p className="text-xs text-gray-500 mt-1">
                         Cover: {formData.coverImage}
-                        {formData.coverImageUrl && ' (IMMEDIATE UPDATE)'}
+                        {formData.coverImageUrl && ' (URL SET)'}
+                        {lockedCoverImage && ' (LOCKED)'}
                       </p>
                     </div>
                   )}
