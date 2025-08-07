@@ -38,6 +38,14 @@ export default function EditBlog() {
     // eslint-disable-next-line
   }, [id]);
 
+  // Fix cover image display by converting raw path to public URL
+  useEffect(() => {
+    if (!formData.coverImageUrl && formData.coverImage) {
+      const url = convertToPublicUrl(formData.coverImage);
+      setFormData(prev => ({ ...prev, coverImageUrl: url }));
+    }
+  }, [formData.coverImage, formData.coverImageUrl]);
+
   const fetchPost = async (postId: string) => {
     setLoading(true);
     try {
@@ -225,7 +233,7 @@ export default function EditBlog() {
                   {(formData.coverImage || formData.coverImageUrl) && (
                     <div className="relative">
                       <img
-                        src={formData.coverImageUrl || getImageUrl(formData.coverImage)}
+                        src={formData.coverImageUrl || convertToPublicUrl(formData.coverImage)}
                         alt="Image de couverture"
                         className="w-32 h-20 object-cover rounded-md border"
                         onLoad={() => console.log('✅ Edit cover image loaded:', formData.coverImageUrl || formData.coverImage)}
