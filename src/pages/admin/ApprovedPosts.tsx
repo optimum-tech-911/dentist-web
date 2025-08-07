@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Eye, Trash2 } from 'lucide-react';
+import { Eye, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
@@ -25,6 +25,7 @@ export default function ApprovedPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchApprovedPosts();
@@ -74,6 +75,10 @@ export default function ApprovedPosts() {
         variant: "destructive"
       });
     }
+  };
+
+  const handleEditPost = (postId: string) => {
+    navigate(`/edit/${postId}`);
   };
 
   if (loading) {
@@ -141,6 +146,14 @@ export default function ApprovedPosts() {
                         <Eye className="h-4 w-4" />
                         View Post
                       </Link>
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      onClick={() => handleEditPost(post.id)}
+                      className="flex items-center gap-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
                     </Button>
                     <Button
                       variant="destructive"
