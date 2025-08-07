@@ -2,69 +2,79 @@
 
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const SUPABASE_URL = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
+const supabaseUrl = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkAllPosts() {
+  console.log('🔍 Checking ALL posts in database...\n');
+
   try {
-    console.log('🔍 Checking ALL posts in database...');
-    
-    // Get all posts without any status filter
-    const { data: allPosts, error } = await supabase
+    // Get ALL posts
+    const { data: posts, error: fetchError } = await supabase
       .from('posts')
       .select('*')
       .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('❌ Error fetching posts:', error);
+
+    if (fetchError) {
+      console.error('❌ Error fetching posts:', fetchError);
       return;
     }
-    
-    console.log(`📝 Found ${allPosts.length} total posts`);
-    
-    if (allPosts.length === 0) {
-      console.log('❌ No posts found in database');
+
+    if (!posts || posts.length === 0) {
+      console.log('📋 No posts found in database');
       return;
     }
-    
-    console.log('\n📋 All posts:');
-    allPosts.forEach((post, index) => {
-      console.log(`\n${index + 1}. "${post.title}"`);
+
+    console.log(`📋 Found ${posts.length} total posts:\n`);
+
+    posts.forEach((post, index) => {
+      console.log(`${index + 1}. "${post.title}"`);
       console.log(`   ID: ${post.id}`);
       console.log(`   Status: ${post.status}`);
       console.log(`   Author: ${post.author_email}`);
+      console.log(`   Cover: "${post.image || 'null'}"`);
       console.log(`   Category: ${post.category}`);
-      console.log(`   Created: ${post.created_at}`);
-      console.log(`   Cover Image: ${post.image || 'No cover image'}`);
-      
-      // Check content length
-      const contentLength = post.content ? post.content.length : 0;
-      console.log(`   Content Length: ${contentLength} characters`);
-      
-      // Check for images in content
-      if (post.content) {
-        const imgMatches = post.content.match(/<img[^>]+src="([^"]*)"[^>]*>/g);
-        if (imgMatches) {
-          console.log(`   Content Images: ${imgMatches.length} found`);
-          imgMatches.forEach((img, imgIndex) => {
-            const srcMatch = img.match(/src="([^"]*)"/);
-            if (srcMatch) {
-              console.log(`     ${imgIndex + 1}. ${srcMatch[1]}`);
-            }
-          });
-        } else {
-          console.log(`   Content Images: None found`);
-        }
-      }
+      console.log(`   Created: ${new Date(post.created_at).toLocaleDateString()}`);
+      console.log(`   Updated: ${new Date(post.updated_at).toLocaleDateString()}`);
+      console.log('');
     });
-    
+
+    // Check pending posts specifically
+    const pendingPosts = posts.filter(post => post.status === 'pending');
+    console.log(`📋 Pending posts: ${pendingPosts.length}`);
+    if (pendingPosts.length > 0) {
+      pendingPosts.forEach((post, index) => {
+        console.log(`   ${index + 1}. "${post.title}" (ID: ${post.id})`);
+      });
+    } else {
+      console.log('   No pending posts found');
+    }
+
+    console.log('\n📊 SUMMARY:');
+    console.log(`   Total posts: ${posts.length}`);
+    console.log(`   Pending: ${pendingPosts.length}`);
+    console.log(`   Approved: ${posts.filter(p => p.status === 'approved').length}`);
+    console.log(`   Rejected: ${posts.filter(p => p.status === 'rejected').length}`);
+
+    if (pendingPosts.length === 0) {
+      console.log('\n💡 ISSUE IDENTIFIED:');
+      console.log('   You have NO pending posts in the database');
+      console.log('   The "pending post" you see in your UI is likely:');
+      console.log('   1. Stale cached data');
+      console.log('   2. A ghost post that doesn\'t exist');
+      console.log('   3. Browser cache showing old data');
+      console.log('');
+      console.log('🔧 SOLUTION:');
+      console.log('   1. Clear your browser cache');
+      console.log('   2. Refresh the admin panel');
+      console.log('   3. Create a new pending post to test');
+    }
+
   } catch (error) {
-    console.error('❌ Error checking all posts:', error);
+    console.error('❌ Error:', error);
   }
 }
 
-// Run the check
 checkAllPosts();
