@@ -157,9 +157,9 @@ export default function EditBlog() {
     console.log('🚀 Locked cover image:', lockedCoverImage);
     
     try {
-      // 🔒 Use the locked cover image to prevent any overwriting
-      const finalCoverImage = lockedCoverImage || formData.coverImage || null;
-      console.log('🔒 Using locked cover image for submission:', finalCoverImage);
+      // 🔒 Use the current formData.coverImage directly (it's already the correct value)
+      const finalCoverImage = formData.coverImage || null;
+      console.log('🔒 Using cover image for submission:', finalCoverImage);
       
       // Convert any temporary URLs in the content to public URLs (ONLY for content images)
       console.log('🔄 Before content processing - cover image:', finalCoverImage);
