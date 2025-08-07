@@ -211,22 +211,32 @@ export class GalleryService {
    * Convert temporary signed URLs to public URLs in article content
    */
   static async convertTemporaryUrlsInContent(content: string): Promise<string> {
-    if (!content) return content;
+    console.log('🔄 convertTemporaryUrlsInContent called with content length:', content?.length);
+    
+    if (!content) {
+      console.log('⏭️ No content to process');
+      return content;
+    }
 
     // Find all img tags with gallery signed URLs
     const imgRegex = /<img[^>]+src="([^"]*\/storage\/v1\/object\/sign\/gallery\/[^"]*)"[^>]*>/g;
     let updatedContent = content;
     let match;
+    let conversionCount = 0;
 
     // Reset regex state
     imgRegex.lastIndex = 0;
     
+    console.log('🔍 Searching for signed URLs in content...');
+    
     while ((match = imgRegex.exec(content)) !== null) {
       const signedUrl = match[1];
+      console.log('🔍 Found signed URL in content:', signedUrl);
       try {
         // Extract file path from the signed URL
         const urlParts = signedUrl.split('/gallery/')[1]?.split('?')[0];
         if (urlParts) {
+          console.log('🔍 Extracted file path:', urlParts);
           // Convert to public URL
           const { data } = supabase.storage
             .from(getGalleryBucket())
@@ -235,6 +245,8 @@ export class GalleryService {
           if (data?.publicUrl) {
             // Replace the signed URL with public URL
             updatedContent = updatedContent.replace(signedUrl, data.publicUrl);
+            conversionCount++;
+            console.log('✅ Converted content image URL:', signedUrl, '→', data.publicUrl);
           }
         }
       } catch (error) {
@@ -242,6 +254,7 @@ export class GalleryService {
       }
     }
 
+    console.log(`✅ Content processing complete. Converted ${conversionCount} signed URLs to public URLs`);
     return updatedContent;
   }
 

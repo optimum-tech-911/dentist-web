@@ -23,12 +23,16 @@ const getGalleryBucket = () => {
  * @returns A permanent public URL
  */
 export function convertToPublicUrl(url: string): string {
+  console.log('🔄 convertToPublicUrl called with:', url);
+  
   if (!url) {
+    console.log('❌ Empty URL provided, returning empty string');
     return '';
   }
 
   // Check if it's already a public URL
   if (url.includes('/object/public/')) {
+    console.log('✅ Already a public URL, returning as-is:', url);
     return url;
   }
   
@@ -44,6 +48,7 @@ export function convertToPublicUrl(url: string): string {
           .from(getGalleryBucket())
           .getPublicUrl(urlParts);
         
+        console.log('✅ Converted signed URL to:', data?.publicUrl);
         return data?.publicUrl || url;
       }
     } catch (error) {
@@ -54,6 +59,7 @@ export function convertToPublicUrl(url: string): string {
   // Check if it's a raw file path (doesn't start with http)
   if (!url.startsWith('http')) {
     console.log('🔄 Converting raw file path to public URL:', url);
+    console.log('🔄 Using bucket:', getGalleryBucket());
     try {
       // Remove gallery/ prefix if it exists to avoid double prefix
       let cleanPath = url;
@@ -72,6 +78,7 @@ export function convertToPublicUrl(url: string): string {
         return data.publicUrl;
       } else {
         console.error('❌ Failed to generate public URL for:', url, 'cleanPath:', cleanPath);
+        console.error('❌ Supabase response:', data);
         return '';
       }
     } catch (error) {
@@ -82,6 +89,7 @@ export function convertToPublicUrl(url: string): string {
   
   // If it's already a full URL, return as-is
   if (url.startsWith('http')) {
+    console.log('✅ Already a full URL, returning as-is:', url);
     return url;
   }
 

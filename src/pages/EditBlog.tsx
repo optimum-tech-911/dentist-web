@@ -40,9 +40,18 @@ export default function EditBlog() {
 
   // Fix cover image display by converting raw path to public URL
   useEffect(() => {
+    console.log('🔄 useEffect triggered - coverImage conversion check:');
+    console.log('🔄 formData.coverImageUrl:', formData.coverImageUrl);
+    console.log('🔄 formData.coverImage:', formData.coverImage);
+    console.log('🔄 Should convert?', !formData.coverImageUrl && formData.coverImage);
+    
     if (!formData.coverImageUrl && formData.coverImage) {
+      console.log('✅ Converting cover image path to public URL...');
       const url = convertToPublicUrl(formData.coverImage);
+      console.log('✅ Converted URL:', url);
       setFormData(prev => ({ ...prev, coverImageUrl: url }));
+    } else {
+      console.log('⏭️ Skipping conversion - conditions not met');
     }
   }, [formData.coverImage, formData.coverImageUrl]);
 
@@ -132,6 +141,15 @@ export default function EditBlog() {
       console.log('🔍 Cover image URL:', formData.coverImageUrl);
       console.log('🔍 Content length:', formData.content?.length);
       console.log('🔍 Processed content length:', processedContent?.length);
+      
+      // Verify content doesn't contain cover image path
+      if (processedContent && formData.coverImage) {
+        const coverImageInContent = processedContent.includes(formData.coverImage);
+        console.log('🔍 Cover image found in content?', coverImageInContent);
+        if (coverImageInContent) {
+          console.warn('⚠️ WARNING: Cover image path found in content!');
+        }
+      }
       
       const updateData = {
         title: formData.title,
