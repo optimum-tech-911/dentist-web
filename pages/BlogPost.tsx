@@ -49,6 +49,11 @@ const HIDE_COVER_POST_IDS = [
   '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission (Prévention, 21/7/2025)
 ];
 
+// Only hide category badge for these exact post IDs
+const HIDE_BADGE_POST_IDS = [
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission
+];
+
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<Post | null>(null);
@@ -111,6 +116,7 @@ export default function BlogPost() {
   }
 
   const hideCover = HIDE_COVER_POST_IDS.includes(post.id);
+  const hideBadge = HIDE_BADGE_POST_IDS.includes(post.id);
 
   return (
     <>
@@ -250,11 +256,17 @@ export default function BlogPost() {
           </Button>
           <article className="space-y-6">
             <header className="space-y-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="secondary">{post.category}</Badge>
-                <span>•</span>
-                <time>{new Date(post.created_at).toLocaleDateString()}</time>
-              </div>
+              {hideBadge ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <time>{new Date(post.created_at).toLocaleDateString()}</time>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Badge variant="secondary">{post.category}</Badge>
+                  <span>•</span>
+                  <time>{new Date(post.created_at).toLocaleDateString()}</time>
+                </div>
+              )}
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
             {post.image && !hideCover && (

@@ -43,6 +43,11 @@ interface Post {
   image?: string;
 }
 
+// Only hide category badge for these exact post IDs
+const HIDE_BADGE_POST_IDS = [
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission
+];
+
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -281,7 +286,11 @@ export default function Blog() {
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="secondary">{post.category}</Badge>
+                        {HIDE_BADGE_POST_IDS.includes(post.id) ? (
+                          <div />
+                        ) : (
+                          <Badge variant="secondary">{post.category}</Badge>
+                        )}
                         <span className="text-sm text-muted-foreground">
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>
