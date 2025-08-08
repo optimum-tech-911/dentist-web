@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
+import { SafeImage } from '@/components/SafeImage';
 
 interface Post {
   id: string;
@@ -295,7 +296,7 @@ export default function BlogPost() {
             </header>
             {post.image && !hideCover && (
               <div className="aspect-video overflow-hidden rounded-lg">
-                <img
+                <SafeImage
                   src={refreshedImageUrl || post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"

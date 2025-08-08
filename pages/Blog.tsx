@@ -9,6 +9,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
+import { SafeImage } from '@/components/SafeImage';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
@@ -302,14 +303,10 @@ export default function Blog() {
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <img
+                        <SafeImage
                           src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
                         />
                       </div>
                     )}
