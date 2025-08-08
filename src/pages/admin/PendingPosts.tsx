@@ -10,6 +10,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { getCategoryBadgeClass } from '@/lib/categories';
 
 
 interface Post {
@@ -247,7 +248,7 @@ export default function PendingPosts() {
                       By {post.author_email} • {new Date(post.created_at).toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <Badge variant="secondary">{post.category}</Badge>
+                  <Badge variant="secondary" className={getCategoryBadgeClass(post.category)}>{post.category}</Badge>
                 </div>
               </CardHeader>
               <CardContent>

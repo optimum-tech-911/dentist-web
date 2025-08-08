@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 
 import { convertToPublicUrl } from '@/lib/utils';
+import { getCategoryBadgeClass } from '@/lib/categories';
 
 
 
@@ -241,7 +242,7 @@ export default function Blog() {
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="secondary">{post.category}</Badge>
+                        <Badge variant="secondary" className={getCategoryBadgeClass(post.category)}>{post.category}</Badge>
                         <span className="text-sm text-muted-foreground">
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>

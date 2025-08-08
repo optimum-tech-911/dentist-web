@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
 
 import { convertToPublicUrl } from '@/lib/utils';
+import { getCategoryBadgeClass } from '@/lib/categories';
 
 interface Post {
   id: string;
@@ -216,7 +217,7 @@ export default function BlogPost() {
           <article className="space-y-6">
             <header className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="secondary">{post.category}</Badge>
+                <Badge variant="secondary" className={getCategoryBadgeClass(post.category)}>{post.category}</Badge>
                 <span>•</span>
                 <time>{new Date(post.created_at).toLocaleDateString()}</time>
               </div>
