@@ -289,7 +289,7 @@ export default function BlogPost() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Badge variant="secondary" className={badgeClassName}>{post.category}</Badge>
                 <span>•</span>
-                <time>{new Date(post.created_at).toLocaleDateString()}</time>
+                <time>{new Date(post.created_at).toLocaleDateString('fr-FR')}</time>
               </div>
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>

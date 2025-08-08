@@ -314,7 +314,7 @@ export default function Blog() {
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="secondary" className={SPECIAL_BADGE_STYLES[post.id] || ''}>{post.category}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString()}
+                          {new Date(post.created_at).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
                       <CardTitle className="line-clamp-2">{post.title}</CardTitle>
