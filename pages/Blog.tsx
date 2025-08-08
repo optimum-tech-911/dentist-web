@@ -81,6 +81,9 @@ export default function Blog() {
     'f5dc1e2d-5fb4-44f2-968e-81ca4d78261b',
   ]);
 
+  // Normalize title for consistent display
+  const toDisplayTitle = (t?: string) => (t || '').replace(/\s+/g, ' ').trim();
+
   useEffect(() => {
     fetchApprovedPosts();
   }, []);
@@ -317,7 +320,7 @@ export default function Blog() {
                           {new Date(post.created_at).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                      <CardTitle className="line-clamp-2">{toDisplayTitle(post.title)}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">

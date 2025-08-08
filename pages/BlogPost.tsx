@@ -291,7 +291,7 @@ export default function BlogPost() {
                 <span>•</span>
                 <time>{new Date(post.created_at).toLocaleDateString('fr-FR')}</time>
               </div>
-              <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
+              <h1 className="text-4xl font-bold leading-tight">{(post.title || '').replace(/\s+/g, ' ').trim()}</h1>
             </header>
             {post.image && !hideCover && (
               <div className="aspect-video overflow-hidden rounded-lg">
