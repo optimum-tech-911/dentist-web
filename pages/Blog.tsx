@@ -43,10 +43,10 @@ interface Post {
   image?: string;
 }
 
-// Only hide category badge for these exact post IDs
-const HIDE_BADGE_POST_IDS = [
-  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission
-];
+// Special badge color styles per post ID
+const SPECIAL_BADGE_STYLES: Record<string, string> = {
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27': 'bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100',
+};
 
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
@@ -286,11 +286,7 @@ export default function Blog() {
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        {HIDE_BADGE_POST_IDS.includes(post.id) ? (
-                          <div />
-                        ) : (
-                          <Badge variant="secondary">{post.category}</Badge>
-                        )}
+                        <Badge variant="secondary" className={SPECIAL_BADGE_STYLES[post.id] || ''}>{post.category}</Badge>
                         <span className="text-sm text-muted-foreground">
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>

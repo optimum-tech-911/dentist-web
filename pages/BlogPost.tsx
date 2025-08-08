@@ -49,10 +49,10 @@ const HIDE_COVER_POST_IDS = [
   '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission (Prévention, 21/7/2025)
 ];
 
-// Only hide category badge for these exact post IDs
-const HIDE_BADGE_POST_IDS = [
-  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission
-];
+// Special badge color styles per post ID
+const SPECIAL_BADGE_STYLES: Record<string, string> = {
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27': 'bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100',
+};
 
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
@@ -116,7 +116,7 @@ export default function BlogPost() {
   }
 
   const hideCover = HIDE_COVER_POST_IDS.includes(post.id);
-  const hideBadge = HIDE_BADGE_POST_IDS.includes(post.id);
+  const badgeClassName = SPECIAL_BADGE_STYLES[post.id] || '';
 
   return (
     <>
@@ -256,17 +256,11 @@ export default function BlogPost() {
           </Button>
           <article className="space-y-6">
             <header className="space-y-4">
-              {hideBadge ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <time>{new Date(post.created_at).toLocaleDateString()}</time>
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Badge variant="secondary">{post.category}</Badge>
-                  <span>•</span>
-                  <time>{new Date(post.created_at).toLocaleDateString()}</time>
-                </div>
-              )}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Badge variant="secondary" className={badgeClassName}>{post.category}</Badge>
+                <span>•</span>
+                <time>{new Date(post.created_at).toLocaleDateString()}</time>
+              </div>
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
             {post.image && !hideCover && (
