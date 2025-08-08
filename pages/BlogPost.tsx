@@ -260,7 +260,11 @@ export default function BlogPost() {
               </div>
             )}
             <div className="prose prose-lg max-w-none">
-              <MarkdownRenderer content={post.content} />
+              <MarkdownRenderer 
+                content={post.content}
+                excludeImageSrcs={[refreshedImageUrl || post.image || '']}
+                removeOnlyFirstMatch={true}
+              />
             </div>
           </article>
         </div>
