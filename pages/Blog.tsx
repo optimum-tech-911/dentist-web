@@ -76,6 +76,11 @@ export default function Blog() {
   const { user, userRole, signOut } = useAuth();
   const { toast } = useToast();
 
+  // IDs to hide from listing (e.g., lowercase duplicate)
+  const HIDDEN_POST_IDS = new Set<string>([
+    'f5dc1e2d-5fb4-44f2-968e-81ca4d78261b',
+  ]);
+
   useEffect(() => {
     fetchApprovedPosts();
   }, []);
@@ -92,11 +97,13 @@ export default function Blog() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      // Filter out hidden posts by ID
+      const visiblePosts = (data || []).filter(p => !HIDDEN_POST_IDS.has(p.id));
+      setPosts(visiblePosts);
       
       // Refresh image URLs for posts that have gallery images
-      if (data) {
-        const urlPromises = data
+      if (visiblePosts.length > 0) {
+        const urlPromises = visiblePosts
           .filter(post => post.image)
           .map(async (post) => {
             const refreshedUrl = await refreshImageUrl(post.image!);

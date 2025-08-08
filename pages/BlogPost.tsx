@@ -83,7 +83,17 @@ export default function BlogPost() {
   const [refreshedImageUrl, setRefreshedImageUrl] = useState<string>('');
   const { user, userRole, signOut } = useAuth();
 
+  // Redirect map: from duplicate ID to canonical ID
+  const REDIRECT_POST_IDS: Record<string, string> = {
+    'f5dc1e2d-5fb4-44f2-968e-81ca4d78261b': '9ed85f7d-736f-42e6-abf2-63e2071dabad',
+  };
+
   useEffect(() => {
+    if (id && REDIRECT_POST_IDS[id]) {
+      // Navigate to canonical ID
+      window.location.replace(`/blog/${REDIRECT_POST_IDS[id]}`);
+      return;
+    }
     if (id) {
       fetchPost(id);
     }
