@@ -12,41 +12,48 @@ interface SafeImageProps {
   loading?: 'lazy' | 'eager';
 }
 
+function getBases(): string[] {
+  const envBase = (import.meta as any).env?.VITE_SUPABASE_URL as string | undefined;
+  const bases: string[] = [];
+  if (envBase) {
+    const trimmed = envBase.replace(/\/$/, '');
+    bases.push(`${trimmed}/storage/v1/object/public/gallery/`);
+  }
+  bases.push('https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/');
+  bases.push('https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery-staging/');
+  return bases;
+}
+
 function buildCandidates(src: string): string[] {
   if (!src) return [];
   const candidates: string[] = [];
   const clean = src.split('?')[0];
+  const bases = getBases();
 
   const addUnique = (u?: string) => {
     if (u && !candidates.includes(u)) candidates.push(u);
   };
 
-  // If absolute signed/public URLs
+  // Absolute URLs first via converter
   if (clean.startsWith('http')) {
     addUnique(convertToPublicUrl(clean));
-    // If it's a signed URL with gallery path, try both buckets
-    const afterSign = clean.split('/object/sign/gallery/')[1];
-    const afterPublic = clean.split('/object/public/gallery/')[1];
-    const rel = afterSign || afterPublic || clean.split('/gallery/')[1];
+    const rel = clean.split('/object/sign/gallery/')[1] || clean.split('/object/public/gallery/')[1] || clean.split('/gallery/')[1];
     if (rel) {
       const path = rel.split('?')[0];
-      addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/${path}`);
-      addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery-staging/${path}`);
+      bases.forEach(b => addUnique(`${b}${path}`));
     }
     return candidates.filter(Boolean);
   }
 
-  // If starts with gallery/
+  // Starts with gallery/
   if (clean.startsWith('gallery/')) {
     const path = clean.substring('gallery/'.length);
-    addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/${path}`);
-    addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery-staging/${path}`);
+    bases.forEach(b => addUnique(`${b}${path}`));
     return candidates.filter(Boolean);
   }
 
-  // Otherwise treat as raw path key
-  addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/${clean}`);
-  addUnique(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery-staging/${clean}`);
+  // Raw key
+  bases.forEach(b => addUnique(`${b}${clean}`));
   return candidates.filter(Boolean);
 }
 
@@ -85,7 +92,6 @@ export function SafeImage({
       setCurrentSrc(candidates[nextIndex]);
       return;
     }
-    // Exhausted candidates; try fallback
     if (!isExhausted && fallbackSrc && currentSrc !== fallbackSrc) {
       setIsExhausted(true);
       setCurrentSrc(fallbackSrc);
