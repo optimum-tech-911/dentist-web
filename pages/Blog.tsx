@@ -305,7 +305,7 @@ export default function Blog() {
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <SafeImage
-                          src={refreshedImageUrls[post.id] || convertToPublicUrl(post.image)}
+                          src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
                           fallbackSrc="/placeholder.svg"
