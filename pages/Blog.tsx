@@ -12,6 +12,14 @@ import { Footer } from '@/components/Footer';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+  if (!imageUrl) return imageUrl;
+
+  // If already an absolute URL and not a signed gallery URL, return as-is
+  const isAbsolute = /^https?:\/\//i.test(imageUrl);
+  if (isAbsolute && !imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    return imageUrl;
+  }
+
   // Check if it's a gallery signed URL (legacy support)
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
@@ -29,6 +37,17 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
     } catch (error) {
       console.log('Could not convert to public URL, using original:', error);
     }
+  }
+
+  // Handle raw storage paths (e.g., "gallery/user/file.jpg" or "user-id/file.png")
+  try {
+    const normalizedPath = imageUrl.replace(/^gallery\//, '').split('?')[0];
+    const { data } = supabase.storage.from('gallery').getPublicUrl(normalizedPath);
+    if (data?.publicUrl) {
+      return data.publicUrl;
+    }
+  } catch (error) {
+    console.log('Could not construct public URL from storage path:', error);
   }
   return imageUrl;
 };
