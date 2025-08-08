@@ -44,6 +44,11 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
   return imageUrl;
 };
 
+// Only hide cover image for this exact post ID
+const HIDE_COVER_POST_IDS = [
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27', // Notre Mission (Prévention, 21/7/2025)
+];
+
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<Post | null>(null);
@@ -104,6 +109,8 @@ export default function BlogPost() {
   if (notFound || !post) {
     return <Navigate to="/blog" replace />;
   }
+
+  const hideCover = HIDE_COVER_POST_IDS.includes(post.id);
 
   return (
     <>
@@ -250,7 +257,7 @@ export default function BlogPost() {
               </div>
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
-            {post.image && (
+            {post.image && !hideCover && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
                   src={refreshedImageUrl || post.image}
