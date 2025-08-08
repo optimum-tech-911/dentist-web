@@ -10,6 +10,7 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 import { SafeImage } from '@/components/SafeImage';
+import { convertToPublicUrl } from '@/lib/utils';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
@@ -304,9 +305,10 @@ export default function Blog() {
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <SafeImage
-                          src={refreshedImageUrls[post.id] || post.image}
+                          src={refreshedImageUrls[post.id] || convertToPublicUrl(post.image)}
                           alt={post.title}
                           className="w-full h-full object-cover"
+                          fallbackSrc="/placeholder.svg"
                         />
                       </div>
                     )}

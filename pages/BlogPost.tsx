@@ -9,6 +9,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
 import { SafeImage } from '@/components/SafeImage';
+import { convertToPublicUrl } from '@/lib/utils';
 
 interface Post {
   id: string;
@@ -297,9 +298,10 @@ export default function BlogPost() {
             {post.image && !hideCover && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <SafeImage
-                  src={refreshedImageUrl || post.image}
+                  src={refreshedImageUrl || convertToPublicUrl(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover"
+                  fallbackSrc="/placeholder.svg"
                 />
               </div>
             )}
