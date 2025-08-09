@@ -22,6 +22,23 @@ interface Post {
   image?: string;
 }
 
+// Helper function to strip images from content if we're showing a cover image
+const stripImagesFromContent = (content: string, hascoverImage: boolean): string => {
+  if (!content || !hascoverImage) return content;
+  
+  // Remove HTML img tags
+  let cleanContent = content.replace(/<img[^>]*>/gi, '');
+  
+  // Remove markdown images
+  cleanContent = cleanContent.replace(/!\[.*?\]\(.*?\)/g, '');
+  
+  // Clean up any extra whitespace or empty paragraphs left behind
+  cleanContent = cleanContent.replace(/<p>\s*<\/p>/gi, '');
+  cleanContent = cleanContent.replace(/^\s+|\s+$/gm, '');
+  
+  return cleanContent;
+};
+
 export default function BlogPost() {
   const { id } = useParams<{ id: string }>();
   const [post, setPost] = useState<Post | null>(null);
@@ -248,7 +265,7 @@ export default function BlogPost() {
               />
             )}
             <div className="prose prose-lg max-w-none">
-              <MarkdownRenderer content={post.content} />
+              <MarkdownRenderer content={stripImagesFromContent(post.content, !!post.image)} />
             </div>
           </article>
         </div>
