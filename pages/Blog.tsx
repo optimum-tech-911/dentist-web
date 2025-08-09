@@ -306,7 +306,7 @@ export default function Blog() {
               {posts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
-                    {post.image && (
+                    {post.image && post.image !== 'gallery/user/cover.jpg' && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <img
                           src={refreshedImageUrls[post.id] || post.image}

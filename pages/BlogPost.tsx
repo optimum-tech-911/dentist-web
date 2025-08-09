@@ -250,7 +250,7 @@ export default function BlogPost() {
               </div>
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
-            {post.image && (
+            {post.image && post.image !== 'gallery/user/cover.jpg' && (
               <div className="aspect-video overflow-hidden rounded-lg">
                 <img
                   src={refreshedImageUrl || post.image}
