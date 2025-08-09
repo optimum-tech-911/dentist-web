@@ -82,16 +82,16 @@ export function GallerySelector({
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>{title}</DialogTitle>
           <p className="text-sm text-muted-foreground">{description}</p>
           <p className="text-xs text-blue-600 mt-2">Seuls les fichiers jusqu'à 50MB sont acceptés (images ou vidéos).</p>
         </DialogHeader>
         
-        <div className="flex-1 flex flex-col gap-4">
+        <div className="flex-1 flex flex-col gap-4 min-h-0">
           {/* Search */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Rechercher une image..."
@@ -102,8 +102,14 @@ export function GallerySelector({
           </div>
 
           {/* Images Grid */}
-          <div className="flex-1 overflow-y-auto">
-            {filteredImages.length === 0 ? (
+          <div className="flex-1 overflow-y-auto min-h-0 pr-2"
+               style={{ scrollbarWidth: 'thin', scrollbarColor: '#cbd5e1 #f1f5f9' }}>
+            {isLoading ? (
+              <div className="text-center py-12">
+                <Loader2 className="h-8 w-8 mx-auto mb-4 animate-spin text-primary" />
+                <p className="text-muted-foreground">Chargement des images...</p>
+              </div>
+            ) : filteredImages.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Image className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>
