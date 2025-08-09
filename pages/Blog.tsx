@@ -33,6 +33,37 @@ const getCategoryBadgeClasses = (category: string) => {
   return 'bg-gray-100 text-gray-800 border-gray-200';
 };
 
+// Extract first gallery image URL from content (HTML or markdown)
+const extractFirstGalleryImageFromContent = (content: string): string | null => {
+  if (!content) return null;
+  const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  const mdMatch = content.match(/!\[[^\]]*\]\(([^)]+)\)/);
+  const candidate = (htmlMatch && htmlMatch[1]) || (mdMatch && mdMatch[1]) || '';
+  if (!candidate) return null;
+  // Accept only gallery bucket images
+  if (
+    candidate.includes('/storage/v1/object/') && candidate.includes('/gallery/') ||
+    candidate.startsWith('gallery/') || candidate.startsWith('/gallery/')
+  ) {
+    return candidate;
+  }
+  return null;
+};
+
+// Decide the best cover URL for a post
+const getBestCoverUrl = (
+  post: { id: string; title: string; content: string; image?: string },
+  refreshedMap: Record<string, string>
+): string => {
+  const raw = refreshedMap[post.id] || post.image || '';
+  let url = raw ? convertToPublicUrl(raw) : '';
+  if (!url || url === 'gallery/user/cover.jpg') {
+    const fromContent = extractFirstGalleryImageFromContent(post.content || '');
+    if (fromContent) url = convertToPublicUrl(fromContent);
+  }
+  return url || '';
+};
+
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
   if (!imageUrl) return imageUrl;
@@ -330,12 +361,11 @@ export default function Blog() {
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {(() => {
-                      const rawCover = refreshedImageUrls[post.id] || post.image || '';
-                      const computedCover = convertToPublicUrl(rawCover);
+                      const computedCover = getBestCoverUrl(post, refreshedImageUrls);
                       if (computedCover) {
                         try { console.log('Blog cover for', post.id, post.title, '->', computedCover); } catch {}
                       }
-                      if (!computedCover || computedCover === 'gallery/user/cover.jpg') return null;
+                      if (!computedCover) return null;
                       return (
                         <div className="aspect-video overflow-hidden rounded-t-lg">
                           <BulletproofImage
