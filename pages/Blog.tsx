@@ -373,9 +373,14 @@ export default function Blog() {
                             alt={post.title}
                             className="w-full h-full object-cover"
                             fallbackSrc="/placeholder.svg"
-                            retryOnError={true}
-                            maxRetries={2}
-                            timeout={8000}
+                            retryOnError={false}
+                            errorPlaceholder={<></>}
+                            maxRetries={1}
+                            timeout={6000}
+                            onError={(e) => {
+                              const img = e.target as HTMLImageElement;
+                              if (img) img.style.display = 'none';
+                            }}
                           />
                         </div>
                        );
