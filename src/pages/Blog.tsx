@@ -47,6 +47,14 @@ export default function Blog() {
 
       if (error) throw error;
       setPosts(data || []);
+      
+      // Debug logging
+      console.log('📚 Blog posts fetched:', data?.length || 0);
+      data?.forEach((post, index) => {
+        console.log(`   ${index + 1}. "${post.title}"`);
+        console.log(`      Image: ${post.image ? 'YES (' + post.image + ')' : 'NO'}`);
+        console.log(`      Status: ${post.status}`);
+      });
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Erreur lors du chargement des articles');
@@ -232,8 +240,19 @@ export default function Blog() {
                           src={convertToPublicUrl(post.image)}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          onLoad={() => console.log('✅ Blog cover image loaded:', post.image)}
-                          onError={(e) => console.error('❌ Blog cover image failed:', post.image, e)}
+                          onLoad={() => {
+                            console.log('✅ Blog cover image loaded successfully!');
+                            console.log('   📄 Post:', post.title);
+                            console.log('   📷 Original URL:', post.image);
+                            console.log('   🔗 Converted URL:', convertToPublicUrl(post.image));
+                          }}
+                          onError={(e) => {
+                            console.error('❌ Blog cover image failed to load!');
+                            console.error('   📄 Post:', post.title);
+                            console.error('   📷 Original URL:', post.image);
+                            console.error('   🔗 Converted URL:', convertToPublicUrl(post.image));
+                            console.error('   🚨 Error:', e);
+                          }}
                         />
                       </div>
                     )}

@@ -43,9 +43,9 @@ export function convertToPublicUrl(url: string): string {
       // Extract the file path from the signed URL
       const urlParts = url.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        // Convert to public URL
+        // Convert to public URL using gallery bucket
         const { data } = supabase.storage
-          .from(getGalleryBucket())
+          .from('gallery')
           .getPublicUrl(urlParts);
         
         console.log('✅ Converted signed URL to:', data?.publicUrl);
@@ -59,7 +59,6 @@ export function convertToPublicUrl(url: string): string {
   // Check if it's a raw file path (doesn't start with http)
   if (!url.startsWith('http')) {
     console.log('🔄 Converting raw file path to public URL:', url);
-    console.log('🔄 Using bucket:', getGalleryBucket());
     try {
       // Remove gallery/ prefix if it exists to avoid double prefix
       let cleanPath = url;
@@ -68,9 +67,9 @@ export function convertToPublicUrl(url: string): string {
         console.log('🔄 Removed gallery/ prefix:', url, '→', cleanPath);
       }
       
-      // Convert raw path to public URL
+      // Convert raw path to public URL using gallery bucket
       const { data } = supabase.storage
-        .from(getGalleryBucket())
+        .from('gallery')
         .getPublicUrl(cleanPath);
       
       if (data?.publicUrl) {

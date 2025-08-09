@@ -228,8 +228,19 @@ export default function BlogPost() {
                   src={convertToPublicUrl(post.image)}
                   alt={post.title}
                   className="w-full h-full object-cover"
-                  onLoad={() => console.log('✅ Cover image loaded successfully:', post.image)}
-                  onError={(e) => console.error('❌ Cover image failed to load:', post.image, e)}
+                  onLoad={() => {
+                    console.log('✅ BlogPost cover image loaded successfully!');
+                    console.log('   📄 Post:', post.title);
+                    console.log('   📷 Original URL:', post.image);
+                    console.log('   🔗 Converted URL:', convertToPublicUrl(post.image));
+                  }}
+                  onError={(e) => {
+                    console.error('❌ BlogPost cover image failed to load!');
+                    console.error('   📄 Post:', post.title);
+                    console.error('   📷 Original URL:', post.image);
+                    console.error('   🔗 Converted URL:', convertToPublicUrl(post.image));
+                    console.error('   🚨 Error:', e);
+                  }}
                 />
               </div>
             )}
