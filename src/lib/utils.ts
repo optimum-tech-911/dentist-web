@@ -6,14 +6,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Environment-based bucket selection
+// Environment-based bucket selection (force stable bucket)
 const getGalleryBucket = () => {
-  const isDev = import.meta.env.DEV;
-  const isStaging = import.meta.env.VITE_ENVIRONMENT === 'staging';
-  
-  if (isDev || isStaging) {
-    return 'gallery-staging';
-  }
   return 'gallery';
 };
 
