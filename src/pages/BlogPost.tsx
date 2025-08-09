@@ -8,8 +8,9 @@ import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
-
-import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofBlogImage } from '@/components/BulletproofBlogImage';
+import { registerImageForMonitoring } from '@/lib/image-health-monitor';
+import { bulletproofImageCache } from '@/lib/bulletproof-image-cache';
 
 interface Post {
   id: string;
@@ -52,6 +53,21 @@ export default function BlogPost() {
         }
       } else {
         setPost(data);
+        
+        // Register image for monitoring and preload
+        if (data.image) {
+          registerImageForMonitoring(data.image, {
+            title: data.title,
+            category: data.category,
+            postId: data.id
+          });
+          
+          // Preload image for instant display
+          bulletproofImageCache.preload(data.image);
+          
+          console.log('📄 BlogPost loaded:', data.title);
+          console.log('📷 Image registered for monitoring:', data.image);
+        }
       }
     } catch (error) {
       console.error('Error fetching post:', error);
@@ -223,26 +239,13 @@ export default function BlogPost() {
               <h1 className="text-4xl font-bold leading-tight">{post.title}</h1>
             </header>
             {post.image && (
-              <div className="aspect-video overflow-hidden rounded-lg">
-                <img
-                  src={convertToPublicUrl(post.image)}
-                  alt={post.title}
-                  className="w-full h-full object-cover"
-                  onLoad={() => {
-                    console.log('✅ BlogPost cover image loaded successfully!');
-                    console.log('   📄 Post:', post.title);
-                    console.log('   📷 Original URL:', post.image);
-                    console.log('   🔗 Converted URL:', convertToPublicUrl(post.image));
-                  }}
-                  onError={(e) => {
-                    console.error('❌ BlogPost cover image failed to load!');
-                    console.error('   📄 Post:', post.title);
-                    console.error('   📷 Original URL:', post.image);
-                    console.error('   🔗 Converted URL:', convertToPublicUrl(post.image));
-                    console.error('   🚨 Error:', e);
-                  }}
-                />
-              </div>
+              <BulletproofBlogImage
+                src={post.image}
+                alt={post.title}
+                title={post.title}
+                postId={post.id}
+                className="aspect-video overflow-hidden rounded-lg"
+              />
             )}
             <div className="prose prose-lg max-w-none">
               <MarkdownRenderer content={post.content} />

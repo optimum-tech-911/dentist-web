@@ -9,8 +9,9 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
-
-import { convertToPublicUrl } from '@/lib/utils';
+import { BulletproofBlogImage } from '@/components/BulletproofBlogImage';
+import { preloadBlogImages } from '@/lib/bulletproof-image-cache';
+import { registerImageForMonitoring } from '@/lib/image-health-monitor';
 
 interface Post {
   id: string;
@@ -46,15 +47,30 @@ export default function Blog() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      
+      const postsData = data || [];
+      setPosts(postsData);
       
       // Debug logging
-      console.log('📚 Blog posts fetched:', data?.length || 0);
-      data?.forEach((post, index) => {
+      console.log('📚 Blog posts fetched:', postsData.length);
+      postsData.forEach((post, index) => {
         console.log(`   ${index + 1}. "${post.title}"`);
         console.log(`      Image: ${post.image ? 'YES (' + post.image + ')' : 'NO'}`);
         console.log(`      Status: ${post.status}`);
+        
+        // Register images for monitoring and preload them
+        if (post.image) {
+          registerImageForMonitoring(post.image, {
+            title: post.title,
+            category: post.category,
+            postId: post.id
+          });
+        }
       });
+      
+      // Preload all blog images for ultra-fast loading
+      await preloadBlogImages(postsData);
+      
     } catch (error) {
       console.error('Error fetching posts:', error);
       setError('Erreur lors du chargement des articles');
@@ -235,26 +251,13 @@ export default function Blog() {
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && (
-                      <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <img
-                          src={convertToPublicUrl(post.image)}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                          onLoad={() => {
-                            console.log('✅ Blog cover image loaded successfully!');
-                            console.log('   📄 Post:', post.title);
-                            console.log('   📷 Original URL:', post.image);
-                            console.log('   🔗 Converted URL:', convertToPublicUrl(post.image));
-                          }}
-                          onError={(e) => {
-                            console.error('❌ Blog cover image failed to load!');
-                            console.error('   📄 Post:', post.title);
-                            console.error('   📷 Original URL:', post.image);
-                            console.error('   🔗 Converted URL:', convertToPublicUrl(post.image));
-                            console.error('   🚨 Error:', e);
-                          }}
-                        />
-                      </div>
+                      <BulletproofBlogImage
+                        src={post.image}
+                        alt={post.title}
+                        title={post.title}
+                        postId={post.id}
+                        className="aspect-video overflow-hidden rounded-t-lg"
+                      />
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
