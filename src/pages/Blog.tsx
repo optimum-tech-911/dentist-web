@@ -23,6 +23,23 @@ interface Post {
   image?: string;
 }
 
+// Helper function to strip images from content preview
+const stripImagesFromContent = (content: string): string => {
+  if (!content) return '';
+  
+  // Remove HTML img tags
+  let cleanContent = content.replace(/<img[^>]*>/gi, '');
+  
+  // Remove markdown images
+  cleanContent = cleanContent.replace(/!\[.*?\]\(.*?\)/g, '');
+  
+  // Clean up any extra whitespace or empty paragraphs left behind
+  cleanContent = cleanContent.replace(/<p>\s*<\/p>/gi, '');
+  cleanContent = cleanContent.replace(/^\s+|\s+$/gm, '');
+  
+  return cleanContent;
+};
+
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,7 +287,10 @@ export default function Blog() {
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">
-                        <MarkdownRenderer content={post.content.substring(0, 200) + (post.content.length > 200 ? '...' : '')} />
+                        {(() => {
+                          const cleanContent = stripImagesFromContent(post.content);
+                          return <MarkdownRenderer content={cleanContent.substring(0, 200) + (cleanContent.length > 200 ? '...' : '')} />;
+                        })()}
                       </div>
                     </CardContent>
                   </Card>
