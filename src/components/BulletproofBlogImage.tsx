@@ -9,72 +9,6 @@ interface BulletproofBlogImageProps {
   postId?: string;
 }
 
-// Generate a deterministic color based on text
-function generateColorFromText(text: string): string {
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  
-  const hue = Math.abs(hash) % 360;
-  return `hsl(${hue}, 70%, 60%)`;
-}
-
-// Create a beautiful gradient placeholder
-function createGradientPlaceholder(title: string, width: number = 400, height: number = 300): string {
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-  
-  if (!ctx) return '';
-  
-  // Create gradient
-  const gradient = ctx.createLinearGradient(0, 0, width, height);
-  const color1 = generateColorFromText(title);
-  const color2 = generateColorFromText(title + 'secondary');
-  
-  gradient.addColorStop(0, color1);
-  gradient.addColorStop(1, color2);
-  
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-  
-  // Add text
-  ctx.fillStyle = 'white';
-  ctx.font = 'bold 24px Arial';
-  ctx.textAlign = 'center';
-  ctx.shadowColor = 'rgba(0,0,0,0.5)';
-  ctx.shadowBlur = 4;
-  
-  const words = title.split(' ');
-  const lines = [];
-  let currentLine = '';
-  
-  words.forEach(word => {
-    const testLine = currentLine + word + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > width - 40 && currentLine !== '') {
-      lines.push(currentLine.trim());
-      currentLine = word + ' ';
-    } else {
-      currentLine = testLine;
-    }
-  });
-  lines.push(currentLine.trim());
-  
-  const lineHeight = 30;
-  const startY = (height - (lines.length * lineHeight)) / 2 + lineHeight;
-  
-  lines.forEach((line, index) => {
-    ctx.fillText(line, width / 2, startY + (index * lineHeight));
-  });
-  
-  return canvas.toDataURL('image/jpeg', 0.8);
-}
-
 export function BulletproofBlogImage({ src, alt, className = '', title = '', postId }: BulletproofBlogImageProps) {
   const [currentSrc, setCurrentSrc] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
@@ -83,17 +17,21 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
   const [fallbackLevel, setFallbackLevel] = useState(0);
   const imgRef = useRef<HTMLImageElement>(null);
 
-  // Maximum bulletproof fallback URLs
+  // Ultra-aggressive fallback URLs - focuses on finding the EXACT image
   const getFallbackUrls = (originalSrc: string): string[] => {
     const urls: string[] = [];
     
-    // Level 0: Original converted URL
-    urls.push(convertToPublicUrl(originalSrc));
+    if (!originalSrc) return urls;
     
-    // Level 1: Try direct Supabase public URL variations
-    if (originalSrc && !originalSrc.startsWith('http')) {
-      // Remove any prefixes and try clean path
+    // Level 0: Original converted URL
+    const convertedUrl = convertToPublicUrl(originalSrc);
+    if (convertedUrl) urls.push(convertedUrl);
+    
+    // Level 1: If it's already a path, try direct Supabase variations
+    if (!originalSrc.startsWith('http')) {
       let cleanPath = originalSrc;
+      
+      // Remove prefixes
       if (cleanPath.startsWith('gallery/')) {
         cleanPath = cleanPath.substring(8);
       }
@@ -101,36 +39,43 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
         cleanPath = cleanPath.substring(1);
       }
       
-      urls.push(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/gallery/${cleanPath}`);
+      // Try multiple bucket and path combinations
+      const buckets = ['gallery', 'images', 'uploads', 'public', 'storage'];
+      buckets.forEach(bucket => {
+        urls.push(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/${bucket}/${cleanPath}`);
+      });
       
-      // Try with different bucket names
-      urls.push(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/images/${cleanPath}`);
-      urls.push(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/uploads/${cleanPath}`);
+      // Try with gallery prefix maintained
+      if (originalSrc.startsWith('gallery/')) {
+        urls.push(`https://cmcfeiskfdbsefzqywbk.supabase.co/storage/v1/object/public/${originalSrc}`);
+      }
     }
     
-    // Level 2: Try original URL as-is if it looks like a URL
-    if (originalSrc && originalSrc.includes('/')) {
+    // Level 2: Try original URL as-is
+    if (originalSrc.includes('/')) {
       urls.push(originalSrc);
     }
     
-    // Level 3: Try to get a fresh signed URL
-    if (originalSrc && !originalSrc.startsWith('http')) {
-      const signedUrlPromise = getSignedUrl(originalSrc);
-      signedUrlPromise.then(signedUrl => {
-        if (signedUrl && !urls.includes(signedUrl)) {
-          urls.push(signedUrl);
-        }
-      });
+    // Level 3: Try different protocols
+    if (originalSrc.startsWith('https://')) {
+      urls.push(originalSrc.replace('https://', 'http://'));
+    } else if (originalSrc.startsWith('http://')) {
+      urls.push(originalSrc.replace('http://', 'https://'));
     }
     
-    // Level 4: Generic medical/dental stock images
-    urls.push('https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=400&h=300&fit=crop&crop=center');
-    urls.push('https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=300&fit=crop&crop=center');
-    urls.push('https://images.unsplash.com/photo-1571772996211-2f02c9727629?w=400&h=300&fit=crop&crop=center');
+    // Level 4: Try signed URL creation
+    if (!originalSrc.startsWith('http')) {
+      // We'll handle this async in the loading process
+    }
     
-    // Level 5: Placeholder service
-    urls.push(`https://picsum.photos/400/300?random=${postId || Math.random()}`);
-    urls.push('https://via.placeholder.com/400x300/4F46E5/FFFFFF?text=Article+Image');
+    // Level 5: Try with different file extensions (in case of extension issues)
+    const extensions = ['.png', '.jpg', '.jpeg', '.webp', '.gif'];
+    const baseUrl = originalSrc.split('.')[0];
+    extensions.forEach(ext => {
+      if (!originalSrc.endsWith(ext)) {
+        urls.push(convertToPublicUrl(baseUrl + ext));
+      }
+    });
     
     return urls.filter((url, index, self) => url && self.indexOf(url) === index);
   };
@@ -176,8 +121,10 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     }
   }
 
-  // Get signed URL as fallback
-  async function getSignedUrl(path: string): Promise<string> {
+  // Get signed URL as additional fallback
+  async function getSignedUrl(path: string): Promise<string[]> {
+    const signedUrls: string[] = [];
+    
     try {
       let cleanPath = path;
       if (path.startsWith('gallery/')) {
@@ -187,20 +134,31 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
         cleanPath = path.substring(1);
       }
       
-      const { data, error } = await supabase.storage
-        .from('gallery')
-        .createSignedUrl(cleanPath, 3600); // 1 hour expiry
+      // Try different buckets for signed URLs
+      const buckets = ['gallery', 'images', 'uploads'];
       
-      if (error) throw error;
-      return data?.signedUrl || '';
+      for (const bucket of buckets) {
+        try {
+          const { data, error } = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(cleanPath, 3600); // 1 hour expiry
+          
+          if (!error && data?.signedUrl) {
+            signedUrls.push(data.signedUrl);
+          }
+        } catch (bucketError) {
+          console.warn(`Failed to get signed URL from ${bucket}:`, bucketError);
+        }
+      }
     } catch (error) {
-      console.warn('Error creating signed URL:', error);
-      return '';
+      console.warn('Error creating signed URLs:', error);
     }
+    
+    return signedUrls;
   }
 
-  // Try loading an image URL
-  const tryLoadImage = (url: string): Promise<boolean> => {
+  // Try loading an image URL with extended timeout for slow connections
+  const tryLoadImage = (url: string, timeout: number = 15000): Promise<boolean> => {
     return new Promise((resolve) => {
       if (!url) {
         resolve(false);
@@ -210,17 +168,17 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
-      const timeout = setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         resolve(false);
-      }, 10000); // 10 second timeout
+      }, timeout);
       
       img.onload = () => {
-        clearTimeout(timeout);
+        clearTimeout(timeoutId);
         resolve(true);
       };
       
       img.onerror = () => {
-        clearTimeout(timeout);
+        clearTimeout(timeoutId);
         resolve(false);
       };
       
@@ -228,7 +186,7 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     });
   };
 
-  // Load image with fallback chain
+  // Load image with aggressive fallback chain
   useEffect(() => {
     let isMounted = true;
     
@@ -248,19 +206,21 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
       }
       
       const fallbackUrls = getFallbackUrls(src);
-      console.log(`🔄 Trying to load image for "${title}" with ${fallbackUrls.length} fallback options`);
+      console.log(`🔍 Aggressively searching for exact image "${title}" with ${fallbackUrls.length} URL variants`);
       
-      // Try each URL in sequence
+      // Try each URL with increasing timeout (first attempts are faster)
       for (let i = 0; i < fallbackUrls.length; i++) {
         if (!isMounted) return;
         
         const url = fallbackUrls[i];
-        console.log(`📷 Attempting URL ${i + 1}/${fallbackUrls.length}: ${url}`);
+        const timeout = Math.min(5000 + (i * 2000), 20000); // Progressively longer timeouts
         
-        const success = await tryLoadImage(url);
+        console.log(`🔎 Attempt ${i + 1}/${fallbackUrls.length}: ${url} (timeout: ${timeout}ms)`);
+        
+        const success = await tryLoadImage(url, timeout);
         
         if (success && isMounted) {
-          console.log(`✅ Successfully loaded image from URL ${i + 1}: ${url}`);
+          console.log(`✅ FOUND THE EXACT IMAGE! URL ${i + 1}: ${url}`);
           setCurrentSrc(url);
           setIsLoading(false);
           setHasError(false);
@@ -272,14 +232,38 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
         }
       }
       
-      // If all URLs failed, create a custom placeholder
+      // Try signed URLs as additional fallback
+      if (!src.startsWith('http') && isMounted) {
+        console.log(`🔐 Trying signed URLs for: ${src}`);
+        const signedUrls = await getSignedUrl(src);
+        
+        for (let i = 0; i < signedUrls.length; i++) {
+          if (!isMounted) return;
+          
+          const url = signedUrls[i];
+          console.log(`🔐 Signed URL attempt ${i + 1}/${signedUrls.length}: ${url}`);
+          
+          const success = await tryLoadImage(url, 15000);
+          
+          if (success && isMounted) {
+            console.log(`✅ FOUND WITH SIGNED URL! ${url}`);
+            setCurrentSrc(url);
+            setIsLoading(false);
+            setHasError(false);
+            setFallbackLevel(fallbackUrls.length + i);
+            
+            await cacheImage(url);
+            return;
+          }
+        }
+      }
+      
+      // If we still haven't found the image, mark as failed
       if (isMounted) {
-        console.log(`❌ All ${fallbackUrls.length} URLs failed, generating custom placeholder`);
-        const placeholder = await generateEmergencyImage(title || alt || 'Article Image');
-        setCurrentSrc(placeholder);
-        setIsLoading(false);
+        console.error(`❌ EXACT IMAGE NOT FOUND after ${fallbackUrls.length} attempts: ${src}`);
         setHasError(true);
-        setFallbackLevel(99);
+        setIsLoading(false);
+        setFallbackLevel(999);
       }
     };
 
@@ -295,6 +279,7 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     try {
       const { bulletproofImageCache } = await import('@/lib/bulletproof-image-cache');
       await bulletproofImageCache.preload(url);
+      console.log(`💾 Cached successful image: ${url}`);
     } catch (error) {
       console.warn('Failed to cache image:', error);
     }
@@ -311,18 +296,6 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     }
   }
 
-  // Generate emergency image
-  async function generateEmergencyImage(imageTitle: string): Promise<string> {
-    try {
-      const { generateEmergencyImage } = await import('@/lib/emergency-image-generator');
-      return generateEmergencyImage(imageTitle, title);
-    } catch (error) {
-      console.warn('Failed to generate emergency image:', error);
-      // Fallback to the canvas-based placeholder
-      return createGradientPlaceholder(imageTitle);
-    }
-  }
-
   // Retry mechanism
   const handleRetry = () => {
     setRetryCount(prev => prev + 1);
@@ -331,7 +304,7 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
   // Error handler for img element
   const handleImageError = () => {
     console.warn(`🚨 Image element error for: ${currentSrc}`);
-    if (retryCount < 3) {
+    if (retryCount < 5) { // Increased retry attempts
       handleRetry();
     }
   };
@@ -345,10 +318,30 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
 
   if (isLoading) {
     return (
-      <div className={`${className} bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center animate-pulse`}>
+      <div className={`${className} bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center`}>
         <div className="flex flex-col items-center space-y-2 text-blue-600">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <div className="text-sm font-medium">Loading image...</div>
+          <div className="text-sm font-medium">Searching for image...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <div className={`${className} bg-red-50 border-2 border-red-200 flex flex-col items-center justify-center p-4`}>
+        <div className="text-red-600 text-center">
+          <div className="text-lg font-semibold mb-2">⚠️ Image Not Found</div>
+          <div className="text-sm mb-3">Could not locate the exact image after extensive search</div>
+          <div className="text-xs text-red-500 mb-3">Original: {src}</div>
+          {retryCount < 5 && (
+            <button
+              onClick={handleRetry}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm"
+            >
+              Retry Search ({5 - retryCount} left)
+            </button>
+          )}
         </div>
       </div>
     );
@@ -366,22 +359,10 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
         loading="lazy"
       />
       
-      {/* Fallback level indicator (only in development) */}
+      {/* Success indicator (only in development) */}
       {process.env.NODE_ENV === 'development' && fallbackLevel > 0 && (
-        <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
-          {fallbackLevel === 99 ? 'Generated' : `Fallback ${fallbackLevel}`}
-        </div>
-      )}
-      
-      {/* Retry button for failed images */}
-      {hasError && retryCount < 3 && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <button
-            onClick={handleRetry}
-            className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            Retry ({3 - retryCount} left)
-          </button>
+        <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-2 py-1 rounded">
+          Found via method {fallbackLevel + 1}
         </div>
       )}
     </div>
