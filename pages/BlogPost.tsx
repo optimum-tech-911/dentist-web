@@ -9,6 +9,27 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
 
+// Map categories to consistent badge colors
+const getCategoryBadgeClasses = (category: string) => {
+  const normalized = category?.toLowerCase?.() || '';
+  if (normalized.includes('prévention') || normalized.includes('prevention')) {
+    return 'bg-blue-100 text-blue-800 border-blue-200';
+  }
+  if (normalized.includes('santé') || normalized.includes('sante') || normalized.includes('health')) {
+    return 'bg-green-100 text-green-800 border-green-200';
+  }
+  if (normalized.includes('enfant') || normalized.includes('pédiatr') || normalized.includes('pediatr')) {
+    return 'bg-purple-100 text-purple-800 border-purple-200';
+  }
+  if (normalized.includes('actualité') || normalized.includes('actualite') || normalized.includes('news')) {
+    return 'bg-orange-100 text-orange-800 border-orange-200';
+  }
+  if (normalized.includes('urgence') || normalized.includes('alert')) {
+    return 'bg-red-100 text-red-800 border-red-200';
+  }
+  return 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
 interface Post {
   id: string;
   title: string;
@@ -244,7 +265,9 @@ export default function BlogPost() {
           <article className="space-y-6">
             <header className="space-y-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Badge variant="secondary">{post.category}</Badge>
+                <Badge variant="outline" className={getCategoryBadgeClasses(post.category)}>
+                  {post.category}
+                </Badge>
                 <span>•</span>
                 <time>{new Date(post.created_at).toLocaleDateString()}</time>
               </div>

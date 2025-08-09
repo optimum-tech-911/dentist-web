@@ -10,6 +10,27 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 
+// Map categories to consistent badge colors
+const getCategoryBadgeClasses = (category: string) => {
+  const normalized = category?.toLowerCase?.() || '';
+  if (normalized.includes('prévention') || normalized.includes('prevention')) {
+    return 'bg-blue-100 text-blue-800 border-blue-200';
+  }
+  if (normalized.includes('santé') || normalized.includes('sante') || normalized.includes('health')) {
+    return 'bg-green-100 text-green-800 border-green-200';
+  }
+  if (normalized.includes('enfant') || normalized.includes('pédiatr') || normalized.includes('pediatr')) {
+    return 'bg-purple-100 text-purple-800 border-purple-200';
+  }
+  if (normalized.includes('actualité') || normalized.includes('actualite') || normalized.includes('news')) {
+    return 'bg-orange-100 text-orange-800 border-orange-200';
+  }
+  if (normalized.includes('urgence') || normalized.includes('alert')) {
+    return 'bg-red-100 text-red-800 border-red-200';
+  }
+  return 'bg-gray-100 text-gray-800 border-gray-200';
+};
+
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
   if (!imageUrl) return imageUrl;
@@ -321,7 +342,9 @@ export default function Blog() {
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="secondary">{post.category}</Badge>
+                        <Badge variant="outline" className={getCategoryBadgeClasses(post.category)}>
+                          {post.category}
+                        </Badge>
                         <span className="text-sm text-muted-foreground">
                           {new Date(post.created_at).toLocaleDateString()}
                         </span>
