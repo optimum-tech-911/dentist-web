@@ -82,21 +82,35 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
 
   // Convert URL to public URL
   function convertToPublicUrl(url: string): string {
-    if (!url) return '';
+    console.log(`🔄 convertToPublicUrl input: "${url}"`);
+    
+    if (!url) {
+      console.log(`❌ Empty URL, returning empty string`);
+      return '';
+    }
     
     // Already a full URL
-    if (url.startsWith('http')) return url;
+    if (url.startsWith('http')) {
+      console.log(`✅ Already full URL: ${url}`);
+      return url;
+    }
     
     // Already a public URL
-    if (url.includes('/object/public/')) return url;
+    if (url.includes('/object/public/')) {
+      console.log(`✅ Already public URL: ${url}`);
+      return url;
+    }
     
     // Convert signed URL
     if (url.includes('/object/sign/')) {
+      console.log(`🔄 Converting signed URL: ${url}`);
       try {
         const urlParts = url.split('/gallery/')[1]?.split('?')[0];
         if (urlParts) {
           const { data } = supabase.storage.from('gallery').getPublicUrl(urlParts);
-          return data?.publicUrl || url;
+          const result = data?.publicUrl || url;
+          console.log(`✅ Converted signed URL to: ${result}`);
+          return result;
         }
       } catch (error) {
         console.warn('Error converting signed URL:', error);
@@ -107,14 +121,20 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     let cleanPath = url;
     if (url.startsWith('gallery/')) {
       cleanPath = url.substring(8);
+      console.log(`🔄 Removed gallery/ prefix: ${url} → ${cleanPath}`);
     }
     if (url.startsWith('/')) {
       cleanPath = url.substring(1);
+      console.log(`🔄 Removed leading slash: ${url} → ${cleanPath}`);
     }
+    
+    console.log(`🔄 Generating public URL for clean path: "${cleanPath}"`);
     
     try {
       const { data } = supabase.storage.from('gallery').getPublicUrl(cleanPath);
-      return data?.publicUrl || '';
+      const result = data?.publicUrl || '';
+      console.log(`✅ Generated public URL: ${result}`);
+      return result;
     } catch (error) {
       console.warn('Error generating public URL:', error);
       return '';
@@ -194,19 +214,21 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
       setIsLoading(true);
       setHasError(false);
       
-      // Check cache first
-      const cachedImage = await getCachedImage(src);
-      if (cachedImage && isMounted) {
-        console.log(`📦 Using cached image for "${title}"`);
-        setCurrentSrc(cachedImage);
-        setIsLoading(false);
-        setHasError(false);
-        setFallbackLevel(0);
-        return;
-      }
+      console.log(`🔍 Starting image load for: "${title}" with src: ${src}`);
+      
+      // Skip cache check for now to debug
+      // const cachedImage = await getCachedImage(src);
+      // if (cachedImage && isMounted) {
+      //   console.log(`📦 Using cached image for "${title}"`);
+      //   setCurrentSrc(cachedImage);
+      //   setIsLoading(false);
+      //   setHasError(false);
+      //   setFallbackLevel(0);
+      //   return;
+      // }
       
       const fallbackUrls = getFallbackUrls(src);
-      console.log(`🔍 Aggressively searching for exact image "${title}" with ${fallbackUrls.length} URL variants`);
+      console.log(`🔍 Aggressively searching for exact image "${title}" with ${fallbackUrls.length} URL variants:`, fallbackUrls);
       
       // Try each URL with increasing timeout (first attempts are faster)
       for (let i = 0; i < fallbackUrls.length; i++) {
@@ -229,6 +251,8 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
           // Cache successful URL
           await cacheImage(url);
           return;
+        } else {
+          console.log(`❌ Failed to load URL ${i + 1}: ${url}`);
         }
       }
       
@@ -254,6 +278,8 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
             
             await cacheImage(url);
             return;
+          } else {
+            console.log(`❌ Failed signed URL ${i + 1}: ${url}`);
           }
         }
       }
