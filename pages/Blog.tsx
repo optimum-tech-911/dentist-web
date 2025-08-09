@@ -9,9 +9,19 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
+import { SafeImage } from '@/components/SafeImage';
+import { convertToPublicUrl } from '@/lib/utils';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
+  if (!imageUrl) return imageUrl;
+
+  // If already an absolute URL and not a signed gallery URL, return as-is
+  const isAbsolute = /^https?:\/\//i.test(imageUrl);
+  if (isAbsolute && !imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    return imageUrl;
+  }
+
   // Check if it's a gallery signed URL (legacy support)
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
@@ -30,6 +40,17 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
       console.log('Could not convert to public URL, using original:', error);
     }
   }
+
+  // Handle raw storage paths (e.g., "gallery/user/file.jpg" or "user-id/file.png")
+  try {
+    const normalizedPath = imageUrl.replace(/^gallery\//, '').split('?')[0];
+    const { data } = supabase.storage.from('gallery').getPublicUrl(normalizedPath);
+    if (data?.publicUrl) {
+      return data.publicUrl;
+    }
+  } catch (error) {
+    console.log('Could not construct public URL from storage path:', error);
+  }
   return imageUrl;
 };
 
@@ -43,6 +64,11 @@ interface Post {
   image?: string;
 }
 
+// Special badge color styles per post ID
+const SPECIAL_BADGE_STYLES: Record<string, string> = {
+  '2e731e37-25d9-4bd0-ad71-2dabed1b5a27': 'bg-amber-100 text-amber-800 border border-amber-200 hover:bg-amber-100',
+};
+
 export default function Blog() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +77,14 @@ export default function Blog() {
   const [refreshedImageUrls, setRefreshedImageUrls] = useState<Record<string, string>>({});
   const { user, userRole, signOut } = useAuth();
   const { toast } = useToast();
+
+  // IDs to hide from listing (e.g., lowercase duplicate)
+  const HIDDEN_POST_IDS = new Set<string>([
+    'f5dc1e2d-5fb4-44f2-968e-81ca4d78261b',
+  ]);
+
+  // Normalize title for consistent display
+  const toDisplayTitle = (t?: string) => (t || '').replace(/\s+/g, ' ').trim();
 
   useEffect(() => {
     fetchApprovedPosts();
@@ -68,11 +102,13 @@ export default function Blog() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      // Filter out hidden posts by ID
+      const visiblePosts = (data || []).filter(p => !HIDDEN_POST_IDS.has(p.id));
+      setPosts(visiblePosts);
       
       // Refresh image URLs for posts that have gallery images
-      if (data) {
-        const urlPromises = data
+      if (visiblePosts.length > 0) {
+        const urlPromises = visiblePosts
           .filter(post => post.image)
           .map(async (post) => {
             const refreshedUrl = await refreshImageUrl(post.image!);
@@ -268,25 +304,22 @@ export default function Blog() {
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <img
+                        <SafeImage
                           src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
+                          fallbackSrc="/placeholder.svg"
                         />
                       </div>
                     )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
-                        <Badge variant="secondary">{post.category}</Badge>
+                        <Badge variant="secondary" className={SPECIAL_BADGE_STYLES[post.id] || ''}>{post.category}</Badge>
                         <span className="text-sm text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString()}
+                          {new Date(post.created_at).toLocaleDateString('fr-FR')}
                         </span>
                       </div>
-                      <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                      <CardTitle className="line-clamp-2">{toDisplayTitle(post.title)}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">

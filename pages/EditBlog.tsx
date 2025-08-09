@@ -13,6 +13,7 @@ import { GalleryService, type GalleryImage } from '@/lib/gallery';
 import { useToast } from '@/hooks/use-toast';
 import { PenTool, ArrowLeft } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function EditBlog() {
   const { id } = useParams<{ id: string }>();
@@ -77,13 +78,23 @@ export default function EditBlog() {
     if (!user) return;
     setIsSubmitting(true);
     try {
+      const normalizeImagePath = (value: string) => {
+        if (!value) return null;
+        const after = value.split('/gallery/')[1];
+        if (after) return after.split('?')[0];
+        if (value.startsWith('gallery/')) return value.substring('gallery/'.length).split('?')[0];
+        return value.split('?')[0];
+      };
+
+      const normalizedImage = normalizeImagePath(formData.headerImage || '');
+
       const { error } = await supabase
         .from('posts')
         .update({
           title: formData.title,
           content: formData.content,
           category: formData.category,
-          image: formData.headerImage || null
+          image: normalizedImage
         })
         .eq('id', id);
       if (error) throw error;

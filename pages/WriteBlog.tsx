@@ -13,6 +13,7 @@ import { PenTool, Send, ArrowLeft, Info, BookOpen, Heart, Users, Image } from 'l
 import { TipTapEditor } from '@/components/TipTapEditor';
 import { GallerySelector } from '@/components/GallerySelector';
 import { GalleryService, type GalleryImage } from '@/lib/gallery';
+import { convertToPublicUrl } from '@/lib/utils';
 
 export default function WriteBlog() {
   const { user, userRole } = useAuth();
@@ -75,6 +76,20 @@ export default function WriteBlog() {
     setIsSubmitting(true);
 
     try {
+      // Normalize header image to a raw storage path (strip any URL prefix)
+      const normalizeImagePath = (value: string) => {
+        if (!value) return null;
+        // If it contains '/gallery/', take the part after it
+        const after = value.split('/gallery/')[1];
+        if (after) return after.split('?')[0];
+        // If it starts with 'gallery/', trim that prefix
+        if (value.startsWith('gallery/')) return value.substring('gallery/'.length).split('?')[0];
+        // Otherwise store as-is (raw path or file key)
+        return value.split('?')[0];
+      };
+
+      const normalizedImage = normalizeImagePath(formData.headerImage || '');
+
       const { error } = await supabase
         .from('posts')
         .insert({
@@ -83,7 +98,7 @@ export default function WriteBlog() {
           category: formData.category,
           author_email: user.email,
           author_id: user.id,
-          image: formData.headerImage || null,
+          image: normalizedImage,
           status: 'pending'
         });
 

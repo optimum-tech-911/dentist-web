@@ -6,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 interface MarkdownRendererProps {
   content: string;
   className?: string;
+  excludeImageSrcs?: string[];
+  removeOnlyFirstMatch?: boolean;
 }
 
 // Extend Window interface to include DOMPurify
@@ -57,7 +59,7 @@ const convertSignedUrlsToPublic = async (html: string): Promise<string> => {
   return updatedHtml;
 };
 
-export function MarkdownRenderer({ content, className = "" }: MarkdownRendererProps) {
+export function MarkdownRenderer({ content, className = "", excludeImageSrcs = [], removeOnlyFirstMatch = false }: MarkdownRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -95,6 +97,27 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
       
       if (containerRef.current) {
         containerRef.current.innerHTML = html;
+        
+        // Optionally remove images that match provided srcs (e.g., to avoid duplicate cover image)
+        if (excludeImageSrcs.length > 0) {
+          const normalize = (src: string) => (src || '').split('?')[0];
+          const excludeSet = new Set(excludeImageSrcs.map(normalize));
+          const imgs = containerRef.current.querySelectorAll('img');
+          let removedCount = 0;
+          imgs.forEach((img) => {
+            if (removeOnlyFirstMatch && removedCount > 0) return;
+            const src = img.getAttribute('src') || '';
+            if (excludeSet.has(normalize(src))) {
+              const parent = img.parentElement;
+              img.remove();
+              removedCount += 1;
+              // Clean up empty wrappers like <p> or <figure>
+              if (parent && parent.childElementCount === 0 && parent.textContent?.trim() === '') {
+                parent.remove();
+              }
+            }
+          });
+        }
         
         // Add responsive styling to YouTube and video embeds
         const youtubeEmbeds = containerRef.current.querySelectorAll('iframe');
@@ -139,7 +162,7 @@ export function MarkdownRenderer({ content, className = "" }: MarkdownRendererPr
     
     processContent();
     
-  }, [content]);
+  }, [content, excludeImageSrcs, removeOnlyFirstMatch]);
 
   return (
     <div 

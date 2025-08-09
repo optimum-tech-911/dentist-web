@@ -9,7 +9,6 @@ import { AuthProvider } from "./hooks/useAuth";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { DebugInfo } from "./components/DebugInfo";
-import { GlobalImageReplacer } from "./lib/global-image-replacer";
 
 // Lazy load components with error boundaries
 const Index = lazy(() => import("./pages/Index").catch(() => ({ default: () => <FallbackPage title="Home Page" /> })));
@@ -22,7 +21,6 @@ const Organigramme = lazy(() => import("./pages/Organigramme").catch(() => ({ de
 const WriteBlog = lazy(() => import("./pages/WriteBlog").catch(() => ({ default: () => <FallbackPage title="Write Blog" /> })));
 const EditBlog = lazy(() => import("./pages/EditBlog").catch(() => ({ default: () => <FallbackPage title="Edit Blog" /> })));
 const TestPage = lazy(() => import("./pages/TestPage").catch(() => ({ default: () => <FallbackPage title="Test Page" /> })));
-const ImageTester = lazy(() => import("./pages/ImageTester").catch(() => ({ default: () => <FallbackPage title="Image Tester" /> })));
 const PasswordReset = lazy(() => import("./pages/PasswordReset").catch(() => ({ default: () => <FallbackPage title="Password Reset" /> })));
 const OTPPasswordReset = lazy(() => import("./pages/OTPPasswordReset").catch(() => ({ default: () => <FallbackPage title="OTP Password Reset" /> })));
 const SimpleOTPReset = lazy(() => import("./pages/SimpleOTPReset").catch(() => ({ default: () => <FallbackPage title="Simple OTP Reset" /> })));
@@ -40,7 +38,6 @@ const Users = lazy(() => import("./pages/admin/Users").catch(() => ({ default: (
 const Gallery = lazy(() => import("./pages/admin/Gallery").catch(() => ({ default: () => <FallbackPage title="Gallery" /> })));
 const OrganigrammeAdmin = lazy(() => import("./pages/admin/OrganigrammeAdmin").catch(() => ({ default: () => <FallbackPage title="Organigramme Admin" /> })));
 const Calendar = lazy(() => import("./pages/admin/Calendar").catch(() => ({ default: () => <FallbackPage title="Calendar" /> })));
-const GalleryInspector = lazy(() => import("./pages/admin/GalleryInspector").catch(() => ({ default: () => <FallbackPage title="Gallery Inspector" /> })));
 const AdminAccessManager = lazy(() => import("./components/AdminAccessManager").catch(() => ({ default: () => <FallbackPage title="Admin Access Manager" /> })));
 
 const queryClient = new QueryClient({
@@ -48,7 +45,7 @@ const queryClient = new QueryClient({
     queries: {
       retry: 1,
       retryDelay: 1000,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
@@ -112,21 +109,6 @@ const SafeRoute = ({ children }: { children: React.ReactNode }) => (
 );
 
 const App = () => {
-  // Initialize global image replacement
-  React.useEffect(() => {
-    GlobalImageReplacer.initialize();
-    
-    // Preload critical images
-    GlobalImageReplacer.preloadCriticalImages([
-      '/placeholder.svg',
-      '/lovable-uploads/ab742599-8097-48dc-a1b3-6d031d2f9718.png'
-    ]);
-    
-    return () => {
-      GlobalImageReplacer.cleanup();
-    };
-  }, []);
-
   return (
     <ErrorBoundary fallback={<SimpleFallback error={new Error("Unknown error")} />}>
       <QueryClientProvider client={queryClient}>
@@ -151,7 +133,6 @@ const App = () => {
                 <Route path="/contact" element={<SafeRoute><Contact /></SafeRoute>} />
                 <Route path="/organigramme" element={<SafeRoute><Organigramme /></SafeRoute>} />
                 <Route path="/test" element={<SafeRoute><TestPage /></SafeRoute>} />
-                <Route path="/dev/image-tester" element={<SafeRoute><ImageTester /></SafeRoute>} />
                 <Route path="/write-blog" element={<SafeRoute><WriteBlog /></SafeRoute>} />
                 <Route 
                   path="/submit" 
@@ -180,7 +161,6 @@ const App = () => {
                   <Route path="gallery" element={<SafeRoute><Gallery /></SafeRoute>} />
                   <Route path="organigramme" element={<SafeRoute><OrganigrammeAdmin /></SafeRoute>} />
                   <Route path="calendar" element={<SafeRoute><Calendar /></SafeRoute>} />
-                  <Route path="debug/gallery-inspector" element={<SafeRoute><GalleryInspector /></SafeRoute>} />
                 </Route>
                 <Route path="/admin-access" element={<SafeRoute><AdminAccessManager /></SafeRoute>} />
                 {/* Service pages placeholders */}

@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Use hardcoded config from client.ts
+// Use service role if provided via env to bypass RLS for maintenance actions
 const supabaseUrl = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -32,70 +32,59 @@ async function directSQLRemove() {
       console.log(`   Updated: ${post.updated_at}`);
     });
     
-    // Check if the specific post exists
-    const notreMissionPost = allPosts.find(post => post.id === '2e731e37-25d9-4bd0-ad71-2dabed1b5a27');
+    // Target: delete lowercase duplicate post by exact ID
+    const duplicateId = 'f5dc1e2d-5fb4-44f2-968e-81ca4d78261b';
+    const duplicate = allPosts.find(post => post.id === duplicateId);
     
-    if (!notreMissionPost) {
-      console.log('\n❌ POST NOT FOUND: The Notre Mission post is not in this database');
-      console.log('🔍 This might be a different deployment or database');
+    if (!duplicate) {
+      console.log('\n❌ DUPLICATE NOT FOUND: The target post is not in this database');
       return;
     }
     
-    console.log('\n✅ POST FOUND: Updating Notre Mission post...');
-    
-    // Try direct SQL update
-    const { data: updateResult, error: updateError } = await supabase
-      .rpc('update_post_image', {
-        post_id: '2e731e37-25d9-4bd0-ad71-2dabed1b5a27',
-        new_image: null
-      });
-    
-    if (updateError) {
-      console.log('❌ RPC failed, trying direct update...');
-      
-      // Try direct update
-      const { data: directUpdate, error: directError } = await supabase
+    console.log(`\n✅ DUPLICATE FOUND: Deleting post "${duplicate.title}" (${duplicate.id}) ...`);
+
+    // Try RPC first if a SECURITY DEFINER function exists (e.g., delete_post_by_id)
+    let deleteError = null;
+    try {
+      const { error: rpcError } = await supabase.rpc('delete_post_by_id', { post_id: duplicateId });
+      if (rpcError) deleteError = rpcError;
+    } catch (e) {
+      // ignore if function doesn't exist
+    }
+
+    // Fallback to direct delete
+    if (deleteError) {
+      const { error } = await supabase
         .from('posts')
-        .update({ 
-          image: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', '2e731e37-25d9-4bd0-ad71-2dabed1b5a27')
-        .select();
-      
-      if (directError) {
-        console.error('❌ Direct update failed:', directError);
-        return;
-      }
-      
-      console.log('✅ Direct update result:', directUpdate);
-    } else {
-      console.log('✅ RPC update result:', updateResult);
+        .delete()
+        .eq('id', duplicateId);
+      deleteError = error || null;
     }
     
-    // Verify the update
-    const { data: verifyPost, error: verifyError } = await supabase
+    if (deleteError) {
+      console.error('❌ Error deleting post:', deleteError);
+      console.error('ℹ️ If RLS blocks deletion, run fix-admin-role.sql to grant an admin role or create a SECURITY DEFINER function to perform deletion.');
+      return;
+    }
+    
+    console.log('✅ Post deleted successfully');
+    
+    // Verify deletion
+    const { data: verify, error: verifyError } = await supabase
       .from('posts')
-      .select('id, title, image, status')
-      .eq('id', '2e731e37-25d9-4bd0-ad71-2dabed1b5a27')
-      .single();
+      .select('id')
+      .eq('id', duplicateId)
+      .maybeSingle();
     
     if (verifyError) {
-      console.error('❌ Error verifying update:', verifyError);
+      console.error('❌ Error verifying deletion:', verifyError);
       return;
     }
     
-    console.log('\n📝 FINAL POST STATE:');
-    console.log(`   ID: ${verifyPost.id}`);
-    console.log(`   Title: "${verifyPost.title}"`);
-    console.log(`   Image: ${verifyPost.image || 'NULL'}`);
-    console.log(`   Status: ${verifyPost.status}`);
-    
-    if (verifyPost.image === null) {
-      console.log('✅ SUCCESS: Cover image removed!');
+    if (!verify) {
+      console.log('✅ Verification passed: Post no longer exists');
     } else {
-      console.log('❌ FAILED: Cover image still present');
-      console.log('🔍 This might be a different database than the one you\'re viewing');
+      console.log('❌ Verification failed: Post still exists');
     }
     
   } catch (error) {
