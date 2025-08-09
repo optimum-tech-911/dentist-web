@@ -15,7 +15,10 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
   if (!imageUrl) return imageUrl;
 
   // Already a public gallery URL
-  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
+  if (
+    imageUrl.includes('/storage/v1/object/public/gallery/') ||
+    imageUrl.startsWith('http') && imageUrl.includes('/storage/v1/object/public/gallery/')
+  ) {
     return imageUrl;
   }
 
@@ -48,6 +51,21 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
       }
     } catch (error) {
       console.log('Could not resolve raw gallery path to public URL:', error);
+    }
+  }
+
+  // Bare path (bucket path without explicit 'gallery/' prefix), e.g. "abc-uuid/folder/file.png"
+  // Only handle if it's not an absolute URL and not starting with a root slash
+  if (!imageUrl.includes('://') && !imageUrl.startsWith('/')) {
+    try {
+      const { data } = supabase.storage
+        .from('gallery')
+        .getPublicUrl(imageUrl);
+      if (data?.publicUrl) {
+        return data.publicUrl;
+      }
+    } catch (error) {
+      console.log('Could not resolve bare bucket path to public URL:', error);
     }
   }
 

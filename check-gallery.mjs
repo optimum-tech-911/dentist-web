@@ -1,49 +1,64 @@
 #!/usr/bin/env node
 
 import { createClient } from '@supabase/supabase-js';
+import fetch from 'node-fetch';
 
-// Supabase configuration
-const SUPABASE_URL = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
+const supabaseUrl = 'https://cmcfeiskfdbsefzqywbk.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNtY2ZlaXNrZmRic2VmenF5d2JrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwOTAwMzIsImV4cCI6MjA2NzY2NjAzMn0.xVUK-YzeIWDMmunYQj86hAsWja6nh_iDAVs2ViAspjU';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+async function resolveImageUrl(imageUrl) {
+  if (!imageUrl) return imageUrl;
+  if (imageUrl.includes('/storage/v1/object/public/gallery/')) return imageUrl;
 
-async function checkGallery() {
+  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
+    const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
+    if (urlParts) {
+      const { data } = supabase.storage.from('gallery').getPublicUrl(urlParts);
+      if (data?.publicUrl) return data.publicUrl;
+    }
+  }
+
+  if (imageUrl.startsWith('gallery/') || imageUrl.startsWith('/gallery/')) {
+    const pathInBucket = imageUrl.replace(/^\/?gallery\//, '');
+    const { data } = supabase.storage.from('gallery').getPublicUrl(pathInBucket);
+    if (data?.publicUrl) return data.publicUrl;
+  }
+
+  if (!imageUrl.includes('://') && !imageUrl.startsWith('/')) {
+    const { data } = supabase.storage.from('gallery').getPublicUrl(imageUrl);
+    if (data?.publicUrl) return data.publicUrl;
+  }
+
+  return imageUrl;
+}
+
+async function headOk(url) {
   try {
-    console.log('🔍 Checking gallery images...');
-    
-    // Get all gallery images
-    const { data: images, error } = await supabase
-      .from('gallery_images')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('❌ Error fetching gallery images:', error);
-      return;
-    }
-    
-    console.log(`📝 Found ${images.length} images in gallery`);
-    
-    if (images.length > 0) {
-      console.log('\n🖼️ Available images:');
-      images.forEach((image, index) => {
-        console.log(`  ${index + 1}. ${image.name}`);
-        console.log(`     File path: ${image.file_path}`);
-        console.log(`     Size: ${image.file_size} bytes`);
-        console.log(`     Type: ${image.file_type}`);
-        console.log(`     Uploaded by: ${image.uploaded_by}`);
-        console.log(`     Created: ${image.created_at}`);
-        console.log('');
-      });
-    } else {
-      console.log('❌ No images found in gallery');
-    }
-    
-  } catch (error) {
-    console.error('❌ Error checking gallery:', error);
+    const res = await fetch(url, { method: 'HEAD' });
+    return res.ok;
+  } catch {
+    return false;
   }
 }
 
-// Run the check
-checkGallery();
+async function main() {
+  console.log('🔍 Verifying blog cover images...');
+  const { data: posts, error } = await supabase
+    .from('posts')
+    .select('id, title, image, status')
+    .eq('status', 'approved')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  for (const post of posts) {
+    const resolved = await resolveImageUrl(post.image);
+    const ok = resolved ? await headOk(resolved) : false;
+    console.log(`- ${post.title}: ${post.image} -> ${resolved} ${ok ? '✅' : '❌'}`);
+  }
+}
+
+main().catch(err => {
+  console.error('Error:', err);
+  process.exit(1);
+});
