@@ -12,16 +12,21 @@ import { Footer } from '@/components/Footer';
 
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
-  // Check if it's a gallery signed URL (legacy support)
+  if (!imageUrl) return imageUrl;
+
+  // Already a public gallery URL
+  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
+    return imageUrl;
+  }
+
+  // Legacy signed URL -> convert to public URL
   if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
     try {
       const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
       if (urlParts) {
-        // Convert to public URL (no expiry)
         const { data } = supabase.storage
           .from('gallery')
           .getPublicUrl(urlParts);
-        
         if (data?.publicUrl) {
           return data.publicUrl;
         }
@@ -30,6 +35,23 @@ const refreshImageUrl = async (imageUrl: string): Promise<string> => {
       console.log('Could not convert to public URL, using original:', error);
     }
   }
+
+  // Raw bucket path like "gallery/folder/file.jpg" or "/gallery/folder/file.jpg"
+  if (imageUrl.startsWith('gallery/') || imageUrl.startsWith('/gallery/')) {
+    try {
+      const pathInBucket = imageUrl.replace(/^\/?gallery\//, '');
+      const { data } = supabase.storage
+        .from('gallery')
+        .getPublicUrl(pathInBucket);
+      if (data?.publicUrl) {
+        return data.publicUrl;
+      }
+    } catch (error) {
+      console.log('Could not resolve raw gallery path to public URL:', error);
+    }
+  }
+
+  // Fallback to original URL
   return imageUrl;
 };
 
