@@ -10,6 +10,7 @@ import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
 import { BulletproofImage } from '@/components/BulletproofImage';
+import { convertToPublicUrl } from '@/lib/utils';
 
 // Map categories to consistent badge colors
 const getCategoryBadgeClasses = (category: string) => {
@@ -30,18 +31,6 @@ const getCategoryBadgeClasses = (category: string) => {
     return 'bg-red-100 text-red-800 border-red-200';
   }
   return 'bg-gray-100 text-gray-800 border-gray-200';
-};
-
-// Extract first image URL from HTML or markdown content as a fallback cover
-const extractFirstImageFromContent = (content: string): string | null => {
-  if (!content) return null;
-  // Try HTML <img src="...">
-  const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
-  if (htmlMatch && htmlMatch[1]) return htmlMatch[1];
-  // Try Markdown ![alt](url)
-  const mdMatch = content.match(/!\[[^\]]*\]\(([^)]+)\)/);
-  if (mdMatch && mdMatch[1]) return mdMatch[1];
-  return null;
 };
 
 // Helper function to refresh gallery image URLs
@@ -341,33 +330,36 @@ export default function Blog() {
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {(() => {
-                      const fallbackFromContent = extractFirstImageFromContent(post.content || '');
-                      const computedCover = (refreshedImageUrls[post.id] || post.image || fallbackFromContent);
+                      const rawCover = refreshedImageUrls[post.id] || post.image || '';
+                      const computedCover = convertToPublicUrl(rawCover);
+                      if (computedCover) {
+                        try { console.log('Blog cover for', post.id, post.title, '->', computedCover); } catch {}
+                      }
                       if (!computedCover || computedCover === 'gallery/user/cover.jpg') return null;
                       return (
-                      <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <BulletproofImage
-                          src={computedCover}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                          fallbackSrc="/placeholder.svg"
-                          retryOnError={true}
-                          maxRetries={2}
-                          timeout={8000}
-                        />
-                      </div>
-                      );
-                    })()}
-                    <CardHeader>
-                      <div className="flex justify-between items-start mb-2">
-                        <Badge variant="outline" className={getCategoryBadgeClasses(post.category)}>
-                          {post.category}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <CardTitle className="line-clamp-2">{post.title}</CardTitle>
+                        <div className="aspect-video overflow-hidden rounded-t-lg">
+                          <BulletproofImage
+                            src={computedCover}
+                            alt={post.title}
+                            className="w-full h-full object-cover"
+                            fallbackSrc="/placeholder.svg"
+                            retryOnError={true}
+                            maxRetries={2}
+                            timeout={8000}
+                          />
+                        </div>
+                       );
+                     })()}
+                     <CardHeader>
+                       <div className="flex justify-between items-start mb-2">
+                         <Badge variant="outline" className={getCategoryBadgeClasses(post.category)}>
+                           {post.category}
+                         </Badge>
+                         <span className="text-sm text-muted-foreground">
+                           {new Date(post.created_at).toLocaleDateString()}
+                         </span>
+                       </div>
+                       <CardTitle className="line-clamp-2">{post.title}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="prose max-w-none">
