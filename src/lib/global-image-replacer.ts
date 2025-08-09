@@ -206,12 +206,12 @@ export function useGlobalImageReplacement() {
 /**
  * Auto-initialize on app start
  */
-if (typeof window !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      GlobalImageReplacer.initialize();
-    });
-  } else {
-    GlobalImageReplacer.initialize();
-  }
-}
+// if (typeof window !== 'undefined') {
+//   if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', () => {
+//       GlobalImageReplacer.initialize();
+//     });
+//   } else {
+//     GlobalImageReplacer.initialize();
+//   }
+// }
