@@ -8,6 +8,7 @@ import { Eye, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { convertToPublicUrl } from '@/lib/utils';
+import { getCategoryBadgeClass } from '@/lib/categories';
 
 
 interface Post {
@@ -109,7 +110,7 @@ export default function ApprovedPosts() {
                       By {post.author_email} • {new Date(post.created_at).toLocaleDateString()}
                     </CardDescription>
                   </div>
-                  <Badge variant="secondary">{post.category}</Badge>
+                  <Badge variant="secondary" className={getCategoryBadgeClass(post.category)}>{post.category}</Badge>
                 </div>
               </CardHeader>
               <CardContent>
