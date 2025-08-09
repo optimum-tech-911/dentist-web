@@ -32,6 +32,18 @@ const getCategoryBadgeClasses = (category: string) => {
   return 'bg-gray-100 text-gray-800 border-gray-200';
 };
 
+// Extract first image URL from HTML or markdown content as a fallback cover
+const extractFirstImageFromContent = (content: string): string | null => {
+  if (!content) return null;
+  // Try HTML <img src="...">
+  const htmlMatch = content.match(/<img[^>]+src=["']([^"']+)["']/i);
+  if (htmlMatch && htmlMatch[1]) return htmlMatch[1];
+  // Try Markdown ![alt](url)
+  const mdMatch = content.match(/!\[[^\]]*\]\(([^)]+)\)/);
+  if (mdMatch && mdMatch[1]) return mdMatch[1];
+  return null;
+};
+
 // Helper function to refresh gallery image URLs
 const refreshImageUrl = async (imageUrl: string): Promise<string> => {
   if (!imageUrl) return imageUrl;
@@ -328,10 +340,14 @@ export default function Blog() {
               {posts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
-                    {post.image && post.image !== 'gallery/user/cover.jpg' && (
+                    {(() => {
+                      const fallbackFromContent = extractFirstImageFromContent(post.content || '');
+                      const computedCover = (refreshedImageUrls[post.id] || post.image || fallbackFromContent);
+                      if (!computedCover || computedCover === 'gallery/user/cover.jpg') return null;
+                      return (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <BulletproofImage
-                          src={refreshedImageUrls[post.id] || post.image}
+                          src={computedCover}
                           alt={post.title}
                           className="w-full h-full object-cover"
                           fallbackSrc="/placeholder.svg"
@@ -340,7 +356,8 @@ export default function Blog() {
                           timeout={8000}
                         />
                       </div>
-                    )}
+                      );
+                    })()}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="outline" className={getCategoryBadgeClasses(post.category)}>
