@@ -12,34 +12,6 @@ import { Footer } from '@/components/Footer';
 
 import { convertToPublicUrl } from '@/lib/utils';
 
-// Helper function to convert signed URLs to public URLs
-const convertToPublicUrl = (imageUrl: string): string => {
-  if (!imageUrl) return imageUrl;
-  
-  // If it's already a public URL, return as-is
-  if (imageUrl.includes('/storage/v1/object/public/gallery/')) {
-    return imageUrl;
-  }
-  
-  // If it's a signed URL, convert to public URL
-  if (imageUrl.includes('/storage/v1/object/sign/gallery/')) {
-    try {
-      const urlParts = imageUrl.split('/gallery/')[1]?.split('?')[0];
-      if (urlParts) {
-        const { data } = supabase.storage
-          .from('gallery')
-          .getPublicUrl(urlParts);
-        return data.publicUrl;
-      }
-    } catch (error) {
-      console.log('Could not convert header image to public URL:', error);
-    }
-  }
-  
-  // Return original URL if not a gallery URL
-  return imageUrl;
-};
-
 interface Post {
   id: string;
   title: string;
@@ -254,8 +226,7 @@ export default function Blog() {
               {posts.map((post) => (
                 <Link key={post.id} to={`/blog/${post.id}`}>
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
-                    {/* Cover image display removed - only show content */}
-                    {/* {post.image && (
+                    {post.image && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
                         <img
                           src={convertToPublicUrl(post.image)}
@@ -265,7 +236,7 @@ export default function Blog() {
                           onError={(e) => console.error('❌ Blog cover image failed:', post.image, e)}
                         />
                       </div>
-                    )} */}
+                    )}
                     <CardHeader>
                       <div className="flex justify-between items-start mb-2">
                         <Badge variant="secondary">{post.category}</Badge>
