@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { useAuth } from '@/hooks/useAuth';
 import { Helmet } from 'react-helmet';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 // Map categories to consistent badge colors
 const getCategoryBadgeClasses = (category: string) => {
@@ -275,10 +276,14 @@ export default function BlogPost() {
             </header>
             {post.image && post.image !== 'gallery/user/cover.jpg' && (
               <div className="aspect-video overflow-hidden rounded-lg">
-                <img
+                <BulletproofImage
                   src={refreshedImageUrl || post.image}
                   alt={post.title}
                   className="w-full h-full object-cover"
+                  fallbackSrc="/placeholder.svg"
+                  retryOnError={true}
+                  maxRetries={2}
+                  timeout={8000}
                 />
               </div>
             )}

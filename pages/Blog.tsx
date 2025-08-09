@@ -9,6 +9,7 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 import { Helmet } from 'react-helmet';
 import { useToast } from '@/hooks/use-toast';
 import { Footer } from '@/components/Footer';
+import { BulletproofImage } from '@/components/BulletproofImage';
 
 // Map categories to consistent badge colors
 const getCategoryBadgeClasses = (category: string) => {
@@ -329,14 +330,14 @@ export default function Blog() {
                   <Card className="h-full transition-all hover:shadow-lg hover:scale-105">
                     {post.image && post.image !== 'gallery/user/cover.jpg' && (
                       <div className="aspect-video overflow-hidden rounded-t-lg">
-                        <img
+                        <BulletproofImage
                           src={refreshedImageUrls[post.id] || post.image}
                           alt={post.title}
                           className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
+                          fallbackSrc="/placeholder.svg"
+                          retryOnError={true}
+                          maxRetries={2}
+                          timeout={8000}
                         />
                       </div>
                     )}
