@@ -82,35 +82,21 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
 
   // Convert URL to public URL
   function convertToPublicUrl(url: string): string {
-    console.log(`🔄 convertToPublicUrl input: "${url}"`);
-    
-    if (!url) {
-      console.log(`❌ Empty URL, returning empty string`);
-      return '';
-    }
+    if (!url) return '';
     
     // Already a full URL
-    if (url.startsWith('http')) {
-      console.log(`✅ Already full URL: ${url}`);
-      return url;
-    }
+    if (url.startsWith('http')) return url;
     
     // Already a public URL
-    if (url.includes('/object/public/')) {
-      console.log(`✅ Already public URL: ${url}`);
-      return url;
-    }
+    if (url.includes('/object/public/')) return url;
     
     // Convert signed URL
     if (url.includes('/object/sign/')) {
-      console.log(`🔄 Converting signed URL: ${url}`);
       try {
         const urlParts = url.split('/gallery/')[1]?.split('?')[0];
         if (urlParts) {
           const { data } = supabase.storage.from('gallery').getPublicUrl(urlParts);
-          const result = data?.publicUrl || url;
-          console.log(`✅ Converted signed URL to: ${result}`);
-          return result;
+          return data?.publicUrl || url;
         }
       } catch (error) {
         console.warn('Error converting signed URL:', error);
@@ -121,20 +107,14 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
     let cleanPath = url;
     if (url.startsWith('gallery/')) {
       cleanPath = url.substring(8);
-      console.log(`🔄 Removed gallery/ prefix: ${url} → ${cleanPath}`);
     }
     if (url.startsWith('/')) {
       cleanPath = url.substring(1);
-      console.log(`🔄 Removed leading slash: ${url} → ${cleanPath}`);
     }
-    
-    console.log(`🔄 Generating public URL for clean path: "${cleanPath}"`);
     
     try {
       const { data } = supabase.storage.from('gallery').getPublicUrl(cleanPath);
-      const result = data?.publicUrl || '';
-      console.log(`✅ Generated public URL: ${result}`);
-      return result;
+      return data?.publicUrl || '';
     } catch (error) {
       console.warn('Error generating public URL:', error);
       return '';
@@ -214,21 +194,19 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
       setIsLoading(true);
       setHasError(false);
       
-      console.log(`🔍 Starting image load for: "${title}" with src: ${src}`);
-      
-      // Skip cache check for now to debug
-      // const cachedImage = await getCachedImage(src);
-      // if (cachedImage && isMounted) {
-      //   console.log(`📦 Using cached image for "${title}"`);
-      //   setCurrentSrc(cachedImage);
-      //   setIsLoading(false);
-      //   setHasError(false);
-      //   setFallbackLevel(0);
-      //   return;
-      // }
+      // Check cache first
+      const cachedImage = await getCachedImage(src);
+      if (cachedImage && isMounted) {
+        console.log(`📦 Using cached image for "${title}"`);
+        setCurrentSrc(cachedImage);
+        setIsLoading(false);
+        setHasError(false);
+        setFallbackLevel(0);
+        return;
+      }
       
       const fallbackUrls = getFallbackUrls(src);
-      console.log(`🔍 Aggressively searching for exact image "${title}" with ${fallbackUrls.length} URL variants:`, fallbackUrls);
+      console.log(`🔍 Loading image "${title}" with ${fallbackUrls.length} fallback options`);
       
       // Try each URL with increasing timeout (first attempts are faster)
       for (let i = 0; i < fallbackUrls.length; i++) {
@@ -237,12 +215,10 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
         const url = fallbackUrls[i];
         const timeout = Math.min(5000 + (i * 2000), 20000); // Progressively longer timeouts
         
-        console.log(`🔎 Attempt ${i + 1}/${fallbackUrls.length}: ${url} (timeout: ${timeout}ms)`);
-        
         const success = await tryLoadImage(url, timeout);
         
         if (success && isMounted) {
-          console.log(`✅ FOUND THE EXACT IMAGE! URL ${i + 1}: ${url}`);
+          console.log(`✅ Found image "${title}" via method ${i + 1}`);
           setCurrentSrc(url);
           setIsLoading(false);
           setHasError(false);
@@ -251,26 +227,21 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
           // Cache successful URL
           await cacheImage(url);
           return;
-        } else {
-          console.log(`❌ Failed to load URL ${i + 1}: ${url}`);
         }
       }
       
       // Try signed URLs as additional fallback
       if (!src.startsWith('http') && isMounted) {
-        console.log(`🔐 Trying signed URLs for: ${src}`);
         const signedUrls = await getSignedUrl(src);
         
         for (let i = 0; i < signedUrls.length; i++) {
           if (!isMounted) return;
           
           const url = signedUrls[i];
-          console.log(`🔐 Signed URL attempt ${i + 1}/${signedUrls.length}: ${url}`);
-          
           const success = await tryLoadImage(url, 15000);
           
           if (success && isMounted) {
-            console.log(`✅ FOUND WITH SIGNED URL! ${url}`);
+            console.log(`✅ Found image "${title}" via signed URL`);
             setCurrentSrc(url);
             setIsLoading(false);
             setHasError(false);
@@ -278,15 +249,13 @@ export function BulletproofBlogImage({ src, alt, className = '', title = '', pos
             
             await cacheImage(url);
             return;
-          } else {
-            console.log(`❌ Failed signed URL ${i + 1}: ${url}`);
           }
         }
       }
       
       // If we still haven't found the image, mark as failed
       if (isMounted) {
-        console.error(`❌ EXACT IMAGE NOT FOUND after ${fallbackUrls.length} attempts: ${src}`);
+        console.warn(`⚠️ Could not find image: ${src}`);
         setHasError(true);
         setIsLoading(false);
         setFallbackLevel(999);
